@@ -67,11 +67,17 @@ INSTALLED_APPS = [
     "crispy_bootstrap5",
     "django_celery_results",
     "storages",
-    "ratelimit",
     # Local
     "disputes",
     "dashboard",
 ]
+
+# Optional apps - may not be installed
+try:
+    import ratelimit
+    INSTALLED_APPS.append("ratelimit")
+except ImportError:
+    pass
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
