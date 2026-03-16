@@ -1,0 +1,164 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Dispute #{{ dispute.id }} – Mediators on Call{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Dispute #{{ dispute.id }}</h1>
+    <a href="{% url 'dashboard:dispute_list' %}" class="btn btn-outline-secondary">Back to List</a>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header">Applicant</div>
+            <div class="card-body">
+                <p class="mb-1"><strong>Name:</strong> {{ dispute.applicant_name }} {{ dispute.applicant_surname }}</p>
+                <p class="mb-1"><strong>Cell:</strong> {{ dispute.applicant_cell }}</p>
+                <p class="mb-0"><strong>Email:</strong> {{ dispute.applicant_email|default:"—" }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header">Respondent</div>
+            <div class="card-body">
+                {% if dispute.respondent_type == 'ind' %}
+                    <p class="mb-1"><strong>Name:</strong> {{ dispute.respondent_name }} {{ dispute.respondent_surname }}</p>
+                    <p class="mb-1"><strong>Cell:</strong> {{ dispute.respondent_cell|default:"—" }}</p>
+                {% else %}
+                    <p class="mb-1"><strong>Business:</strong> {{ dispute.business_name }}</p>
+                    <p class="mb-1"><strong>Owner:</strong> {{ dispute.owner_name }} {{ dispute.owner_surname }}</p>
+                    <p class="mb-1"><strong>Cell:</strong> {{ dispute.business_cell|default:"—" }}</p>
+                {% endif %}
+                <p class="mb-0"><strong>Email:</strong> {{ dispute.respondent_email|default:"—" }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">Dispute Details</div>
+    <div class="card-body">
+        <p class="mb-1"><strong>Type:</strong> {{ dispute.get_dispute_type_display }}</p>
+        <p class="mb-1"><strong>Description:</strong></p>
+        <div class="border p-3 bg-light mb-2">{{ dispute.description|linebreaks }}</div>
+        <p class="mb-1"><strong>Status:</strong> <span class="badge bg-info">{{ dispute.get_status_display }}</span></p>
+        <p class="mb-1"><strong>Created:</strong> {{ dispute.created_at }}</p>
+        {% if dispute.screened_at %}
+            <p class="mb-1"><strong>Screened by:</strong> {{ dispute.screened_by.get_full_name|default:dispute.screened_by.username }} on {{ dispute.screened_at }}</p>
+            <p class="mb-0"><strong>Screening notes:</strong> {{ dispute.screening_notes|default:"—" }}</p>
+        {% endif %}
+    </div>
+</div>
+
+{% with docs=dispute.documents.all %}
+{% if docs %}
+<div class="card mb-3">
+    <div class="card-header">Applicant Documents</div>
+    <div class="card-body">
+        <ul class="mb-0">
+            {% for doc in docs %}
+                <li><a href="{{ doc.file.url }}" target="_blank" rel="noopener">{{ doc.file.name }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+{% endwith %}
+
+{% if dispute.response %}
+<div class="card mb-3">
+    <div class="card-header">Respondent Response</div>
+    <div class="card-body">
+        <p class="mb-1"><strong>Consent:</strong> {{ dispute.response.consent_to_mediate|yesno:"Yes,No" }}</p>
+        <p class="mb-1"><strong>Agreed to rules:</strong> {{ dispute.response.agreed_to_rules|yesno:"Yes,No" }}</p>
+        <p class="mb-1"><strong>Defence:</strong></p>
+        <div class="border p-3 bg-light mb-2">{{ dispute.response.defence_explanation|linebreaks }}</div>
+        {% with resp_docs=dispute.response.documents.all %}
+        {% if resp_docs %}
+        <p class="mb-1"><strong>Supporting docs:</strong></p>
+        <ul class="mb-0">
+            {% for doc in resp_docs %}
+                <li><a href="{{ doc.file.url }}" target="_blank" rel="noopener">{{ doc.file.name }}</a></li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+    </div>
+</div>
+{% endif %}
+
+{% if dispute.mediation %}
+<div class="card mb-3">
+    <div class="card-header">Mediation Session</div>
+    <div class="card-body">
+        {% if dispute.mediation.mediator %}
+        <p class="mb-1"><strong>Mediator:</strong> {{ dispute.mediation.mediator.user.get_full_name|default:dispute.mediation.mediator.user.username }}</p>
+        {% endif %}
+        <p class="mb-1"><strong>Scheduled:</strong> {{ dispute.mediation.scheduled_at }}</p>
+        <p class="mb-1"><strong>Zoom link:</strong> <a href="{{ dispute.mediation.zoom_link }}" target="_blank" rel="noopener">{{ dispute.mediation.zoom_link }}</a></p>
+        {% if dispute.mediation.outcome %}
+        <p class="mb-1"><strong>Outcome:</strong></p>
+        <div class="border p-3 bg-light mb-2">{{ dispute.mediation.outcome|linebreaks }}</div>
+        {% endif %}
+        {% if dispute.mediation.outcome_file %}
+        <p class="mb-0"><a href="{{ dispute.mediation.outcome_file.url }}" target="_blank" rel="noopener">Outcome Document</a></p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% if dispute.mediation and dispute.status == 'arbitration' and dispute.mediation.arbitration_agreement %}
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Arbitration Documents</span>
+        <a href="{% url 'dashboard:download_case_file' dispute.id %}" class="btn btn-sm btn-primary">
+            Download Case File (ZIP)
+        </a>
+    </div>
+    <div class="card-body">
+        <p class="mb-1"><a href="{{ dispute.mediation.arbitration_agreement.url }}" target="_blank" rel="noopener">Arbitration Agreement</a></p>
+        {% if dispute.mediation.pre_arbitration_minute %}
+        <p class="mb-0"><a href="{{ dispute.mediation.pre_arbitration_minute.url }}" target="_blank" rel="noopener">Pre‑Arbitration Minute</a></p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{% if dispute.audit_logs.all %}
+<div class="card mb-3">
+    <div class="card-header">Audit Log</div>
+    <div class="card-body">
+        <table class="table table-sm mb-0">
+            <thead>
+                <tr>
+                    <th>When</th>
+                    <th>Who</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in dispute.audit_logs.all %}
+                <tr>
+                    <td>{{ entry.timestamp }}</td>
+                    <td>
+                        {% if entry.user %}
+                            {{ entry.user.get_full_name|default:entry.user.username }}
+                        {% else %}
+                            System
+                        {% endif %}
+                    </td>
+                    <td>{{ entry.action }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="text-muted">No audit entries yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

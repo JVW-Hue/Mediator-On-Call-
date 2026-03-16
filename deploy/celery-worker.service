@@ -1,0 +1,19 @@
+[Unit]
+Description=Celery Worker for Mediators on Call
+After=network.target redis.service
+Requires=redis.service
+
+[Service]
+Type=forking
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/mediators-on-call
+Environment=DJANGO_SETTINGS_MODULE=mediators_on_call.settings
+Environment="PATH=/opt/mediators-on-call/venv/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStart=/bin/sh -c '${VENV}/celery -A mediators_on_call worker --loglevel=info --logfile=/var/log/celery/worker.log --pidfile=/var/run/celery/worker.pid --detach'
+ExecStop=/bin/sh -c '${VENV}/celery -A mediators_on_call control shutdown'
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

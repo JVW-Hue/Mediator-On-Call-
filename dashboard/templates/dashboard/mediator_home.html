@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Mediator Dashboard – Mediators on Call{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Mediator Dashboard – {{ mediator.user.get_full_name }}</h2>
+        <a href="{% url 'dashboard:mediator_sessions' %}" class="btn btn-primary">View All My Sessions</a>
+    </div>
+
+    <h3>Upcoming Sessions</h3>
+    {% if upcoming %}
+    <div class="row">
+        {% for session in upcoming %}
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Dispute #{{ session.dispute.id }}</h5>
+                    <p class="card-text">
+                        <strong>Date:</strong> {{ session.scheduled_at }}<br>
+                        <strong>Applicant:</strong> {{ session.dispute.applicant_name }} {{ session.dispute.applicant_surname }}<br>
+                        <strong>Respondent:</strong>
+                        {% if session.dispute.respondent_type == 'ind' %}
+                            {{ session.dispute.respondent_name }} {{ session.dispute.respondent_surname }}
+                        {% else %}
+                            {{ session.dispute.business_name }}
+                        {% endif %}
+                    </p>
+                    <a href="{{ session.zoom_link }}" target="_blank" class="btn btn-primary me-2 mb-2">Join Zoom</a>
+                    <a href="{% url 'dashboard:submit_mediation_outcome' session.id %}" class="btn btn-outline-success mb-2">Submit Outcome</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+        <p class="text-muted">No upcoming sessions.</p>
+    {% endif %}
+
+    <h3 class="mt-5">Past Sessions</h3>
+    {% if past %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Dispute #</th>
+                <th>Date</th>
+                <th>Outcome</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for session in past %}
+            <tr>
+                <td>{{ session.dispute.id }}</td>
+                <td>{{ session.scheduled_at }}</td>
+                <td>{{ session.outcome|default:"–"|truncatechars:80 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p class="text-muted">No past sessions.</p>
+    {% endif %}
+</div>
+{% endblock %}
+

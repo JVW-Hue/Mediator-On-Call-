@@ -1,0 +1,18 @@
+[Unit]
+Description=Celery Beat Scheduler for Mediators on Call
+After=network.target redis.service
+Requires=redis.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/mediators-on-call
+Environment=DJANGO_SETTINGS_MODULE=mediators_on_call.settings
+Environment="PATH=/opt/mediators-on-call/venv/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStart=/bin/sh -c '${VENV}/celery -A mediators_on_call beat --loglevel=info --logfile=/var/log/celery/beat.log --pidfile=/var/run/celery/beat.pid'
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

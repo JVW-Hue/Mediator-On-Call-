@@ -1,0 +1,181 @@
+{% extends "dashboard/base.html" %}
+
+{% block extra_css %}
+<style>
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 0.85rem;
+    }
+    .status-legal { background: #e3f2fd; color: #1565c0; }
+    .status-court { background: #f3e5f5; color: #7b1fa2; }
+    .status-police { background: #ffebee; color: #c62828; }
+    .status-labour { background: #fff3e0; color: #ef6c00; }
+    .status-family { background: #fce4ec; color: #c2185b; }
+    .status-foresolve { background: #e8f5e9; color: #2e7d32; }
+    .status-other { background: #eceff1; color: #546e7a; }
+    
+    .case-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .case-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    }
+    
+    .table-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        overflow: hidden;
+    }
+    
+    .stats-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+</style>
+{% endblock %}
+
+{% block title %}{{ page_title }} – Mediators on Call{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4">
+    <div>
+        <h1 class="h2">{{ page_title }}</h1>
+        <p class="text-muted mb-0">Cases that have been referred to external departments</p>
+    </div>
+    <div class="btn-group">
+        <a href="{% url 'dashboard:admin_home' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+        <a href="{% url 'dashboard:mediatable_cases' %}" class="btn btn-outline-success">
+            <i class="bi bi-check-circle"></i> Mediatable Cases
+        </a>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="case-card card bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <div class="card-body text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0 opacity-75">Total Referred</h6>
+                        <h2 class="mb-0">{{ referred_cases.count }}</h2>
+                    </div>
+                    <div class="stats-icon bg-white bg-opacity-25">
+                        <i class="bi bi-arrow-up-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-9">
+        <div class="row g-3">
+            {% for ref_type, count in referral_stats.items %}
+            <div class="col-6 col-md-3">
+                <div class="case-card card h-100">
+                    <div class="card-body text-center">
+                        <span class="status-badge status-{{ ref_type }}">{{ ref_type|title }}</span>
+                        <h4 class="mt-2 mb-0">{{ count }}</h4>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="table-card card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Dispute ID</th>
+                        <th>Applicant</th>
+                        <th>Respondent</th>
+                        <th>Referred To</th>
+                        <th>Referred By</th>
+                        <th>Date</th>
+                        <th>Notes</th>
+                        <th class="pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for referred in referred_cases %}
+                    <tr>
+                        <td class="ps-4">
+                            <span class="fw-bold">#{{ referred.dispute.id }}</span>
+                        </td>
+                        <td>
+                            <div>{{ referred.dispute.applicant_name }} {{ referred.dispute.applicant_surname }}</div>
+                            <small class="text-muted">{{ referred.dispute.applicant_cell }}</small>
+                        </td>
+                        <td>
+                            {% if referred.dispute.respondent_type == 'bus' %}
+                                <div>{{ referred.dispute.business_name }}</div>
+                            {% else %}
+                                <div>{{ referred.dispute.respondent_name }} {{ referred.dispute.respondent_surname }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="status-badge status-{{ referred.referred_to }}">
+                                {{ referred.get_referred_to_display }}
+                            </span>
+                        </td>
+                        <td>{{ referred.referred_by.get_full_name|default:referred.referred_by.username }}</td>
+                        <td>{{ referred.referred_at|date:"Y-m-d" }}</td>
+                        <td>
+                            {% if referred.notes %}
+                            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="{{ referred.notes }}">
+                                <i class="bi bi-chat-text"></i>
+                            </button>
+                            {% endif %}
+                        </td>
+                        <td class="pe-4">
+                            <a href="{% url 'dashboard:dispute_detail' referred.dispute.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <h4>No referred cases yet</h4>
+                                <p>Cases rejected and referred to external departments will appear here.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

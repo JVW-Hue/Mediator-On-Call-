@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Mediation Outcome – Mediators on Call{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <h2 class="mb-4">Mediation Outcome</h2>
+        
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Dispute Details</h5>
+                <p><strong>Applicant:</strong> {{ dispute.applicant_name }} {{ dispute.applicant_surname }}</p>
+                <p><strong>Respondent:</strong> 
+                    {% if dispute.respondent_type == 'ind' %}
+                        {{ dispute.respondent_name }} {{ dispute.respondent_surname }}
+                    {% else %}
+                        {{ dispute.business_name }}
+                    {% endif %}
+                </p>
+                <p><strong>Dispute Type:</strong> {{ dispute.get_dispute_type_display }}</p>
+                <p><strong>Status:</strong> {{ dispute.get_status_display }}</p>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Mediation Session</h5>
+                <p><strong>Date:</strong> {{ session.scheduled_at|date:"F j, Y, g:i a" }}</p>
+                {% if session.zoom_link %}
+                <p><strong>Zoom Link:</strong> <a href="{{ session.zoom_link }}" target="_blank">{{ session.zoom_link }}</a></p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Outcome</h5>
+                {% if session.outcome %}
+                    <p class="card-text">{{ session.outcome|linebreaks }}</p>
+                {% else %}
+                    <p class="text-muted">No outcome details provided.</p>
+                {% endif %}
+                
+                {% if session.outcome_file %}
+                    <p class="mt-3">
+                        <strong>Attached Document:</strong> 
+                        <a href="{{ session.outcome_file.url }}" class="btn btn-sm btn-primary" download>
+                            Download Document
+                        </a>
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if dispute.status == 'arbitration' %}
+        <div class="alert alert-info">
+            <strong>Note:</strong> This dispute has been referred to arbitration.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

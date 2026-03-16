@@ -1,0 +1,43 @@
+{% extends "dashboard/base.html" %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">My Sessions</h1>
+    <a href="{% url 'dashboard:mediator_home' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
+</div>
+
+<table class="table table-striped" id="sessionsTable">
+    <thead>
+        <tr>
+            <th>Dispute #</th>
+            <th>Parties</th>
+            <th>Scheduled</th>
+            <th>Status</th>
+            <th>Outcome</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for session in sessions %}
+        <tr>
+            <td>{{ session.dispute.id }}</td>
+            <td>{{ session.dispute.applicant_name }} vs. {% if session.dispute.respondent_name %}{{ session.dispute.respondent_name }}{% else %}{{ session.dispute.business_name }}{% endif %}</td>
+            <td>{{ session.scheduled_at }}</td>
+            <td>{{ session.dispute.get_status_display }}</td>
+            <td>{{ session.outcome|truncatechars:30|default:"—" }}</td>
+            <td><a href="{% url 'dashboard:dispute_detail' session.dispute.pk %}" class="btn btn-sm btn-outline-primary">View</a></td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" class="text-center text-muted">No sessions found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+$(document).ready(function() {
+    $('#sessionsTable').DataTable();
+});
+</script>
+{% endblock %}

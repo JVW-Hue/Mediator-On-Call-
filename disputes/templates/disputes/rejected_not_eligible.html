@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Not Eligible – Mediators on Call{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h4>Dispute Not Eligible for Mediation</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Your dispute cannot be mediated</h5>
+                    <p class="card-text">
+                        After reviewing your request, we have found that your dispute involves 
+                        <strong>{{ dispute.get_dispute_type_display }}</strong> matters.
+                    </p>
+                    <p>
+                        Under South African law, the following types of disputes are not eligible for mediation:
+                    </p>
+                    <ul>
+                        <li>Family matters</li>
+                        <li>Labour/Employment matters</li>
+                        <li>Property matters</li>
+                    </ul>
+                    <p>
+                        Your file has been closed. If you believe this is an error, please contact us.
+                    </p>
+                    <hr>
+                    <p class="text-muted">
+                        Reference Number: {{ dispute.id }}
+                    </p>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'disputes:apply' %}" class="btn btn-primary">Submit New Dispute</a>
+                    <a href="/" class="btn btn-secondary">Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

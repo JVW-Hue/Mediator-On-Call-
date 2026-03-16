@@ -1,0 +1,242 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Disputes – Mediators on Call{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Disputes</h1>
+    <div>
+        {% if current_status %}
+        <a href="{% url 'dashboard:dispute_list' %}" class="btn btn-outline-secondary">Clear Filter</a>
+        {% endif %}
+    </div>
+</div>
+
+{% if duplicates_exist %}
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+    <strong>Warning:</strong> Potential duplicate disputes detected (same applicant name and cell). Please review and delete duplicates.
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
+<table id="disputesTable" class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Applicant</th>
+            <th>Respondent</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for dispute in disputes %}
+        <tr class="{% if dispute.is_duplicate %}table-warning{% endif %}">
+            <td>{{ dispute.id }}</td>
+            <td>
+                {{ dispute.applicant_name }} {{ dispute.applicant_surname }}
+                {% if dispute.is_duplicate %}
+                <span class="badge bg-warning text-dark">Duplicate?</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if dispute.respondent_type == 'ind' %}
+                    {{ dispute.respondent_name }} {{ dispute.respondent_surname }}
+                {% else %}
+                    {{ dispute.business_name }}
+                {% endif %}
+            </td>
+            <td>{{ dispute.get_dispute_type_display }}</td>
+            <td>
+                <span class="badge bg-{% if dispute.status == 'submitted' %}warning{% elif dispute.status == 'forwarded' %}info{% elif dispute.status == 'responded' %}primary{% elif dispute.status == 'mediation_scheduled' %}success{% elif dispute.status == 'closed' %}secondary{% else %}dark{% endif %}">
+                    {{ dispute.get_status_display }}
+                </span>
+            </td>
+            <td>{{ dispute.created_at|date:"Y-m-d" }}</td>
+            <td>
+                {% if dispute.status == 'submitted' %}
+                    <button type="button" class="btn btn-sm btn-outline-primary screen-btn"
+                            data-dispute-id="{{ dispute.id }}"
+                            data-bs-toggle="modal"
+                            data-bs-target="#screeningModal">Screen</button>
+                {% elif dispute.status == 'responded' %}
+                    <button type="button" class="btn btn-sm btn-outline-success assign-btn"
+                            data-dispute-id="{{ dispute.id }}"
+                            data-bs-toggle="modal"
+                            data-bs-target="#assignModal">Assign Mediator</button>
+                {% endif %}
+                <a href="{% url 'dashboard:dispute_detail' dispute.pk %}" class="btn btn-sm btn-outline-secondary">View</a>
+                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ dispute.id }}">Delete</button>
+                
+                <!-- Delete Modal -->
+                <div class="modal fade" id="deleteModal{{ dispute.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Confirm Delete</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                Are you sure you want to delete this dispute? This action cannot be undone.
+                            </div>
+                            <div class="modal-footer">
+                                <form method="post" action="{% url 'dashboard:delete_dispute' dispute.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </form>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Screening Modal -->
+<div class="modal fade" id="screeningModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Screen Dispute #<span id="screenDisputeId"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'dashboard:screen_dispute' %}" id="screeningForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" name="dispute_id" id="screenDisputeIdInput">
+                    <div class="mb-3">
+                        <label class="form-label">Decision</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="decision" id="acceptRadio" value="accept" checked>
+                            <label class="form-check-label" for="acceptRadio">Accept (mediatable)</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="decision" id="rejectRadio" value="reject">
+                            <label class="form-check-label" for="rejectRadio">Reject / Refer to Other</label>
+                        </div>
+                    </div>
+                    <div class="mb-3" id="referralSection" style="display:none;">
+                        <label for="referTo" class="form-label">Refer to (department/person)</label>
+                        <select class="form-select" name="refer_to" id="referTo">
+                            <option value="">-- Select --</option>
+                            <option value="legal">Legal Department</option>
+                            <option value="court">Court</option>
+                            <option value="police">Police</option>
+                            <option value="labour">Labour Relations</option>
+                            <option value="family">Family Court</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <div class="mt-2">
+                            <label for="referNotes" class="form-label">Referral Notes</label>
+                            <textarea class="form-control" name="refer_notes" id="referNotes" rows="2" placeholder="Additional details..."></textarea>
+                        </div>
+                    </div>
+                    <div class="mb-3" id="foresolveOption" style="display:none;">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="offer_foresolve" id="offerForesolve">
+                            <label class="form-check-label" for="offerForesolve">
+                                Offer Foresolve diversion (optional)
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="screeningNotes" class="form-label">Internal Notes</label>
+                        <textarea class="form-control" name="notes" id="screeningNotes" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Mediator Modal -->
+<div class="modal fade" id="assignModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Assign Mediator for Dispute #<span id="assignDisputeId"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'dashboard:assign_mediator' %}" id="assignForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" name="dispute_id" id="assignDisputeIdInput">
+                    <div class="mb-3">
+                        <label for="mediatorSelect" class="form-label">Mediator</label>
+                        <select class="form-select" name="mediator_id" id="mediatorSelect" required>
+                            <option value="">Choose...</option>
+                            {% for mediator in mediators %}
+                                <option value="{{ mediator.id }}">{{ mediator.user.get_full_name|default:mediator.user.username }} ({{ mediator.cell }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sessionDate" class="form-label">Date &amp; Time</label>
+                        <input type="datetime-local" class="form-control" name="scheduled_at" id="sessionDate" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create &amp; Notify</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof $ !== 'undefined') {
+        $('#disputesTable').DataTable();
+    }
+
+    var screeningModal = document.getElementById('screeningModal');
+    if (screeningModal) {
+        screeningModal.addEventListener('show.bs.modal', function(event) {
+            var button = event.relatedTarget;
+            var disputeId = button.getAttribute('data-dispute-id');
+            document.getElementById('screenDisputeId').textContent = disputeId;
+            document.getElementById('screenDisputeIdInput').value = disputeId;
+            document.getElementById('screeningForm').reset();
+            document.getElementById('screenDisputeIdInput').value = disputeId;
+            document.getElementById('acceptRadio').checked = true;
+            document.getElementById('foresolveOption').style.display = 'none';
+            document.getElementById('referralSection').style.display = 'none';
+        });
+    }
+
+    document.querySelectorAll('input[name="decision"]').forEach(function(radio) {
+        radio.addEventListener('change', function(e) {
+            if (e.target.value === 'reject') {
+                document.getElementById('foresolveOption').style.display = 'block';
+                document.getElementById('referralSection').style.display = 'block';
+            } else {
+                document.getElementById('foresolveOption').style.display = 'none';
+                document.getElementById('referralSection').style.display = 'none';
+            }
+        });
+    });
+
+    var assignModal = document.getElementById('assignModal');
+    if (assignModal) {
+        assignModal.addEventListener('show.bs.modal', function(event) {
+            var button = event.relatedTarget;
+            var disputeId = button.getAttribute('data-dispute-id');
+            document.getElementById('assignDisputeId').textContent = disputeId;
+            document.getElementById('assignDisputeIdInput').value = disputeId;
+            document.getElementById('assignForm').reset();
+            document.getElementById('assignDisputeIdInput').value = disputeId;
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Respond to Dispute – Mediators on Call{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <h2 class="mb-4">Respond to Dispute</h2>
+        <p class="text-muted">
+            Please review the dispute details and indicate whether you consent to mediation.
+        </p>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Dispute Summary</h5>
+                <p><strong>Applicant:</strong> {{ dispute.applicant_name }} {{ dispute.applicant_surname }}</p>
+                <p><strong>Type:</strong> {{ dispute.get_dispute_type_display }}</p>
+                <p><strong>Description:</strong><br>{{ dispute.description|linebreaks }}</p>
+            </div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <h4 class="mt-4">Supporting Documents (optional)</h4>
+            {{ formset.management_form }}
+            {% for doc_form in formset %}
+                {{ doc_form|crispy }}
+            {% endfor %}
+            <button type="submit" class="btn btn-primary mt-3">Submit Response</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Submit a Dispute – Mediators on Call{% endblock %}
+
+{% block content %}
+<style>
+    .business-fields, .individual-fields {
+        transition: all 0.3s ease;
+    }
+    .form-control.is-invalid {
+        border-color: #dc3545;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    input[type="number"] {
+        -moz-appearance: textfield;
+    }
+</style>
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <h2 class="mb-4">Submit a Dispute for Mediation</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form|crispy }}
+            
+            <div class="mt-4 p-4 bg-light rounded">
+                <h5><i class="bi bi-camera"></i> Take a Photo (Optional)</h5>
+                <p class="text-muted small">Take a photo to support your dispute. Tap the button below to open your camera.</p>
+                <div class="mb-3">
+                    <label for="id_photo" class="btn btn-outline-primary">
+                        <i class="bi bi-camera-fill"></i> Open Camera to Take Photo
+                    </label>
+                    <input type="file" id="id_photo" name="photo" accept="image/*" capture="environment" class="d-none">
+                    <div id="photo-preview" class="mt-2"></div>
+                </div>
+            </div>
+            
+            <h4 class="mt-4">Supporting Documents (optional)</h4>
+            {{ formset.management_form }}
+            {% for doc_form in formset %}
+                {{ doc_form|crispy }}
+            {% endfor %}
+            <button type="submit" class="btn btn-primary mt-3">Submit</button>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('id_photo').addEventListener('change', function(e) {
+    var file = e.target.files[0];
+    if (file) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var preview = document.getElementById('photo-preview');
+            preview.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="max-width: 200px;">';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Show/hide business fields based on respondent type
+function toggleRespondentFields() {
+    var respondentType = document.querySelector('input[name="respondent_type"]:checked');
+    var isBusiness = respondentType && respondentType.value === 'bus';
+    
+    var businessFields = document.querySelectorAll('.business-fields');
+    var individualFields = document.querySelectorAll('.individual-fields');
+    
+    // Try to find parent divs
+    var fields = {{ form.fields.keys|safe }};
+    var businessNames = ['business_name', 'owner_name', 'owner_surname', 'business_cell'];
+    var individualNames = ['respondent_name', 'respondent_surname', 'respondent_cell'];
+    
+    businessNames.forEach(function(name) {
+        var field = document.querySelector('[id="id_' + name + '"]');
+        if (field) {
+            var group = field.closest('.mb-3') || field.parentElement;
+            if (group) {
+                group.style.display = isBusiness ? 'block' : 'none';
+            }
+        }
+    });
+    
+    individualNames.forEach(function(name) {
+        var field = document.querySelector('[id="id_' + name + '"]');
+        if (field) {
+            var group = field.closest('.mb-3') || field.parentElement;
+            if (group) {
+                group.style.display = isBusiness ? 'none' : 'block';
+            }
+        }
+    });
+}
+
+// Add event listeners to radio buttons
+document.querySelectorAll('input[name="respondent_type"]').forEach(function(radio) {
+    radio.addEventListener('change', toggleRespondentFields);
+});
+
+// Run on page load
+document.addEventListener('DOMContentLoaded', toggleRespondentFields);
+
+// Number-only validation for phone fields
+document.querySelectorAll('input[name="applicant_cell"], input[name="respondent_cell"], input[name="business_cell"]').forEach(function(input) {
+    input.addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    });
+});
+</script>
+{% endblock %}

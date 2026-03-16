@@ -1,0 +1,193 @@
+{% extends "dashboard/base.html" %}
+
+{% block extra_css %}
+<style>
+    .mediatable-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .mediatable-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    }
+    
+    .table-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        overflow: hidden;
+    }
+    
+    .stats-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    
+    .status-active { background: #d1e7dd; color: #0f5132; }
+    .status-forwarded { background: #cff4fc; color: #055160; }
+    .status-responded { background: #fff3cd; color: #664d03; }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+    }
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+    
+    .progress-card {
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+</style>
+{% endblock %}
+
+{% block title %}{{ page_title }} – Mediators on Call{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-4">
+    <div>
+        <h1 class="h2">{{ page_title }}</h1>
+        <p class="text-muted mb-0">Cases approved for mediation</p>
+    </div>
+    <div class="btn-group">
+        <a href="{% url 'dashboard:admin_home' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+        <a href="{% url 'dashboard:referred_cases' %}" class="btn btn-outline-dark">
+            <i class="bi bi-arrow-right-circle"></i> Referred Cases
+        </a>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="mediatable-card card bg-gradient text-white" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0 opacity-75">Total Mediatable</h6>
+                        <h2 class="mb-0">{{ mediatable_cases.count }}</h2>
+                    </div>
+                    <div class="stats-icon bg-white bg-opacity-25">
+                        <i class="bi bi-check2-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="row g-3">
+            <div class="col-6 col-md-4">
+                <div class="mediatable-card card h-100">
+                    <div class="card-body text-center">
+                        <span class="badge bg-info">Forwarded</span>
+                        <h3 class="mt-2 mb-0">{{ forwarded_count }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="mediatable-card card h-100">
+                    <div class="card-body text-center">
+                        <span class="badge bg-warning">Responded</span>
+                        <h3 class="mt-2 mb-0">{{ responded_count }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="mediatable-card card h-100">
+                    <div class="card-body text-center">
+                        <span class="badge bg-success">Mediation Scheduled</span>
+                        <h3 class="mt-2 mb-0">{{ scheduled_count }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="table-card card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Dispute ID</th>
+                        <th>Applicant</th>
+                        <th>Respondent</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Accepted By</th>
+                        <th>Date</th>
+                        <th>Notes</th>
+                        <th class="pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for case in mediatable_cases %}
+                    <tr>
+                        <td class="ps-4">
+                            <span class="fw-bold">#{{ case.dispute.id }}</span>
+                        </td>
+                        <td>
+                            <div>{{ case.dispute.applicant_name }} {{ case.dispute.applicant_surname }}</div>
+                            <small class="text-muted">{{ case.dispute.applicant_cell }}</small>
+                        </td>
+                        <td>
+                            {% if case.dispute.respondent_type == 'bus' %}
+                                <div>{{ case.dispute.business_name }}</div>
+                            {% else %}
+                                <div>{{ case.dispute.respondent_name }} {{ case.dispute.respondent_surname }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">{{ case.dispute.get_dispute_type_display }}</span>
+                        </td>
+                        <td>
+                            <span class="badge status-{{ case.dispute.status }}">{{ case.dispute.get_status_display }}</span>
+                        </td>
+                        <td>{{ case.accepted_by.get_full_name|default:case.accepted_by.username }}</td>
+                        <td>{{ case.accepted_at|date:"Y-m-d" }}</td>
+                        <td>
+                            {% if case.notes %}
+                            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="{{ case.notes }}">
+                                <i class="bi bi-chat-text"></i>
+                            </button>
+                            {% endif %}
+                        </td>
+                        <td class="pe-4">
+                            <a href="{% url 'dashboard:dispute_detail' case.dispute.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9">
+                            <div class="empty-state">
+                                <i class="bi bi-check-circle"></i>
+                                <h4>No mediatable cases yet</h4>
+                                <p>Cases approved for mediation will appear here.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,231 @@
+{% extends "dashboard/base.html" %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block title %}Admin Dashboard – Mediators on Call{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Admin Dashboard</h1>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h5 class="mb-3">Quick Actions</h5>
+        <div class="btn-group" role="group">
+            <a href="{% url 'dashboard:dispute_list' %}?status=submitted" class="btn btn-warning">
+                <i class="bi bi-files"></i> Pending Screening
+            </a>
+            <a href="{% url 'dashboard:dispute_list' %}?status=forwarded" class="btn btn-info">
+                <i class="bi bi-send"></i> Awaiting Response
+            </a>
+            <a href="{% url 'dashboard:dispute_list' %}?status=responded" class="btn btn-success">
+                <i class="bi bi-person-plus"></i> Ready for Mediation
+            </a>
+            <a href="{% url 'dashboard:dispute_list' %}?status=mediation_scheduled" class="btn btn-primary">
+                <i class="bi bi-play-circle"></i> Active Mediations
+            </a>
+            <a href="{% url 'dashboard:dispute_list' %}?status=rejected" class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i> Rejected/Closed
+            </a>
+            <a href="{% url 'dashboard:referred_cases' %}" class="btn btn-dark">
+                <i class="bi bi-arrow-right-circle"></i> Referred Cases
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-2 mb-3">
+        <a href="{% url 'dashboard:dispute_list' %}" class="text-decoration-none">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Total Disputes</h5>
+                    <p class="card-text display-6">{{ total_disputes }}</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-2 mb-3">
+        <a href="{% url 'dashboard:dispute_list' %}?status=submitted" class="text-decoration-none">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Screening</h5>
+                    <p class="card-text display-6">{{ pending_screening }}</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-2 mb-3">
+        <a href="{% url 'dashboard:mediatable_cases' %}" class="text-decoration-none">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Mediatable</h5>
+                    <p class="card-text display-6">{{ mediatable_cases }}</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-2 mb-3">
+        <a href="{% url 'dashboard:dispute_list' %}?status=mediation_scheduled" class="text-decoration-none">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">Active Mediations</h5>
+                    <p class="card-text display-6">{{ active_mediations }}</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-2 mb-3">
+        <a href="{% url 'dashboard:referred_cases' %}" class="text-decoration-none">
+            <div class="card text-white bg-dark">
+                <div class="card-body">
+                    <h5 class="card-title">Referred Cases</h5>
+                    <p class="card-text display-6">{{ referred_cases }}</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-2 mb-3">
+        <a href="{% url 'dashboard:dispute_list' %}?status=closed" class="text-decoration-none">
+            <div class="card text-white bg-secondary">
+                <div class="card-body">
+                    <h5 class="card-title">Closed Cases</h5>
+                    <p class="card-text display-6">{{ closed_cases }}</p>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-header">
+                Disputes by Type
+            </div>
+            <div class="card-body">
+                <canvas id="typeChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-header">
+                Recent Disputes
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Applicant</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dispute in recent_disputes %}
+                        <tr>
+                            <td>{{ dispute.id }}</td>
+                            <td>{{ dispute.applicant_name }} {{ dispute.applicant_surname }}</td>
+                            <td>{{ dispute.get_dispute_type_display }}</td>
+                            <td>{{ dispute.get_status_display }}</td>
+                            <td>{{ dispute.created_at|date:"Y-m-d" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 mb-3">
+        <div class="card">
+            <div class="card-header">
+                Calendar
+            </div>
+            <div class="card-body">
+                <div id="calendar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                Upcoming Mediation Sessions
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Dispute #</th>
+                            <th>Mediator</th>
+                            <th>Scheduled</th>
+                            <th>Zoom Link</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for session in upcoming_sessions %}
+                        <tr>
+                            <td>{{ session.dispute.id }}</td>
+                            <td>{{ session.mediator.user.get_full_name }}</td>
+                            <td>{{ session.scheduled_at }}</td>
+                            <td><a href="{{ session.zoom_link }}" target="_blank">Join</a></td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-muted">No upcoming sessions.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+<script>
+    const ctx = document.getElementById('typeChart').getContext('2d');
+    const typeChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: {{ type_labels|safe }},
+            datasets: [{
+                data: {{ type_data|safe }},
+                backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#dc3545', '#0dcaf0'],
+            }]
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const calendarEl = document.getElementById('calendar');
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,listWeek'
+            },
+            events: {{ calendar_events|safe }},
+            eventClick: function(info) {
+                if (info.event.url) {
+                    window.open(info.event.url, '_blank');
+                    info.preventDefault();
+                }
+            }
+        });
+        calendar.render();
+    });
+</script>
+{% endblock %}
+

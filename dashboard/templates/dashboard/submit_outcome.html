@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Outcome – Dispute #{{ dispute.id }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-3">Submit Outcome for Dispute #{{ dispute.id }}</h2>
+
+    <p class="text-muted">
+        Mediation session on {{ session.scheduled_at }} with applicant
+        {{ dispute.applicant_name }} {{ dispute.applicant_surname }} and respondent
+        {% if dispute.respondent_type == 'ind' %}
+            {{ dispute.respondent_name }} {{ dispute.respondent_surname }}
+        {% else %}
+            {{ dispute.business_name }}
+        {% endif %}
+    </p>
+
+    <form method="post" enctype="multipart/form-data" class="card p-3">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label class="form-label">Outcome</label>
+            {{ form.outcome }}
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Outcome document (optional)</label>
+            {{ form.outcome_file }}
+        </div>
+
+        <div class="form-check mb-3">
+            {{ form.arbitration }}
+            <label class="form-check-label">
+                Mark dispute as referred to arbitration
+            </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            Submit Outcome
+        </button>
+        <a href="{% url 'dashboard:mediator_home' %}" class="btn btn-secondary ms-2">
+            Cancel
+        </a>
+    </form>
+</div>
+{% endblock %}
+

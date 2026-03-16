@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Defence Filed – Mediators on Call{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <h2 class="mb-4">Respondent's Defence</h2>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Dispute Summary</h5>
+                <p><strong>Applicant:</strong> {{ dispute.applicant_name }} {{ dispute.applicant_surname }}</p>
+                <p><strong>Type:</strong> {{ dispute.get_dispute_type_display }}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Defence Explanation</h5>
+                <p>{{ response.defence_explanation|linebreaks }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
