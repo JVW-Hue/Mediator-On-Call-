@@ -12,4 +12,5 @@ urlpatterns = [
     path("view-defence/<uuid:token>/", views.view_defence, name="view_defence"),
     path("outcome/<uuid:token>/", views.view_outcome, name="view_outcome"),
     path("confirm/<uuid:token>/", views.applicant_confirm_view, name="applicant_confirm"),
+    path("final-confirm/<uuid:token>/", views.applicant_final_confirm_view, name="applicant_final_confirm"),
 ]

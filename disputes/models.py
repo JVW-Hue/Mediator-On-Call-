@@ -23,12 +23,19 @@ class Dispute(models.Model):
         ("applicant_confirmed", "Applicant Confirmed - Awaiting Respondent"),
         ("forwarded", "Forwarded to Respondent"),
         ("responded", "Respondent Responded"),
+        ("respondent_agreed", "Respondent Agreed - Awaiting Applicant Final Confirmation"),
+        ("ready_for_assignment", "Ready for Mediator Assignment"),
+        ("mediator_assigned", "Mediator Assigned"),
         ("mediation_scheduled", "Mediation Scheduled"),
         ("mediated", "Mediation Completed"),
         ("closed", "Closed"),
         ("arbitration", "Referred to Arbitration"),
         ("respondent_no_response", "Respondent No Response"),
     ]
+
+    # New fields for mutual agreement workflow
+    respondent_agreed_at = models.DateTimeField(null=True, blank=True)
+    applicant_final_confirmed_at = models.DateTimeField(null=True, blank=True)
 
     # New fields for mediator acceptance workflow
     mediator = models.ForeignKey(
@@ -44,6 +51,10 @@ class Dispute(models.Model):
     respondent_notified_at = models.DateTimeField(null=True, blank=True)
     respondent_response_deadline = models.DateTimeField(null=True, blank=True)
     reminder_sent_at = models.DateTimeField(null=True, blank=True)
+    
+    # Mutual agreement workflow fields
+    respondent_agreed_at = models.DateTimeField(null=True, blank=True)
+    applicant_final_confirmed_at = models.DateTimeField(null=True, blank=True)
 
     # Applicant (individual only)
     applicant_name = models.CharField(max_length=100)

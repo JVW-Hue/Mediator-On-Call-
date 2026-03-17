@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Final Confirmation - Case #{{ dispute.id }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="alert alert-info">
+            <h4><i class="bi bi-hand-thumbs-up"></i> Respondent Has Agreed!</h4>
+            <p>The Respondent has agreed to participate in mediation. Please review and confirm below.</p>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Your Details</h5>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <tr>
+                        <th>Name:</th>
+                        <td>{{ dispute.applicant_name }} {{ dispute.applicant_surname }}</td>
+                    </tr>
+                    <tr>
+                        <th>Cell:</th>
+                        <td>{{ dispute.applicant_cell }}</td>
+                    </tr>
+                    <tr>
+                        <th>Email:</th>
+                        <td>{{ dispute.applicant_email }}</td>
+                    </tr>
+                    <tr>
+                        <th>Dispute Type:</th>
+                        <td>{{ dispute.get_dispute_type_display }}</td>
+                    </tr>
+                    <tr>
+                        <th>Your Issue:</th>
+                        <td>{{ dispute.description }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Respondent's Response</h5>
+            </div>
+            <div class="card-body">
+                {% if response %}
+                <table class="table">
+                    <tr>
+                        <th>Agreed to Mediate:</th>
+                        <td>
+                            {% if response.consent_to_mediate %}
+                            <span class="badge bg-success">Yes</span>
+                            {% else %}
+                            <span class="badge bg-danger">No</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Response/Defence:</th>
+                        <td>{{ response.defence_explanation }}</td>
+                    </tr>
+                </table>
+                {% else %}
+                <p class="text-muted">No response details available.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="alert alert-warning">
+                <h5><i class="bi bi-exclamation-triangle"></i> Final Confirmation Required</h5>
+                <p>By clicking the button below, you confirm that:</p>
+                <ul>
+                    <li>You have reviewed all the information</li>
+                    <li>You agree to proceed with mediation</li>
+                    <li>You understand that a mediator will be assigned to your case</li>
+                </ul>
+            </div>
+            
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="bi bi-check-circle"></i> I Confirm & Proceed to Mediation
+                </button>
+            </div>
+        </form>
+        
+        <p class="text-muted text-center mt-3">
+            Case ID: {{ dispute.id }}
+        </p>
+    </div>
+</div>
+{% endblock %}

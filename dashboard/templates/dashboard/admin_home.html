@@ -21,8 +21,8 @@
             <a href="{% url 'dashboard:dispute_list' %}?status=forwarded" class="btn btn-info">
                 <i class="bi bi-send"></i> Awaiting Response
             </a>
-            <a href="{% url 'dashboard:dispute_list' %}?status=responded" class="btn btn-success">
-                <i class="bi bi-person-plus"></i> Ready for Mediation
+            <a href="{% url 'dashboard:dispute_list' %}?status=ready_for_assignment" class="btn btn-success">
+                <i class="bi bi-person-check"></i> Ready for Assignment
             </a>
             <a href="{% url 'dashboard:dispute_list' %}?status=mediation_scheduled" class="btn btn-primary">
                 <i class="bi bi-play-circle"></i> Active Mediations

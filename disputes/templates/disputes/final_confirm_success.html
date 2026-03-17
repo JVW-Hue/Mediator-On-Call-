@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Final Confirmation Received - Mediators on Call{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6 text-center">
+        <div class="alert alert-success">
+            <h4><i class="bi bi-check-circle-fill"></i> Confirmation Received!</h4>
+            <p>Thank you for your final confirmation. The mediation process is now ready to proceed.</p>
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <h5>Case #{{ dispute.id }}</h5>
+                
+                <hr>
+                
+                <div class="text-start">
+                    <p><strong>Status:</strong> Ready for Mediator Assignment</p>
+                    <p>An administrator will now review your case and assign a mediator.</p>
+                </div>
+                
+                <hr>
+                
+                <p class="text-muted">
+                    You will be notified once a mediator is assigned to your case.
+                    <br>
+                    The mediator will contact you to schedule a mediation session.
+                </p>
+                
+                <a href="/" class="btn btn-primary mt-3">Return to Home</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

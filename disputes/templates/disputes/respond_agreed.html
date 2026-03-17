@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Response Submitted - Mediators on Call{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6 text-center">
+        <div class="alert alert-success">
+            <h4><i class="bi bi-check-circle-fill"></i> Response Submitted!</h4>
+            <p>Thank you for your response. You have agreed to participate in mediation.</p>
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <h5>Next Steps</h5>
+                <p>The Applicant has been notified of your agreement. They now need to give their final confirmation to proceed with the mediation.</p>
+                
+                <hr>
+                
+                <p class="text-muted">
+                    Once both parties confirm, the case will be assigned to a mediator.
+                    <br>
+                    You will be notified when a mediation session is scheduled.
+                </p>
+                
+                <a href="/" class="btn btn-primary mt-3">Return to Home</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

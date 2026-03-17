@@ -150,8 +150,63 @@ def _respond_view(request, token):
                 doc.response = response
                 doc.save()
 
-            dispute.status = "responded"
-            dispute.save(update_fields=["status"])
+            # Handle mutual agreement workflow
+            if form.cleaned_data["consent_to_mediate"]:
+                # Respondent agreed - notify applicant for final confirmation
+                dispute.status = "respondent_agreed"
+                dispute.respondent_agreed_at = timezone.now()
+                dispute.save(update_fields=["status", "respondent_agreed_at"])
+                
+                # Send email to applicant for final confirmation
+                if dispute.applicant_email:
+                    from django.core.mail import send_mail
+                    from django.conf import settings
+                    from django.urls import reverse
+                    
+                    final_confirm_link = request.build_absolute_uri(
+                        reverse("disputes:applicant_final_confirm", args=[str(dispute.applicant_view_token)])
+                    )
+                    
+                    subject = f"Final Step: Respondent has agreed - Please confirm to proceed - Case #{dispute.id}"
+                    body = f"""Dear {dispute.applicant_name} {dispute.applicant_surname},
+
+Great news! The Respondent has agreed to participate in mediation.
+
+FINAL REVIEW REQUIRED:
+Please review the details below and confirm your final agreement to proceed with mediation.
+
+YOUR DETAILS:
+- Name: {dispute.applicant_name} {dispute.applicant_surname}
+- Cell: {dispute.applicant_cell}
+- Email: {dispute.applicant_email}
+- Issue: {dispute.description[:200]}...
+
+RESPONDENT'S RESPONSE:
+- Defence: {response.defence_explanation[:200]}...
+
+To confirm and proceed to mediation, please click the link below:
+{final_confirm_link}
+
+If you do not confirm within 7 days, the case may be closed.
+
+Best regards,
+Mediators on Call Team
+"""
+                    try:
+                        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [dispute.applicant_email])
+                    except Exception as e:
+                        logging.error(f"Failed to send final confirmation email: {e}")
+                
+                AuditLog.objects.create(
+                    dispute=dispute,
+                    user=None,
+                    action="Respondent agreed - Applicant notified for final confirmation",
+                )
+                
+                return render(request, "disputes/respond_agreed.html", {"dispute": dispute})
+            else:
+                dispute.status = "responded"
+                dispute.save(update_fields=["status"])
 
             AuditLog.objects.create(
                 dispute=dispute,
@@ -316,3 +371,30 @@ Mediators on Call Team
         return render(request, "disputes/confirm_success.html", {"dispute": dispute})
     
     return render(request, "disputes/applicant_confirm.html", {"dispute": dispute})
+
+
+def applicant_final_confirm_view(request, token):
+    """Applicant gives final confirmation after respondent agrees"""
+    dispute = get_object_or_404(Dispute, applicant_view_token=token)
+    
+    if dispute.status not in ['respondent_agreed']:
+        messages.error(request, "This case is not awaiting final confirmation.")
+        return redirect("disputes:apply")
+    
+    response = getattr(dispute, "response", None)
+    
+    if request.method == "POST":
+        # Update dispute status
+        dispute.applicant_final_confirmed_at = timezone.now()
+        dispute.status = "ready_for_assignment"
+        dispute.save(update_fields=["applicant_final_confirmed_at", "status"])
+        
+        AuditLog.objects.create(
+            dispute=dispute,
+            user=None,
+            action="Applicant gave final confirmation - Case ready for mediator assignment",
+        )
+        
+        return render(request, "disputes/final_confirm_success.html", {"dispute": dispute})
+    
+    return render(request, "disputes/applicant_final_confirm.html", {"dispute": dispute, "response": response})

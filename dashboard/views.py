@@ -413,7 +413,7 @@ def assign_mediator(request):
     mediator_id = request.POST.get("mediator_id")
     scheduled_at_str = request.POST.get("scheduled_at")
 
-    dispute = get_object_or_404(Dispute, id=dispute_id, status="responded")
+    dispute = get_object_or_404(Dispute, id=dispute_id, status__in=["responded", "ready_for_assignment"])
     mediator = get_object_or_404(Mediator, id=mediator_id)
 
     try:
