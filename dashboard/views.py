@@ -306,27 +306,94 @@ def screen_dispute(request):
                 },
             )
         
-        if offer_foresolve:
-            body = (
-                "After reviewing your request we have found that the dispute cannot be mediated. "
-                "However, through our Foresolve process we are able to divert your dispute for further "
-                "consideration and possible resolution. Further direction shall be provided. "
-                "Your mediation request through Pro Bono NPC has been closed."
-            )
-        elif refer_to:
-            refer_name = refer_to.upper()
-            body = (
-                f"Your dispute has been reviewed and has been referred to {refer_name} for further handling. "
-                "You will be contacted by the relevant department shortly."
-            )
-        else:
-            body = (
-                "After reviewing your request we have found that the dispute cannot be mediated. "
-                "Your file has been closed."
-            )
+        # Send email to applicant
+        if dispute.applicant_email:
+            from django.core.mail import send_mail
+            from django.conf import settings
+            
+            if offer_foresolve:
+                subject = f"Update regarding your Mediation Application - Case #{dispute.id}"
+                body = f"""Dear {dispute.applicant_name} {dispute.applicant_surname},
 
+Thank you for submitting your dispute to Mediators on Call for mediation.
+
+After reviewing your request, we have found that the dispute cannot be mediated through our pro bono service. However, through our Foresolve process, we are able to divert your dispute for further consideration and possible resolution.
+
+Further direction shall be provided to you shortly.
+
+Your mediation request through Pro Bono NPC has been closed.
+
+If you have any questions, please contact us.
+
+Best regards,
+Mediators on Call Team
+"""
+            elif refer_to:
+                refer_name = refer_to.upper()
+                subject = f"Update regarding your Mediation Application - Case #{dispute.id}"
+                body = f"""Dear {dispute.applicant_name} {dispute.applicant_surname},
+
+Thank you for submitting your dispute to Mediators on Call for mediation.
+
+Your dispute has been reviewed and has been referred to {refer_name} for further handling. You will be contacted by the relevant department shortly.
+
+Your file with Mediators on Call has been closed.
+
+If you have any questions about the referral, please contact {refer_name} directly.
+
+Best regards,
+Mediators on Call Team
+"""
+            else:
+                subject = f"Update regarding your Mediation Application - Case #{dispute.id}"
+                body = f"""Dear {dispute.applicant_name} {dispute.applicant_surname},
+
+Thank you for submitting your dispute to Mediators on Call for mediation.
+
+After reviewing your request, we have found that the dispute cannot be mediated through our pro bono service. Your file has been closed.
+
+We encourage you to seek alternative dispute resolution methods that may be more suitable for your situation.
+
+If you have any questions, please contact us.
+
+Best regards,
+Mediators on Call Team
+"""
+            
+            try:
+                send_mail(
+                    subject,
+                    body,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [dispute.applicant_email],
+                    fail_silently=False,
+                )
+            except Exception as e:
+                # Log error but don't stop the process
+                import logging
+                logging.error(f"Failed to send rejection email: {e}")
+
+        # Send SMS notification
         if dispute.applicant_cell:
-            _send_notification(notify_recipient, to=dispute.applicant_cell, body=body)
+            if offer_foresolve:
+                sms_body = (
+                    "After reviewing your request we have found that the dispute cannot be mediated. "
+                    "However, through our Foresolve process we are able to divert your dispute for further "
+                    "consideration and possible resolution. Further direction shall be provided. "
+                    "Your mediation request through Pro Bono NPC has been closed."
+                )
+            elif refer_to:
+                refer_name = refer_to.upper()
+                sms_body = (
+                    f"Your dispute has been reviewed and has been referred to {refer_name} for further handling. "
+                    "You will be contacted by the relevant department shortly."
+                )
+            else:
+                sms_body = (
+                    "After reviewing your request we have found that the dispute cannot be mediated. "
+                    "Your file has been closed."
+                )
+            _send_notification(notify_recipient, to=dispute.applicant_cell, body=sms_body)
 
         AuditLog.objects.create(
             dispute=dispute,
@@ -334,7 +401,7 @@ def screen_dispute(request):
             action=f"Dispute rejected - referred to {refer_to}" if refer_to else "Dispute rejected - not mediatable",
         )
 
-        messages.warning(request, f"Dispute #{dispute_id} rejected.")
+        messages.warning(request, f"Dispute #{dispute_id} rejected and applicant notified.")
 
     return redirect("dashboard:dispute_list")
 
