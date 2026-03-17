@@ -712,3 +712,69 @@ def mediatable_cases_view(request):
         'responded_count': responded_count,
         'scheduled_count': scheduled_count
     })
+
+
+@mediator_required
+@require_POST
+def mediator_accept_case(request, dispute_id):
+    """Mediator accepts a case - notifies applicant to confirm details"""
+    try:
+        dispute = Dispute.objects.get(id=dispute_id, status='responded')
+    except Dispute.DoesNotExist:
+        messages.error(request, "Dispute not found.")
+        return redirect("dashboard:mediator_sessions")
+    
+    mediator = request.user.mediator
+    
+    # Update dispute status
+    dispute.mediator = mediator
+    dispute.mediator_accepted_at = timezone.now()
+    dispute.status = "mediator_assigned"
+    dispute.save()
+    
+    # Send email to applicant
+    if dispute.applicant_email:
+        from django.core.mail import send_mail
+        from django.conf import settings
+        from django.urls import reverse
+        
+        confirm_link = request.build_absolute_uri(
+            reverse("disputes:applicant_confirm", args=[str(dispute.applicant_view_token)])
+        )
+        
+        subject = f"Action Required: Confirm your Mediation details for Case #{dispute.id}"
+        body = f"""Dear {dispute.applicant_name} {dispute.applicant_surname},
+
+Great news! A mediator has accepted your case and will be handling your mediation.
+
+MEDIATION DETAILS:
+- Case ID: {dispute.id}
+- Your Issue: {dispute.description[:200]}...
+- Dispute Type: {dispute.get_dispute_type_display()}
+
+NEXT STEPS:
+Please review your information above and confirm that it is correct by clicking the link below:
+{confirm_link}
+
+If you need to amend any details or add more information, you can do so through the same link.
+
+IMPORTANT: You must confirm your details to proceed with the mediation.
+
+If you have any questions, please contact us.
+
+Best regards,
+Mediators on Call Team
+"""
+        try:
+            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [dispute.applicant_email])
+        except Exception as e:
+            logging.error(f"Failed to send applicant confirmation email: {e}")
+    
+    AuditLog.objects.create(
+        dispute=dispute,
+        user=request.user,
+        action=f"Case accepted by mediator {mediator.user.get_full_name()}",
+    )
+    
+    messages.success(request, f"Case #{dispute_id} accepted. Applicant has been notified to confirm details.")
+    return redirect("dashboard:mediator_sessions")

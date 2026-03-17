@@ -1,4 +1,5 @@
 from datetime import timedelta
+import logging
 
 from django.shortcuts import (
     render,
@@ -7,6 +8,7 @@ from django.shortcuts import (
 )
 from django.contrib import messages
 from django.utils import timezone
+from django.urls import reverse
 
 from .forms import (
     DisputeForm,
@@ -240,3 +242,77 @@ def view_outcome(request, token):
         "disputes/view_outcome.html",
         {"dispute": dispute, "session": session},
     )
+
+
+def applicant_confirm_view(request, token):
+    """Applicant confirms their details after mediator accepts case"""
+    dispute = get_object_or_404(Dispute, applicant_view_token=token)
+    
+    if dispute.status not in ['mediator_assigned']:
+        messages.error(request, "This case is not awaiting confirmation.")
+        return redirect("disputes:apply")
+    
+    if request.method == "POST":
+        amended_details = request.POST.get("amended_details", "")
+        
+        # Update dispute
+        dispute.applicant_confirmed_at = timezone.now()
+        dispute.applicant_amended_details = amended_details
+        dispute.status = "applicant_confirmed"
+        dispute.save()
+        
+        # Notify respondent
+        from django.core.mail import send_mail
+        from django.conf import settings
+        from datetime import timedelta
+        
+        # Set 7-day deadline
+        dispute.respondent_notified_at = timezone.now()
+        dispute.respondent_response_deadline = timezone.now() + timedelta(days=7)
+        dispute.save()
+        
+        # Send notification to respondent
+        if dispute.respondent_email:
+            respond_link = request.build_absolute_uri(
+                reverse("disputes:respond", args=[str(dispute.respondent_token)])
+            )
+            
+            subject = f"Mediation Request - You have 7 days to respond - Case #{dispute.id}"
+            body = f"""Dear Respondent,
+
+A mediation case has been opened regarding your dispute with {dispute.applicant_name} {dispute.applicant_surname}.
+
+CASE DETAILS:
+- Case ID: {dispute.id}
+- Applicant: {dispute.applicant_name} {dispute.applicant_surname}
+- Issue: {dispute.description[:200]}...
+
+You have 7 DAYS to respond to this mediation request.
+
+To respond, please click the link below:
+{respond_link}
+
+If you do not respond within 7 days, a reminder will be sent. If you still don't respond after 14 days, the case may be closed.
+
+To view the full case details and respond, please use the link above.
+
+Best regards,
+Mediators on Call Team
+"""
+            try:
+                send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [dispute.respondent_email])
+            except Exception as e:
+                logging.error(f"Failed to send respondent email: {e}")
+        
+        # Send SMS to respondent
+        if dispute.respondent_cell:
+            from disputes.tasks import notify_recipient
+            sms_body = f"Mediation case #{dispute.id}. You have 7 days to respond. Please check your email for details."
+            try:
+                notify_recipient.delay(to=dispute.respondent_cell, body=sms_body)
+            except:
+                pass
+        
+        return render(request, "disputes/confirm_success.html", {"dispute": dispute})
+    
+    return render(request, "disputes/applicant_confirm.html", {"dispute": dispute})

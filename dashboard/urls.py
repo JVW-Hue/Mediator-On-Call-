@@ -16,6 +16,7 @@ urlpatterns = [
     path("mediatable-cases/", views.mediatable_cases_view, name="mediatable_cases"),
     path("mediator/", views.mediator_dashboard, name="mediator_home"),
     path("mediator/sessions/", views.mediator_sessions, name="mediator_sessions"),
+    path("mediator/accept/<int:dispute_id>/", views.mediator_accept_case, name="mediator_accept_case"),
     path(
         "mediator/session/<int:pk>/outcome/",
         views.submit_mediation_outcome,

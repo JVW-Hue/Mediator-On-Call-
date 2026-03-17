@@ -19,13 +19,31 @@ class Dispute(models.Model):
         ("submitted", "Submitted"),
         ("screening", "Under Screening"),
         ("rejected", "Rejected - Not Mediatable"),
+        ("mediator_assigned", "Mediator Assigned - Awaiting Applicant Confirmation"),
+        ("applicant_confirmed", "Applicant Confirmed - Awaiting Respondent"),
         ("forwarded", "Forwarded to Respondent"),
         ("responded", "Respondent Responded"),
         ("mediation_scheduled", "Mediation Scheduled"),
         ("mediated", "Mediation Completed"),
         ("closed", "Closed"),
         ("arbitration", "Referred to Arbitration"),
+        ("respondent_no_response", "Respondent No Response"),
     ]
+
+    # New fields for mediator acceptance workflow
+    mediator = models.ForeignKey(
+        "Mediator",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assigned_disputes",
+    )
+    mediator_accepted_at = models.DateTimeField(null=True, blank=True)
+    applicant_confirmed_at = models.DateTimeField(null=True, blank=True)
+    applicant_amended_details = models.TextField(blank=True)
+    respondent_notified_at = models.DateTimeField(null=True, blank=True)
+    respondent_response_deadline = models.DateTimeField(null=True, blank=True)
+    reminder_sent_at = models.DateTimeField(null=True, blank=True)
 
     # Applicant (individual only)
     applicant_name = models.CharField(max_length=100)
@@ -59,7 +77,7 @@ class Dispute(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(
-        max_length=20,
+        max_length=30,
         choices=STATUS_CHOICES,
         default="submitted",
     )

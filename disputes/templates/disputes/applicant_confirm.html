@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Confirm Your Mediation Details - Case #{{ dispute.id }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="alert alert-info">
+            <h4><i class="bi bi-check-circle"></i> Good News!</h4>
+            <p>A mediator has accepted your case. Please confirm your details below to proceed with the mediation.</p>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Your Case Details - Case #{{ dispute.id }}</h5>
+            </div>
+            <div class="card-body">
+                <h6>Applicant Information</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <th>Name:</th>
+                        <td>{{ dispute.applicant_name }} {{ dispute.applicant_surname }}</td>
+                    </tr>
+                    <tr>
+                        <th>Cell:</th>
+                        <td>{{ dispute.applicant_cell }}</td>
+                    </tr>
+                    <tr>
+                        <th>Email:</th>
+                        <td>{{ dispute.applicant_email }}</td>
+                    </tr>
+                </table>
+                
+                <h6 class="mt-3">Dispute Information</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <th>Type:</th>
+                        <td>{{ dispute.get_dispute_type_display }}</td>
+                    </tr>
+                    <tr>
+                        <th>Description:</th>
+                        <td>{{ dispute.description }}</td>
+                    </tr>
+                    {% if dispute.photo %}
+                    <tr>
+                        <th>Photo:</th>
+                        <td><a href="{{ dispute.photo.url }}" target="_blank"><img src="{{ dispute.photo.url }}" style="max-width: 200px;"></a></td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Amend Details (Optional)</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">If you need to add more information or make changes, please enter them below:</p>
+                    <textarea name="amended_details" class="form-control" rows="4" placeholder="Enter any additional details or amendments...">{{ dispute.applicant_amended_details }}</textarea>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="bi bi-check-circle"></i> Confirm & Proceed with Mediation
+                </button>
+            </div>
+        </form>
+        
+        <p class="text-muted text-center mt-3">
+            By confirming, you agree to proceed with the mediation process.
+        </p>
+    </div>
+</div>
+{% endblock %}
