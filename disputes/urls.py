@@ -7,6 +7,9 @@ app_name = "disputes"
 urlpatterns = [
     path("", RedirectView.as_view(url="/apply/", permanent=False), name="home"),
     path("apply/", views.apply_view, name="apply"),
+    path("apply/upload-photo/", views.upload_photo_ajax, name="upload_photo"),
+    path("apply/remove-photo/", views.remove_photo_ajax, name="remove_photo"),
+    path("apply/get-photos/", views.get_photos_ajax, name="get_photos"),
     path("success/", views.success_view, name="application_success"),
     path("respond/<uuid:token>/", views.respond_view, name="respond"),
     path("view-defence/<uuid:token>/", views.view_defence, name="view_defence"),

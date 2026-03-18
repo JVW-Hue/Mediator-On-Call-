@@ -9,6 +9,7 @@ from django.shortcuts import (
 from django.contrib import messages
 from django.utils import timezone
 from django.urls import reverse
+from django.views.decorators.http import require_POST
 
 from .forms import (
     DisputeForm,
@@ -16,7 +17,7 @@ from .forms import (
     RespondentResponseForm,
     ResponseDocumentFormSet,
 )
-from .models import Dispute, DisputeDocument, RespondentResponse, AuditLog
+from .models import Dispute, DisputeDocument, DisputePhoto, TempDisputePhoto, RespondentResponse, AuditLog
 from .tasks import (
     send_message_1_dispute_registered,
     send_message_4_respondent_invitation,
@@ -24,6 +25,86 @@ from .tasks import (
     send_message_6_respondent_agreed,
     send_message_7_assign_mediator,
 )
+
+
+@require_POST
+def upload_photo_ajax(request):
+    """Handle AJAX photo upload - saves photo temporarily and returns success"""
+    from django.http import JsonResponse
+    from django.core.files.base import ContentFile
+    import base64
+    
+    if not request.FILES.get('photo'):
+        return JsonResponse({'success': False, 'error': 'No photo provided'}, status=400)
+    
+    photo = request.FILES['photo']
+    
+    # Validate file type
+    if not photo.content_type.startswith('image/'):
+        return JsonResponse({'success': False, 'error': 'Only image files are allowed'}, status=400)
+    
+    # Validate file size (max 10MB)
+    if photo.size > 10 * 1024 * 1024:
+        return JsonResponse({'success': False, 'error': 'File size must be less than 10MB'}, status=400)
+    
+    # Get session key for temporary storage
+    session_key = request.session.session_key
+    if not session_key:
+        request.session.create()
+        session_key = request.session.session_key
+    
+    # Save temporary photo
+    temp_photo = TempDisputePhoto.objects.create(
+        session_key=session_key,
+        image=photo
+    )
+    
+    return JsonResponse({
+        'success': True,
+        'photo_id': temp_photo.id,
+        'photo_url': temp_photo.image.url,
+        'message': 'Photo uploaded successfully'
+    })
+
+
+@require_POST
+def remove_photo_ajax(request):
+    """Remove a temporarily uploaded photo"""
+    from django.http import JsonResponse
+    
+    photo_id = request.POST.get('photo_id')
+    if not photo_id:
+        return JsonResponse({'success': False, 'error': 'No photo ID provided'}, status=400)
+    
+    try:
+        temp_photo = TempDisputePhoto.objects.get(id=photo_id)
+        # Verify session matches
+        if temp_photo.session_key == request.session.session_key:
+            temp_photo.delete()
+            return JsonResponse({'success': True, 'message': 'Photo removed'})
+        else:
+            return JsonResponse({'success': False, 'error': 'Unauthorized'}, status=403)
+    except TempDisputePhoto.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Photo not found'}, status=404)
+
+
+def get_photos_ajax(request):
+    """Get list of temporarily uploaded photos"""
+    from django.http import JsonResponse
+    
+    session_key = request.session.session_key
+    if not session_key:
+        return JsonResponse({'photos': []})
+    
+    photos = TempDisputePhoto.objects.filter(session_key=session_key)
+    photo_list = [
+        {
+            'id': p.id,
+            'photo_url': p.image.url
+        }
+        for p in photos
+    ]
+    return JsonResponse({'photos': photo_list})
 
 
 def _send_notification(task_func, *args, **kwargs):
@@ -80,6 +161,18 @@ def _apply_view(request):
             for doc in documents:
                 doc.dispute = dispute
                 doc.save()
+            
+            # Link temporary photos to the dispute
+            session_key = request.session.session_key
+            if session_key:
+                temp_photos = TempDisputePhoto.objects.filter(session_key=session_key)
+                for temp_photo in temp_photos:
+                    DisputePhoto.objects.create(
+                        dispute=dispute,
+                        image=temp_photo.image
+                    )
+                # Clean up temp photos
+                temp_photos.delete()
             
             # Send Message 1: Dispute registered confirmation to applicant
             if dispute.applicant_email:

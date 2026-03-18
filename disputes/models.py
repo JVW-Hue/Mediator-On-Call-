@@ -204,6 +204,31 @@ class DisputeDocument(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
 
+class DisputePhoto(models.Model):
+    dispute = models.ForeignKey(
+        Dispute,
+        related_name="photos",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+    image = models.ImageField(upload_to="dispute_photos/")
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Photo for Dispute #{self.dispute_id if self.dispute else 'Temp'}"
+
+
+class TempDisputePhoto(models.Model):
+    """Temporary storage for photos before dispute is created"""
+    session_key = models.CharField(max_length=40)
+    image = models.ImageField(upload_to="temp_photos/")
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Temp Photo {self.id}"
+
+
 class RespondentResponse(models.Model):
     dispute = models.OneToOneField(
         Dispute,

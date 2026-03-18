@@ -21,16 +21,6 @@ phone_validator = RegexValidator(r'^\d+$', 'Please enter numbers only.')
 
 class DisputeForm(forms.ModelForm):
     honeypot = HoneypotField()
-    photo = forms.ImageField(
-        required=False,
-        label="Take a Photo",
-        help_text="Take a photo to support your dispute",
-        widget=forms.FileInput(attrs={
-            "accept": "image/*",
-            "capture": "environment",
-            "class": "form-control",
-        }),
-    )
     applicant_cell = forms.CharField(
         validators=[phone_validator],
         widget=forms.TextInput(attrs={"placeholder": "e.g. 0821234567", "pattern": r"\d*"}),
@@ -67,7 +57,6 @@ class DisputeForm(forms.ModelForm):
             "mediation_location",
             "preferred_date",
             "summary",
-            "photo",
         ]
         widgets = {
             "description": forms.Textarea(attrs={"rows": 4}),
