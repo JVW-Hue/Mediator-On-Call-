@@ -47,6 +47,7 @@
         
         <form method="post" enctype="multipart/form-data" id="disputeForm">
             {% csrf_token %}
+            {{ formset.management_form }}
             
             <!-- Step 1: Respondent Type Selection -->
             <div class="form-section" id="step1">
@@ -227,8 +228,8 @@
             
             <!-- Step 6: Documents -->
             <div class="form-section hidden" id="step6">
-                <h5><i class="bi bi-paperclip"></i> Step 6: Supporting Documents (Optional)</h5>
-                <p class="text-muted">Upload multiple documents (PDF, images, Word files)</p>
+                <h5><i class="bi bi-paperclip"></i> Step 6: Supporting Documents <span class="optional-badge" style="font-size: 0.65rem;">UNCOMPULSORY</span></h5>
+                <p class="text-muted">Upload documents to support your dispute (PDF, images, Word files).</p>
                 <div class="mb-3" id="documents-container">
                     <div class="input-group mb-2">
                         <input type="file" name="document_set-0-file" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
@@ -238,7 +239,14 @@
                     </div>
                 </div>
                 <input type="hidden" id="document-count" value="1">
-                <small class="text-muted">Click + to add more document fields</small>
+                <small class="text-muted d-block">Click + to add more documents. Leave empty to skip.</small>
+                <!-- Hidden management form for Django formset -->
+                <div style="display: none;">
+                    <input type="hidden" name="document_set-TOTAL_FORMS" id="id_document_set-TOTAL_FORMS" value="1">
+                    <input type="hidden" name="document_set-INITIAL_FORMS" id="id_document_set-INITIAL_FORMS" value="0">
+                    <input type="hidden" name="document_set-MIN_NUM_FORMS" id="id_document_set-MIN_NUM_FORMS" value="0">
+                    <input type="hidden" name="document_set-MAX_NUM_FORMS" id="id_document_set-MAX_NUM_FORMS" value="5">
+                </div>
             </div>
             
             <!-- Navigation Buttons -->
@@ -473,8 +481,8 @@ function addDocumentField() {
     container.appendChild(newField);
     document.getElementById('document-count').value = count + 1;
     
-    // Update form TOTAL_FORMS
-    var totalForms = document.getElementById('id_form-TOTAL_FORMS');
+    // Update formset TOTAL_FORMS
+    var totalForms = document.getElementById('id_document_set-TOTAL_FORMS');
     if (totalForms) {
         totalForms.value = count + 1;
     }
