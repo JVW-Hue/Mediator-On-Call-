@@ -61,7 +61,7 @@
                             data-dispute-id="{{ dispute.id }}"
                             data-bs-toggle="modal"
                             data-bs-target="#screeningModal">Screen</button>
-                {% elif dispute.status == 'responded' %}
+                {% elif dispute.status in 'responded ready_for_assignment' %}
                     <button type="button" class="btn btn-sm btn-outline-success assign-btn"
                             data-dispute-id="{{ dispute.id }}"
                             data-bs-toggle="modal"

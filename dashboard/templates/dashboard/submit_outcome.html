@@ -1,8 +1,8 @@
-{% extends "base.html" %}
+{% extends "dashboard/base.html" %}
 
 {% block title %}Submit Outcome – Dispute #{{ dispute.id }}{% endblock %}
 
-{% block content %}
+{% block dashboard_content %}
 <div class="container mt-4">
     <h2 class="mb-3">Submit Outcome for Dispute #{{ dispute.id }}</h2>
 
@@ -44,5 +44,5 @@
         </a>
     </form>
 </div>
-{% endblock %}
+{% endblock dashboard_content %}
 

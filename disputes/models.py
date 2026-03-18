@@ -47,10 +47,6 @@ class Dispute(models.Model):
         ("respondent_no_response", "Respondent No Response"),
     ]
 
-    # New fields for mutual agreement workflow
-    respondent_agreed_at = models.DateTimeField(null=True, blank=True)
-    applicant_final_confirmed_at = models.DateTimeField(null=True, blank=True)
-
     # New fields for mediator acceptance workflow
     mediator = models.ForeignKey(
         "Mediator",
@@ -66,7 +62,7 @@ class Dispute(models.Model):
     respondent_response_deadline = models.DateTimeField(null=True, blank=True)
     reminder_sent_at = models.DateTimeField(null=True, blank=True)
     
-    # Mutual agreement workflow fields
+    # Mutual agreement workflow fields (also used by mediator workflow)
     respondent_agreed_at = models.DateTimeField(null=True, blank=True)
     applicant_final_confirmed_at = models.DateTimeField(null=True, blank=True)
 
