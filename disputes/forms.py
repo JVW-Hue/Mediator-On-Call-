@@ -64,6 +64,9 @@ class DisputeForm(forms.ModelForm):
             "respondent_email",
             "dispute_type",
             "description",
+            "mediation_location",
+            "preferred_date",
+            "summary",
             "photo",
         ]
         widgets = {
@@ -73,7 +76,23 @@ class DisputeForm(forms.ModelForm):
             "business_name": forms.TextInput(attrs={"placeholder": "Required if Business"}),
             "owner_name": forms.TextInput(attrs={"placeholder": "Required if Business"}),
             "owner_surname": forms.TextInput(attrs={"placeholder": "Required if Business"}),
+            "mediation_location": forms.TextInput(attrs={"placeholder": "Location for mediation"}),
+            "preferred_date": forms.DateTimeInput(attrs={"type": "datetime-local"}),
+            "summary": forms.Textarea(attrs={"rows": 3, "placeholder": "Brief summary for mediator"}),
         }
+
+    def clean(self):
+        cleaned = super().clean()
+        rtype = cleaned.get("respondent_type")
+        if rtype == "bus":
+            if not cleaned.get("business_name"):
+                self.add_error("business_name", "Business name is required for business respondents.")
+            if not cleaned.get("owner_name"):
+                self.add_error("owner_name", "Owner name is required for business respondents.")
+        else:
+            if not cleaned.get("respondent_name"):
+                self.add_error("respondent_name", "Respondent name is required for individuals.")
+        return cleaned
 
 
 DisputeDocumentFormSet = forms.modelformset_factory(

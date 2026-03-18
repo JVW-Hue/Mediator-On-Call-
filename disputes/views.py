@@ -42,7 +42,7 @@ except ImportError:
 
 def _apply_view(request):
     if request.method == "POST":
-        form = DisputeForm(request.POST)
+        form = DisputeForm(request.POST, request.FILES)
         formset = DisputeDocumentFormSet(
             request.POST, request.FILES, queryset=DisputeDocument.objects.none()
         )

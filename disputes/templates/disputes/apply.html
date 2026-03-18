@@ -1,15 +1,35 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
 
-{% block title %}Submit a Dispute – Mediators on Call{% endblock %}
+{% block title %}Submit a Dispute – Pro Bono Community Mediation{% endblock %}
 
 {% block content %}
 <style>
-    .business-fields, .individual-fields {
-        transition: all 0.3s ease;
+    .required-badge {
+        background: #dc3545;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        margin-left: 5px;
     }
-    .form-control.is-invalid {
-        border-color: #dc3545;
+    .optional-badge {
+        background: #6c757d;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        margin-left: 5px;
+    }
+    .form-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 25px;
+        margin-bottom: 20px;
+        border-left: 4px solid #0d6efd;
+    }
+    .hidden {
+        display: none !important;
     }
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button {
@@ -20,95 +40,369 @@
         -moz-appearance: textfield;
     }
 </style>
+
 <div class="row justify-content-center">
     <div class="col-lg-8">
-        <h2 class="mb-4">Submit a Dispute for Mediation</h2>
-        <form method="post" enctype="multipart/form-data">
+        <h2 class="mb-4 text-center">Submit a Dispute for Mediation</h2>
+        
+        <form method="post" enctype="multipart/form-data" id="disputeForm">
             {% csrf_token %}
-            {{ form|crispy }}
             
-            <div class="mt-4 p-4 bg-light rounded">
-                <h5><i class="bi bi-camera"></i> Take a Photo (Optional)</h5>
-                <p class="text-muted small">Take a photo to support your dispute. Tap the button below to open your camera.</p>
-                <div class="mb-3">
-                    <label for="id_photo" class="btn btn-outline-primary">
-                        <i class="bi bi-camera-fill"></i> Open Camera to Take Photo
-                    </label>
-                    <input type="file" id="id_photo" name="photo" accept="image/*" capture="environment" class="d-none">
-                    <div id="photo-preview" class="mt-2"></div>
+            <!-- Step 1: Respondent Type Selection -->
+            <div class="form-section" id="step1">
+                <h5><i class="bi bi-person-check"></i> Step 1: Who is your Respondent?</h5>
+                <p class="text-muted">Please select the type of respondent, then click Continue.</p>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card h-100 cursor-pointer" id="card-individual" onclick="selectIndividual()">
+                            <div class="card-body text-center">
+                                <i class="bi bi-person" style="font-size: 3rem;"></i>
+                                <h5 class="mt-3">Individual</h5>
+                                <p class="text-muted small">Select if the respondent is a person</p>
+                            </div>
+                        </div>
+                        <input type="radio" name="respondent_type" id="respondent_individual" value="ind" class="hidden" checked>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100 cursor-pointer" id="card-business" onclick="selectBusiness()">
+                            <div class="card-body text-center">
+                                <i class="bi bi-building" style="font-size: 3rem;"></i>
+                                <h5 class="mt-3">Business</h5>
+                                <p class="text-muted small">Select if the respondent is a company</p>
+                            </div>
+                        </div>
+                        <input type="radio" name="respondent_type" id="respondent_business" value="bus" class="hidden">
+                    </div>
                 </div>
             </div>
             
-            <h4 class="mt-4">Supporting Documents (optional)</h4>
-            {{ formset.management_form }}
-            {% for doc_form in formset %}
-                {{ doc_form|crispy }}
-            {% endfor %}
-            <button type="submit" class="btn btn-primary mt-3">Submit</button>
+            <!-- Step 2: Your Information (Always shown) -->
+            <div class="form-section hidden" id="step2">
+                <h5><i class="bi bi-person"></i> Step 2: Your Information (Applicant)</h5>
+                <div class="row mt-3">
+                    <div class="col-md-6 mb-3">
+                        <label>First Name <span class="required-badge">COMPULSORY</span></label>
+                        <input type="text" name="applicant_name" class="form-control" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label>Last Name <span class="required-badge">COMPULSORY</span></label>
+                        <input type="text" name="applicant_surname" class="form-control" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label>Cell Number <span class="required-badge">COMPULSORY</span></label>
+                        <input type="tel" name="applicant_cell" class="form-control" placeholder="e.g. 0821234567" maxlength="20" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label>Email Address <span class="optional-badge">UNCOMPULSORY</span></label>
+                        <input type="email" name="applicant_email" class="form-control" placeholder="Optional">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 3: Respondent Information (Changes based on type) -->
+            <div class="form-section hidden" id="step3-individual">
+                <h5><i class="bi bi-person"></i> Step 3: Respondent Information (Individual)</h5>
+                <div class="row mt-3">
+                    <div class="col-md-6 mb-3">
+                        <label>Respondent First Name <span class="required-badge">COMPULSORY</span></label>
+                        <input type="text" name="respondent_name" class="form-control" id="ind_respondent_name" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label>Respondent Last Name <span class="optional-badge">UNCOMPULSORY</span></label>
+                        <input type="text" name="respondent_surname" class="form-control">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label>Respondent Cell Number <span class="optional-badge">UNCOMPULSORY</span></label>
+                        <input type="tel" name="respondent_cell" class="form-control" placeholder="Optional">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label>Respondent Email <span class="optional-badge">UNCOMPULSORY</span></label>
+                        <input type="email" name="respondent_email" class="form-control" placeholder="Optional">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section hidden" id="step3-business">
+                <h5><i class="bi bi-building"></i> Step 3: Respondent Information (Business)</h5>
+                <div class="row mt-3">
+                    <div class="col-md-6 mb-3">
+                        <label>Business Name <span class="required-badge">COMPULSORY</span></label>
+                        <input type="text" name="business_name" class="form-control" id="bus_business_name" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label>Owner/Representative First Name <span class="required-badge">COMPULSORY</span></label>
+                        <input type="text" name="owner_name" class="form-control" id="bus_owner_name" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label>Owner/Representative Last Name <span class="optional-badge">UNCOMPULSORY</span></label>
+                        <input type="text" name="owner_surname" class="form-control">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label>Business Cell Number <span class="optional-badge">UNCOMPULSORY</span></label>
+                        <input type="tel" name="business_cell" class="form-control" placeholder="Optional">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label>Business Email <span class="optional-badge">UNCOMPULSORY</span></label>
+                        <input type="email" name="respondent_email" class="form-control" placeholder="Optional">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 4: Dispute Details -->
+            <div class="form-section hidden" id="step4">
+                <h5><i class="bi bi-file-text"></i> Step 4: Dispute Details</h5>
+                <div class="row mt-3">
+                    <div class="col-md-6 mb-3">
+                        <label>Dispute Type <span class="required-badge">COMPULSORY</span></label>
+                        <select name="dispute_type" class="form-select" required>
+                            <option value="">Select dispute type...</option>
+                            <option value="civil">Civil</option>
+                            <option value="commercial">Commercial</option>
+                            <option value="community">Community</option>
+                            <option value="construction">Construction</option>
+                            <option value="contractual">Contractual</option>
+                            <option value="criminal">Criminal</option>
+                            <option value="customary">Customary</option>
+                            <option value="damages">Damages</option>
+                            <option value="debts">Debts</option>
+                            <option value="divorce">Divorce</option>
+                            <option value="family">Family</option>
+                            <option value="labour">Labour</option>
+                            <option value="lease">Lease</option>
+                            <option value="loans">Loans</option>
+                            <option value="property">Property</option>
+                            <option value="religion">Religion</option>
+                            <option value="sales">Sales</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label>Describe Your Dispute <span class="optional-badge">UNCOMPULSORY</span></label>
+                    <textarea name="description" class="form-control" rows="5" placeholder="Please describe your dispute in detail..."></textarea>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label>Preferred Mediation Location <span class="optional-badge">UNCOMPULSORY</span></label>
+                        <input type="text" name="mediation_location" class="form-control" placeholder="e.g. Johannesburg, Cape Town">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label>Preferred Date/Time <span class="optional-badge">UNCOMPULSORY</span></label>
+                        <input type="datetime-local" name="preferred_date" class="form-control">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label>Brief Summary for Mediator <span class="optional-badge">UNCOMPULSORY</span></label>
+                    <textarea name="summary" class="form-control" rows="3" placeholder="Brief summary of the issue..."></textarea>
+                </div>
+            </div>
+            
+            <!-- Step 5: Photo -->
+            <div class="form-section hidden" id="step5">
+                <h5><i class="bi bi-camera"></i> Step 5: Add Photos (Optional)</h5>
+                <p class="text-muted">Take or upload multiple photos to support your dispute</p>
+                <div class="mb-3">
+                    <label for="id_photo" class="btn btn-outline-primary">
+                        <i class="bi bi-camera-fill"></i> Add Photos
+                    </label>
+                    <input type="file" id="id_photo" name="photo" accept="image/*" capture="environment" class="d-none" multiple>
+                    <small class="text-muted d-block mt-2">You can select multiple photos at once</small>
+                    <div id="photo-preview" class="mt-3"></div>
+                </div>
+            </div>
+            
+            <!-- Step 6: Documents -->
+            <div class="form-section hidden" id="step6">
+                <h5><i class="bi bi-paperclip"></i> Step 6: Supporting Documents (Optional)</h5>
+                <p class="text-muted">Upload multiple documents (PDF, images, Word files)</p>
+                <div class="mb-3" id="documents-container">
+                    <div class="input-group mb-2">
+                        <input type="file" name="document_set-0-file" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                        <button type="button" class="btn btn-success" onclick="addDocumentField()">
+                            <i class="bi bi-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <input type="hidden" id="document-count" value="1">
+                <small class="text-muted">Click + to add more document fields</small>
+            </div>
+            
+            <!-- Navigation Buttons -->
+            <div class="d-flex justify-content-between mb-5" id="nav-buttons">
+                <button type="button" class="btn btn-secondary hidden" id="btn-back" onclick="previousStep()">
+                    <i class="bi bi-arrow-left"></i> Back
+                </button>
+                <button type="button" class="btn btn-primary ms-auto" id="btn-next" onclick="nextStep()">
+                    Continue <i class="bi bi-arrow-right"></i>
+                </button>
+                <button type="submit" class="btn btn-success ms-auto hidden" id="btn-submit">
+                    <i class="bi bi-send"></i> Submit Dispute
+                </button>
+            </div>
         </form>
     </div>
 </div>
 
+<!-- Hidden honeypot -->
+<input type="text" name="honeypot" style="display: none;" tabindex="-1" autocomplete="off">
+
 <script>
+let currentStep = 1;
+const totalSteps = 6;
+
+function updateStepDisplay() {
+    // Hide all steps
+    document.getElementById('step1').classList.add('hidden');
+    document.getElementById('step2').classList.add('hidden');
+    document.getElementById('step3-individual').classList.add('hidden');
+    document.getElementById('step3-business').classList.add('hidden');
+    document.getElementById('step4').classList.add('hidden');
+    document.getElementById('step5').classList.add('hidden');
+    document.getElementById('step6').classList.add('hidden');
+    
+    // Show current step
+    if (currentStep === 1) {
+        document.getElementById('step1').classList.remove('hidden');
+        document.getElementById('btn-back').classList.add('hidden');
+        document.getElementById('btn-next').classList.remove('hidden');
+        document.getElementById('btn-submit').classList.add('hidden');
+    } else if (currentStep === 2) {
+        document.getElementById('step2').classList.remove('hidden');
+    } else if (currentStep === 3) {
+        var isBusiness = document.getElementById('respondent_business').checked;
+        if (isBusiness) {
+            document.getElementById('step3-business').classList.remove('hidden');
+        } else {
+            document.getElementById('step3-individual').classList.remove('hidden');
+        }
+    } else if (currentStep === 4) {
+        document.getElementById('step4').classList.remove('hidden');
+    } else if (currentStep === 5) {
+        document.getElementById('step5').classList.remove('hidden');
+    } else if (currentStep === 6) {
+        document.getElementById('step6').classList.remove('hidden');
+        document.getElementById('btn-next').classList.add('hidden');
+        document.getElementById('btn-submit').classList.remove('hidden');
+    }
+    
+    // Show/hide back button
+    if (currentStep > 1) {
+        document.getElementById('btn-back').classList.remove('hidden');
+    }
+}
+
+function selectIndividual() {
+    document.getElementById('respondent_individual').checked = true;
+    document.getElementById('card-individual').classList.add('border-primary');
+    document.getElementById('card-individual').style.background = '#e7f1ff';
+    document.getElementById('card-business').classList.remove('border-primary');
+    document.getElementById('card-business').style.background = '';
+}
+
+function selectBusiness() {
+    document.getElementById('respondent_business').checked = true;
+    document.getElementById('card-business').classList.add('border-primary');
+    document.getElementById('card-business').style.background = '#e7f1ff';
+    document.getElementById('card-individual').classList.remove('border-primary');
+    document.getElementById('card-individual').style.background = '';
+}
+
+function nextStep() {
+    // Validate current step before proceeding
+    if (currentStep === 1) {
+        var selected = document.querySelector('input[name="respondent_type"]:checked');
+        if (!selected) {
+            alert('Please select a respondent type to continue.');
+            return;
+        }
+    }
+    
+    currentStep++;
+    updateStepDisplay();
+}
+
+function previousStep() {
+    if (currentStep > 1) {
+        currentStep--;
+        updateStepDisplay();
+    }
+}
+
+// Photo preview - Multiple photos
 document.getElementById('id_photo').addEventListener('change', function(e) {
-    var file = e.target.files[0];
-    if (file) {
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            var preview = document.getElementById('photo-preview');
-            preview.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="max-width: 200px;">';
-        };
-        reader.readAsDataURL(file);
+    var preview = document.getElementById('photo-preview');
+    preview.innerHTML = '';
+    
+    for (var i = 0; i < e.target.files.length; i++) {
+        var file = e.target.files[i];
+        if (file) {
+            var reader = new FileReader();
+            reader.onload = (function(file, index) {
+                return function(e) {
+                    var imgContainer = document.createElement('div');
+                    imgContainer.style.display = 'inline-block';
+                    imgContainer.style.margin = '5px';
+                    imgContainer.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="max-width: 150px; max-height: 150px;"><button type="button" class="btn btn-sm btn-danger mt-1 w-100" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>';
+                    preview.appendChild(imgContainer);
+                };
+            })(file, i);
+            reader.readAsDataURL(file);
+        }
+    }
+    
+    if (e.target.files.length > 0) {
+        var countDiv = document.createElement('p');
+        countDiv.className = 'text-success mt-2';
+        countDiv.innerHTML = '<i class="bi bi-check-circle"></i> ' + e.target.files.length + ' photo(s) selected';
+        preview.appendChild(countDiv);
     }
 });
 
-// Show/hide business fields based on respondent type
-function toggleRespondentFields() {
-    var respondentType = document.querySelector('input[name="respondent_type"]:checked');
-    var isBusiness = respondentType && respondentType.value === 'bus';
+// Add document field
+function addDocumentField() {
+    var container = document.getElementById('documents-container');
+    var count = parseInt(document.getElementById('document-count').value);
     
-    var businessFields = document.querySelectorAll('.business-fields');
-    var individualFields = document.querySelectorAll('.individual-fields');
+    var newField = document.createElement('div');
+    newField.className = 'input-group mb-2';
+    newField.id = 'doc-' + count;
+    newField.innerHTML = '<input type="file" name="document_set-' + count + '-file" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"><button type="button" class="btn btn-danger" onclick="removeDocumentField(' + count + ')"><i class="bi bi-trash"></i></button>';
     
-    // Try to find parent divs
-    var fields = {{ form.fields.keys|safe }};
-    var businessNames = ['business_name', 'owner_name', 'owner_surname', 'business_cell'];
-    var individualNames = ['respondent_name', 'respondent_surname', 'respondent_cell'];
+    container.appendChild(newField);
+    document.getElementById('document-count').value = count + 1;
     
-    businessNames.forEach(function(name) {
-        var field = document.querySelector('[id="id_' + name + '"]');
-        if (field) {
-            var group = field.closest('.mb-3') || field.parentElement;
-            if (group) {
-                group.style.display = isBusiness ? 'block' : 'none';
-            }
-        }
-    });
-    
-    individualNames.forEach(function(name) {
-        var field = document.querySelector('[id="id_' + name + '"]');
-        if (field) {
-            var group = field.closest('.mb-3') || field.parentElement;
-            if (group) {
-                group.style.display = isBusiness ? 'none' : 'block';
-            }
-        }
-    });
+    // Update form TOTAL_FORMS
+    var totalForms = document.getElementById('id_form-TOTAL_FORMS');
+    if (totalForms) {
+        totalForms.value = count + 1;
+    }
 }
 
-// Add event listeners to radio buttons
-document.querySelectorAll('input[name="respondent_type"]').forEach(function(radio) {
-    radio.addEventListener('change', toggleRespondentFields);
-});
-
-// Run on page load
-document.addEventListener('DOMContentLoaded', toggleRespondentFields);
+// Remove document field
+function removeDocumentField(id) {
+    var field = document.getElementById('doc-' + id);
+    if (field) {
+        field.remove();
+    }
+}
 
 // Number-only validation for phone fields
-document.querySelectorAll('input[name="applicant_cell"], input[name="respondent_cell"], input[name="business_cell"]').forEach(function(input) {
-    input.addEventListener('input', function(e) {
-        this.value = this.value.replace(/[^0-9]/g, '');
-    });
+document.addEventListener('input', function(e) {
+    if (e.target.name === 'applicant_cell' || e.target.name === 'respondent_cell' || e.target.name === 'business_cell') {
+        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+    }
 });
+
+// Initialize
+selectIndividual();
+updateStepDisplay();
 </script>
 {% endblock %}

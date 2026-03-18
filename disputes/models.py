@@ -10,9 +10,23 @@ User = get_user_model()
 
 class Dispute(models.Model):
     DISPUTE_TYPES = [
+        ("civil", "Civil"),
+        ("commercial", "Commercial"),
+        ("community", "Community"),
+        ("construction", "Construction"),
+        ("contractual", "Contractual"),
+        ("criminal", "Criminal"),
+        ("customary", "Customary"),
+        ("damages", "Damages"),
+        ("debts", "Debts"),
+        ("divorce", "Divorce"),
         ("family", "Family"),
         ("labour", "Labour"),
+        ("lease", "Lease"),
+        ("loans", "Loans"),
         ("property", "Property"),
+        ("religion", "Religion"),
+        ("sales", "Sales"),
     ]
 
     STATUS_CHOICES = [
@@ -79,7 +93,10 @@ class Dispute(models.Model):
     respondent_email = models.EmailField(blank=True)
 
     dispute_type = models.CharField(max_length=20, choices=DISPUTE_TYPES)
-    description = models.TextField()
+    description = models.TextField(blank=True)
+    mediation_location = models.CharField(max_length=200, blank=True)
+    preferred_date = models.DateTimeField(null=True, blank=True)
+    summary = models.TextField(blank=True)
     photo = models.ImageField(
         upload_to="dispute_photos/",
         blank=True,
