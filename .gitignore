@@ -43,3 +43,4 @@ celerybeat.pid
 
 # Node
 node_modules/
+~
