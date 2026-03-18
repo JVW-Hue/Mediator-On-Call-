@@ -20,7 +20,7 @@ from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, ListView, TemplateView
 
 from disputes.models import Dispute, MediationSession, Mediator, AuditLog, MediatableCase, ReferredCase
-from disputes.tasks import notify_recipient
+from disputes.tasks import notify_recipient, send_message_2_dispute_rejected, send_message_3_proceed_mediation, send_message_4_respondent_invitation, send_message_8_mediator_assigned_mediator, send_message_8_mediator_assigned_parties, send_message_9_outcome_filed
 from disputes.forms import MediationOutcomeForm
 
 
@@ -264,12 +264,38 @@ def screen_dispute(request):
         respondent_link = request.build_absolute_uri(
             reverse("disputes:respond", args=[str(dispute.respondent_token)])
         )
+        respondent_name = (
+            f"{dispute.respondent_name or ''} {dispute.respondent_surname or ''}".strip()
+            or dispute.business_name
+            or "Respondent"
+        )
+        
+        # Send Message 4: Invitation to respondent
+        respondent_email = dispute.respondent_email or dispute.business_email
+        if respondent_email:
+            send_message_4_respondent_invitation.delay(
+                to_email=respondent_email,
+                respondent_name=respondent_name,
+                applicant_name=f"{dispute.applicant_name} {dispute.applicant_surname}",
+                respond_link=respondent_link,
+                case_id=dispute.id,
+            )
+        
+        # Send SMS to respondent
         respondent_cell = dispute.respondent_cell or dispute.business_cell
         if respondent_cell:
             _send_notification(
                 notify_recipient,
                 to=respondent_cell,
                 body=f"A dispute has been filed against you. Please respond here: {respondent_link}",
+            )
+
+        # Send Message 3: Proceed with mediation to applicant
+        if dispute.applicant_email:
+            send_message_3_proceed_mediation.delay(
+                to_email=dispute.applicant_email,
+                applicant_name=dispute.applicant_name,
+                case_id=dispute.id,
             )
 
         if dispute.applicant_cell:
@@ -306,93 +332,20 @@ def screen_dispute(request):
                 },
             )
         
-        # Send email to applicant
+        # Send Message 2: Dispute rejected notification
         if dispute.applicant_email:
-            from django.core.mail import send_mail
-            from django.conf import settings
-            
-            if offer_foresolve:
-                subject = f"Update regarding your Mediation Application - Case #{dispute.id}"
-                body = f"""Dear {dispute.applicant_name} {dispute.applicant_surname},
-
-Thank you for submitting your dispute to Mediators on Call for mediation.
-
-After reviewing your request, we have found that the dispute cannot be mediated through our pro bono service. However, through our Foresolve process, we are able to divert your dispute for further consideration and possible resolution.
-
-Further direction shall be provided to you shortly.
-
-Your mediation request through Pro Bono NPC has been closed.
-
-If you have any questions, please contact us.
-
-Best regards,
-Mediators on Call Team
-"""
-            elif refer_to:
-                refer_name = refer_to.upper()
-                subject = f"Update regarding your Mediation Application - Case #{dispute.id}"
-                body = f"""Dear {dispute.applicant_name} {dispute.applicant_surname},
-
-Thank you for submitting your dispute to Mediators on Call for mediation.
-
-Your dispute has been reviewed and has been referred to {refer_name} for further handling. You will be contacted by the relevant department shortly.
-
-Your file with Mediators on Call has been closed.
-
-If you have any questions about the referral, please contact {refer_name} directly.
-
-Best regards,
-Mediators on Call Team
-"""
-            else:
-                subject = f"Update regarding your Mediation Application - Case #{dispute.id}"
-                body = f"""Dear {dispute.applicant_name} {dispute.applicant_surname},
-
-Thank you for submitting your dispute to Mediators on Call for mediation.
-
-After reviewing your request, we have found that the dispute cannot be mediated through our pro bono service. Your file has been closed.
-
-We encourage you to seek alternative dispute resolution methods that may be more suitable for your situation.
-
-If you have any questions, please contact us.
-
-Best regards,
-Mediators on Call Team
-"""
-            
-            try:
-                send_mail(
-                    subject,
-                    body,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [dispute.applicant_email],
-                    fail_silently=False,
-                )
-            except Exception as e:
-                # Log error but don't stop the process
-                import logging
-                logging.error(f"Failed to send rejection email: {e}")
+            send_message_2_dispute_rejected.delay(
+                to_email=dispute.applicant_email,
+                applicant_name=dispute.applicant_name,
+                case_id=dispute.id,
+            )
 
         # Send SMS notification
         if dispute.applicant_cell:
-            if offer_foresolve:
-                sms_body = (
-                    "After reviewing your request we have found that the dispute cannot be mediated. "
-                    "However, through our Foresolve process we are able to divert your dispute for further "
-                    "consideration and possible resolution. Further direction shall be provided. "
-                    "Your mediation request through Pro Bono NPC has been closed."
-                )
-            elif refer_to:
-                refer_name = refer_to.upper()
-                sms_body = (
-                    f"Your dispute has been reviewed and has been referred to {refer_name} for further handling. "
-                    "You will be contacted by the relevant department shortly."
-                )
-            else:
-                sms_body = (
-                    "After reviewing your request we have found that the dispute cannot be mediated. "
-                    "Your file has been closed."
-                )
+            sms_body = (
+                "After reviewing your request we have found that the dispute cannot be mediated. "
+                "Your file has been closed. You are welcome to lodge an enquiry to complaints@probonomediation.co.za"
+            )
             _send_notification(notify_recipient, to=dispute.applicant_cell, body=sms_body)
 
         AuditLog.objects.create(
@@ -452,6 +405,7 @@ def assign_mediator(request):
 
     dt_str = scheduled_at.strftime("%Y-%m-%d %H:%M") + " UTC"
     mediator_name = mediator.user.get_full_name() or mediator.user.username
+    mediator_email = mediator.user.email
 
     applicant_msg = (
         f"Your mediation has been scheduled. Mediator: {mediator_name}, "
@@ -464,6 +418,22 @@ def assign_mediator(request):
     mediator_msg = (
         f"New mediation assigned: Dispute #{dispute.id}, Date: {dt_str}, "
         f"Host link: {host_url or join_url}"
+    )
+
+    # Send Message 8: Notify mediator of assignment
+    if mediator_email:
+        send_message_8_mediator_assigned_mediator.delay(
+            to_email=mediator_email,
+            mediator_name=mediator_name,
+            case_id=dispute.id,
+        )
+    
+    # Send Message 8: Notify parties that mediator has been assigned
+    send_message_8_mediator_assigned_parties.delay(
+        applicant_email=dispute.applicant_email,
+        respondent_email=dispute.respondent_email or dispute.business_email,
+        mediator_name=mediator_name,
+        case_id=dispute.id,
     )
 
     if dispute.applicant_cell:
@@ -529,6 +499,14 @@ def submit_mediation_outcome(request, pk):
                 dispute.status = "mediated"
                 status_label = "Mediation completed"
             dispute.save(update_fields=["status"])
+
+            # Send Message 9: Notify admin that outcome has been filed
+            from django.conf import settings
+            admin_email = getattr(settings, 'ADMIN_EMAIL', 'admin@probonomediation.co.za')
+            send_message_9_outcome_filed.delay(
+                admin_email=admin_email,
+                case_id=dispute.id,
+            )
 
             AuditLog.objects.create(
                 dispute=dispute,

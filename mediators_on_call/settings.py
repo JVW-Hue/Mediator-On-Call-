@@ -196,7 +196,11 @@ EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "False") == "True"
 EMAIL_USE_SSL = os.environ.get("EMAIL_USE_SSL", "False") == "True"
 DEFAULT_FROM_EMAIL = os.environ.get(
     "DEFAULT_FROM_EMAIL",
-    "no-reply@mediators-on-call.local",
+    "no-reply@probonomediation.co.za",
+)
+ADMIN_EMAIL = os.environ.get(
+    "ADMIN_EMAIL",
+    "admin@probonomediation.co.za",
 )
 
 # File upload limits (optional)

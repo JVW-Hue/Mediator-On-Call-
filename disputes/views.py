@@ -17,6 +17,13 @@ from .forms import (
     ResponseDocumentFormSet,
 )
 from .models import Dispute, DisputeDocument, RespondentResponse, AuditLog
+from .tasks import (
+    send_message_1_dispute_registered,
+    send_message_4_respondent_invitation,
+    send_message_5_respondent_declined,
+    send_message_6_respondent_agreed,
+    send_message_7_assign_mediator,
+)
 
 
 def _send_notification(task_func, *args, **kwargs):
@@ -73,6 +80,14 @@ def _apply_view(request):
             for doc in documents:
                 doc.dispute = dispute
                 doc.save()
+            
+            # Send Message 1: Dispute registered confirmation to applicant
+            if dispute.applicant_email:
+                send_message_1_dispute_registered.delay(
+                    to_email=dispute.applicant_email,
+                    applicant_name=dispute.applicant_name,
+                    case_id=dispute.id,
+                )
             
             # Automatically reject family, labour, or property disputes
             INELIGIBLE_TYPES = ['family', 'labour', 'property']
@@ -157,45 +172,17 @@ def _respond_view(request, token):
                 dispute.respondent_agreed_at = timezone.now()
                 dispute.save(update_fields=["status", "respondent_agreed_at"])
                 
-                # Send email to applicant for final confirmation
+                # Send Message 6: Respondent agreed to applicant
                 if dispute.applicant_email:
-                    from django.core.mail import send_mail
-                    from django.conf import settings
-                    from django.urls import reverse
-                    
                     final_confirm_link = request.build_absolute_uri(
                         reverse("disputes:applicant_final_confirm", args=[str(dispute.applicant_view_token)])
                     )
-                    
-                    subject = f"Final Step: Respondent has agreed - Please confirm to proceed - Case #{dispute.id}"
-                    body = f"""Dear {dispute.applicant_name} {dispute.applicant_surname},
-
-Great news! The Respondent has agreed to participate in mediation.
-
-FINAL REVIEW REQUIRED:
-Please review the details below and confirm your final agreement to proceed with mediation.
-
-YOUR DETAILS:
-- Name: {dispute.applicant_name} {dispute.applicant_surname}
-- Cell: {dispute.applicant_cell}
-- Email: {dispute.applicant_email}
-- Issue: {dispute.description[:200]}...
-
-RESPONDENT'S RESPONSE:
-- Defence: {response.defence_explanation[:200]}...
-
-To confirm and proceed to mediation, please click the link below:
-{final_confirm_link}
-
-If you do not confirm within 7 days, the case may be closed.
-
-Best regards,
-Mediators on Call Team
-"""
-                    try:
-                        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [dispute.applicant_email])
-                    except Exception as e:
-                        logging.error(f"Failed to send final confirmation email: {e}")
+                    send_message_6_respondent_agreed.delay(
+                        to_email=dispute.applicant_email,
+                        applicant_name=dispute.applicant_name,
+                        final_confirm_link=final_confirm_link,
+                        case_id=dispute.id,
+                    )
                 
                 AuditLog.objects.create(
                     dispute=dispute,
@@ -207,6 +194,14 @@ Mediators on Call Team
             else:
                 dispute.status = "responded"
                 dispute.save(update_fields=["status"])
+                
+                # Send Message 5: Respondent declined
+                if dispute.applicant_email:
+                    send_message_5_respondent_declined.delay(
+                        to_email=dispute.applicant_email,
+                        applicant_name=dispute.applicant_name,
+                        case_id=dispute.id,
+                    )
 
             AuditLog.objects.create(
                 dispute=dispute,
@@ -388,6 +383,14 @@ def applicant_final_confirm_view(request, token):
         dispute.applicant_final_confirmed_at = timezone.now()
         dispute.status = "ready_for_assignment"
         dispute.save(update_fields=["applicant_final_confirmed_at", "status"])
+        
+        # Send Message 7: Notify admin to assign mediator
+        from django.conf import settings
+        admin_email = getattr(settings, 'ADMIN_EMAIL', 'admin@probonomediation.co.za')
+        send_message_7_assign_mediator.delay(
+            admin_email=admin_email,
+            case_id=dispute.id,
+        )
         
         AuditLog.objects.create(
             dispute=dispute,
