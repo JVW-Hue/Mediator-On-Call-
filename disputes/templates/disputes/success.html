@@ -2,26 +2,156 @@
 
 {% block title %}Thank You – Pro Bono Community Mediation{% endblock %}
 
+{% block extra_css %}
+<style>
+    .success-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .success-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        padding: 50px;
+        max-width: 550px;
+        text-align: center;
+        animation: slideUp 0.5s ease-out;
+    }
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .success-icon {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 30px;
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    .success-icon svg {
+        width: 50px;
+        height: 50px;
+        fill: white;
+    }
+    .success-card h2 {
+        color: #333;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+    .success-card p {
+        color: #666;
+        font-size: 1.1rem;
+        line-height: 1.8;
+    }
+    .reference-box {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 25px 0;
+        border-left: 4px solid #667eea;
+    }
+    .reference-box p {
+        font-size: 0.95rem;
+        margin: 0;
+    }
+    .btn-home {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 15px 40px;
+        border-radius: 50px;
+        font-weight: 600;
+        margin: 10px;
+        transition: all 0.3s;
+    }
+    .btn-home:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+    .steps-list {
+        text-align: left;
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 25px;
+        margin: 25px 0;
+    }
+    .steps-list h5 {
+        color: #333;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+    .steps-list ol {
+        margin: 0;
+        padding-left: 20px;
+    }
+    .steps-list li {
+        color: #555;
+        margin-bottom: 10px;
+        line-height: 1.6;
+    }
+    .contact-info {
+        margin-top: 25px;
+        padding-top: 25px;
+        border-top: 1px solid #eee;
+    }
+    .contact-info p {
+        font-size: 0.95rem;
+        color: #888;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-6 text-center">
-        <div class="card">
-            <div class="card-body">
-                <div class="mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="success" class="bi bi-check-circle" viewBox="0 0 16 16">
-                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
-                    </svg>
-                </div>
-                <h2 class="mb-3">Thank You!</h2>
-                <p class="lead">Your dispute has been submitted successfully.</p>
-                <p>We have received your case and our team will review it shortly. Your information will be monitored and you will be contacted with updates regarding your mediation.</p>
-                <hr>
-                <p class="text-muted mb-0">A reference number will be provided once your case is reviewed.</p>
-                <div class="mt-4">
-                    <a href="{% url 'disputes:apply' %}" class="btn btn-outline-primary">Submit Another Dispute</a>
-                    <a href="/" class="btn btn-primary">Home</a>
-                </div>
-            </div>
+<div class="success-container">
+    <div class="success-card">
+        <div class="success-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+            </svg>
+        </div>
+        
+        <h2>Dispute Submitted Successfully!</h2>
+        <p>Thank you for submitting your dispute through our Pro Bono Community Mediation platform. We have received your information and our team will review it shortly.</p>
+        
+        <div class="reference-box">
+            <p><strong>What happens next?</strong></p>
+            <p>Your information will be monitored and you will be contacted with updates regarding your mediation process.</p>
+        </div>
+        
+        <div class="steps-list">
+            <h5>The Process</h5>
+            <ol>
+                <li>Our Registrar will review your dispute</li>
+                <li>You will receive notification about the outcome</li>
+                <li>If approved, the Respondent will be contacted</li>
+                <li>A mediator will be assigned if both parties agree</li>
+            </ol>
+        </div>
+        
+        <div class="contact-info">
+            <p>Questions? Contact us at <strong>complaints@probonomediation.co.za</strong></p>
+        </div>
+        
+        <div class="mt-4">
+            <a href="{% url 'disputes:apply' %}" class="btn btn-home">
+                <i class="bi bi-plus-circle"></i> Submit Another Dispute
+            </a>
+            <a href="/" class="btn btn-home" style="background: #6c757d;">
+                <i class="bi bi-house"></i> Home
+            </a>
         </div>
     </div>
 </div>

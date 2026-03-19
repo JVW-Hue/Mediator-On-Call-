@@ -22,8 +22,7 @@ def _get_base_context():
 def send_email_notification(self, to_email: str, subject: str, body: str):
     """Send email notification."""
     if settings.DEBUG:
-        print(f"[EMAIL DEBUG] To: {to_email}, Subject: {subject}")
-        print(f"Body: {body[:200]}...")
+        logger.info(f"Email notification - To: {to_email}, Subject: {subject}")
         return None
 
     try:
