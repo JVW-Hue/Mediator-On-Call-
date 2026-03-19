@@ -21,19 +21,103 @@ phone_validator = RegexValidator(r'^\d+$', 'Please enter numbers only.')
 
 class DisputeForm(forms.ModelForm):
     honeypot = HoneypotField()
+    applicant_name = forms.CharField(
+        required=True,
+        error_messages={'required': 'Please enter your first name'},
+        widget=forms.TextInput(attrs={"placeholder": "Enter your first name"}),
+    )
+    applicant_surname = forms.CharField(
+        required=True,
+        error_messages={'required': 'Please enter your last name'},
+        widget=forms.TextInput(attrs={"placeholder": "Enter your last name"}),
+    )
     applicant_cell = forms.CharField(
+        required=True,
         validators=[phone_validator],
-        widget=forms.TextInput(attrs={"placeholder": "e.g. 0821234567", "pattern": r"\d*"}),
+        error_messages={'required': 'Please enter your cell phone number'},
+        widget=forms.TextInput(attrs={"placeholder": "e.g. 0821234567", "maxlength": "20"}),
+    )
+    applicant_email = forms.EmailField(
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Enter your email address (optional)"}),
+    )
+    respondent_type = forms.ChoiceField(
+        required=True,
+        choices=[('ind', 'Individual'), ('bus', 'Business')],
+        error_messages={'required': 'Please select a respondent type'},
+    )
+    respondent_name = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Enter respondent's first name"}),
+    )
+    respondent_surname = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Enter respondent's last name (optional)"}),
     )
     respondent_cell = forms.CharField(
         required=False,
         validators=[phone_validator],
-        widget=forms.TextInput(attrs={"placeholder": "e.g. 0821234567", "pattern": r"\d*"}),
+        widget=forms.TextInput(attrs={"placeholder": "Enter respondent's cell (optional)"}),
+    )
+    respondent_email = forms.EmailField(
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Enter respondent's email (optional)"}),
+    )
+    business_name = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Enter business name"}),
+    )
+    owner_name = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Enter owner/representative's first name"}),
+    )
+    owner_surname = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Enter owner/representative's last name (optional)"}),
     )
     business_cell = forms.CharField(
         required=False,
         validators=[phone_validator],
-        widget=forms.TextInput(attrs={"placeholder": "e.g. 0821234567", "pattern": r"\d*"}),
+        widget=forms.TextInput(attrs={"placeholder": "Enter business cell (optional)"}),
+    )
+    dispute_type = forms.ChoiceField(
+        required=True,
+        choices=[('', 'Select dispute type...')] + [
+            ('civil', 'Civil'),
+            ('commercial', 'Commercial'),
+            ('community', 'Community'),
+            ('construction', 'Construction'),
+            ('contractual', 'Contractual'),
+            ('criminal', 'Criminal'),
+            ('customary', 'Customary'),
+            ('damages', 'Damages'),
+            ('debts', 'Debts'),
+            ('divorce', 'Divorce'),
+            ('family', 'Family'),
+            ('labour', 'Labour'),
+            ('lease', 'Lease'),
+            ('loans', 'Loans'),
+            ('property', 'Property'),
+            ('religion', 'Religion'),
+            ('sales', 'Sales'),
+        ],
+        error_messages={'required': 'Please select a dispute type'},
+    )
+    description = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 4, "placeholder": "Describe your dispute in detail..."}),
+    )
+    mediation_location = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "e.g. Johannesburg, Cape Town"}),
+    )
+    preferred_date = forms.DateTimeField(
+        required=False,
+        widget=forms.DateTimeInput(attrs={"type": "datetime-local"}),
+    )
+    summary = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 3, "placeholder": "Brief summary for mediator..."}),
     )
 
     class Meta:
@@ -58,29 +142,18 @@ class DisputeForm(forms.ModelForm):
             "preferred_date",
             "summary",
         ]
-        widgets = {
-            "description": forms.Textarea(attrs={"rows": 4}),
-            "respondent_name": forms.TextInput(attrs={"placeholder": "Required if Individual"}),
-            "respondent_surname": forms.TextInput(attrs={"placeholder": "Required if Individual"}),
-            "business_name": forms.TextInput(attrs={"placeholder": "Required if Business"}),
-            "owner_name": forms.TextInput(attrs={"placeholder": "Required if Business"}),
-            "owner_surname": forms.TextInput(attrs={"placeholder": "Required if Business"}),
-            "mediation_location": forms.TextInput(attrs={"placeholder": "Location for mediation"}),
-            "preferred_date": forms.DateTimeInput(attrs={"type": "datetime-local"}),
-            "summary": forms.Textarea(attrs={"rows": 3, "placeholder": "Brief summary for mediator"}),
-        }
 
     def clean(self):
         cleaned = super().clean()
         rtype = cleaned.get("respondent_type")
         if rtype == "bus":
             if not cleaned.get("business_name"):
-                self.add_error("business_name", "Business name is required for business respondents.")
+                self.add_error("business_name", "Please enter the business name")
             if not cleaned.get("owner_name"):
-                self.add_error("owner_name", "Owner name is required for business respondents.")
+                self.add_error("owner_name", "Please enter the owner/representative's first name")
         else:
             if not cleaned.get("respondent_name"):
-                self.add_error("respondent_name", "Respondent name is required for individuals.")
+                self.add_error("respondent_name", "Please enter the respondent's first name")
         return cleaned
 
 

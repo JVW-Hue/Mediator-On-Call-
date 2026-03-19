@@ -84,6 +84,17 @@
     .step-dot.completed {
         background: #28a745;
     }
+    /* Form field error styling */
+    .is-invalid {
+        border-color: #dc3545 !important;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+    }
+    .invalid-feedback {
+        display: block;
+        color: #dc3545;
+        font-size: 0.85rem;
+        margin-top: 5px;
+    }
 </style>
 
 <div class="row justify-content-center">
@@ -106,12 +117,12 @@
             
             <!-- Form Errors -->
             {% if form.errors %}
-            <div class="alert alert-danger">
-                <strong>Please correct the following errors:</strong>
-                <ul class="mb-0">
+            <div class="alert alert-danger" style="border-radius: 10px; border: none; background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%); color: #721c24; padding: 20px;">
+                <h5><i class="bi bi-exclamation-triangle-fill"></i> Please correct the following errors:</h5>
+                <ul class="mb-0 mt-3">
                     {% for field, errors in form.errors.items %}
                         {% for error in errors %}
-                        <li>{{ error }}</li>
+                        <li><strong>{{ error }}</strong></li>
                         {% endfor %}
                     {% endfor %}
                 </ul>
@@ -153,21 +164,30 @@
                 <div class="row mt-3">
                     <div class="col-md-6 mb-3">
                         <label>First Name <span class="required-badge">COMPULSORY</span></label>
-                        <input type="text" name="applicant_name" class="form-control" required>
+                        <input type="text" name="applicant_name" class="form-control {% if form.applicant_name.errors %}is-invalid{% endif %}" placeholder="Enter your first name">
+                        {% if form.applicant_name.errors %}
+                        <div class="invalid-feedback">{{ form.applicant_name.errors.0 }}</div>
+                        {% endif %}
                     </div>
                     <div class="col-md-6 mb-3">
                         <label>Last Name <span class="required-badge">COMPULSORY</span></label>
-                        <input type="text" name="applicant_surname" class="form-control" required>
+                        <input type="text" name="applicant_surname" class="form-control {% if form.applicant_surname.errors %}is-invalid{% endif %}" placeholder="Enter your last name">
+                        {% if form.applicant_surname.errors %}
+                        <div class="invalid-feedback">{{ form.applicant_surname.errors.0 }}</div>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label>Cell Number <span class="required-badge">COMPULSORY</span></label>
-                        <input type="tel" name="applicant_cell" class="form-control" placeholder="e.g. 0821234567" maxlength="20" required>
+                        <input type="tel" name="applicant_cell" class="form-control {% if form.applicant_cell.errors %}is-invalid{% endif %}" placeholder="e.g. 0821234567" maxlength="20">
+                        {% if form.applicant_cell.errors %}
+                        <div class="invalid-feedback">{{ form.applicant_cell.errors.0 }}</div>
+                        {% endif %}
                     </div>
                     <div class="col-md-6 mb-3">
                         <label>Email Address <span class="optional-badge">OPTIONAL</span></label>
-                        <input type="email" name="applicant_email" class="form-control" placeholder="Optional">
+                        <input type="email" name="applicant_email" class="form-control" placeholder="Enter your email address (optional)">
                     </div>
                 </div>
             </div>
@@ -178,21 +198,24 @@
                 <div class="row mt-3">
                     <div class="col-md-6 mb-3">
                         <label>Respondent First Name <span class="required-badge">COMPULSORY</span></label>
-                        <input type="text" name="respondent_name" class="form-control" id="ind_respondent_name" required>
+                        <input type="text" name="respondent_name" class="form-control {% if form.respondent_name.errors %}is-invalid{% endif %}" id="ind_respondent_name" placeholder="Enter respondent's first name">
+                        {% if form.respondent_name.errors %}
+                        <div class="invalid-feedback">{{ form.respondent_name.errors.0 }}</div>
+                        {% endif %}
                     </div>
                     <div class="col-md-6 mb-3">
                         <label>Respondent Last Name <span class="optional-badge">OPTIONAL</span></label>
-                        <input type="text" name="respondent_surname" class="form-control">
+                        <input type="text" name="respondent_surname" class="form-control" placeholder="Enter respondent's last name (optional)">
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label>Respondent Cell Number <span class="optional-badge">OPTIONAL</span></label>
-                        <input type="tel" name="respondent_cell" class="form-control" placeholder="Optional">
+                        <input type="tel" name="respondent_cell" class="form-control" placeholder="Enter respondent's cell (optional)">
                     </div>
                     <div class="col-md-6 mb-3">
                         <label>Respondent Email <span class="optional-badge">OPTIONAL</span></label>
-                        <input type="email" name="respondent_email" class="form-control" placeholder="Optional">
+                        <input type="email" name="respondent_email" class="form-control" placeholder="Enter respondent's email (optional)">
                     </div>
                 </div>
             </div>
@@ -203,27 +226,33 @@
                 <div class="row mt-3">
                     <div class="col-md-6 mb-3">
                         <label>Business Name <span class="required-badge">COMPULSORY</span></label>
-                        <input type="text" name="business_name" class="form-control" id="bus_business_name" required>
+                        <input type="text" name="business_name" class="form-control {% if form.business_name.errors %}is-invalid{% endif %}" id="bus_business_name" placeholder="Enter business name">
+                        {% if form.business_name.errors %}
+                        <div class="invalid-feedback">{{ form.business_name.errors.0 }}</div>
+                        {% endif %}
                     </div>
                     <div class="col-md-6 mb-3">
                         <label>Owner/Representative First Name <span class="required-badge">COMPULSORY</span></label>
-                        <input type="text" name="owner_name" class="form-control" id="bus_owner_name" required>
+                        <input type="text" name="owner_name" class="form-control {% if form.owner_name.errors %}is-invalid{% endif %}" id="bus_owner_name" placeholder="Enter owner/representative's first name">
+                        {% if form.owner_name.errors %}
+                        <div class="invalid-feedback">{{ form.owner_name.errors.0 }}</div>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label>Owner/Representative Last Name <span class="optional-badge">OPTIONAL</span></label>
-                        <input type="text" name="owner_surname" class="form-control">
+                        <input type="text" name="owner_surname" class="form-control" placeholder="Enter owner/representative's last name (optional)">
                     </div>
                     <div class="col-md-6 mb-3">
                         <label>Business Cell Number <span class="optional-badge">OPTIONAL</span></label>
-                        <input type="tel" name="business_cell" class="form-control" placeholder="Optional">
+                        <input type="tel" name="business_cell" class="form-control" placeholder="Enter business cell (optional)">
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label>Business Email <span class="optional-badge">OPTIONAL</span></label>
-                        <input type="email" name="respondent_email" class="form-control" placeholder="Optional">
+                        <input type="email" name="respondent_email" class="form-control" placeholder="Enter business email (optional)">
                     </div>
                 </div>
             </div>
@@ -234,7 +263,7 @@
                 <div class="row mt-3">
                     <div class="col-md-6 mb-3">
                         <label>Dispute Type <span class="required-badge">COMPULSORY</span></label>
-                        <select name="dispute_type" class="form-select" required>
+                        <select name="dispute_type" class="form-select {% if form.dispute_type.errors %}is-invalid{% endif %}">
                             <option value="">Select dispute type...</option>
                             <option value="civil">Civil</option>
                             <option value="commercial">Commercial</option>
@@ -254,6 +283,9 @@
                             <option value="religion">Religion</option>
                             <option value="sales">Sales</option>
                         </select>
+                        {% if form.dispute_type.errors %}
+                        <div class="invalid-feedback">{{ form.dispute_type.errors.0 }}</div>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="mb-3">
