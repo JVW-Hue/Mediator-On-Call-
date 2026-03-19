@@ -213,6 +213,9 @@ def _apply_view(request):
             
             messages.success(request, "Your dispute has been submitted successfully. You will receive an SMS notification shortly.")
             return redirect("disputes:application_success")
+        else:
+            # Form is invalid - render with errors
+            return render(request, "disputes/apply.html", {"form": form, "formset": formset})
     else:
         form = DisputeForm()
         formset = DisputeDocumentFormSet(queryset=DisputeDocument.objects.none())

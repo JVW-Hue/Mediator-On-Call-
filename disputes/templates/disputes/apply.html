@@ -49,6 +49,20 @@
             {% csrf_token %}
             {{ formset.management_form }}
             
+            <!-- Form Errors -->
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                <strong>Please correct the following errors:</strong>
+                <ul class="mb-0">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            
             <!-- Step 1: Respondent Type Selection -->
             <div class="form-section" id="step1">
                 <h5><i class="bi bi-person-check"></i> Step 1: Who is your Respondent?</h5>
@@ -260,13 +274,12 @@
                 <button type="submit" class="btn btn-success ms-auto hidden" id="btn-submit">
                     <i class="bi bi-send"></i> Submit Dispute
                 </button>
+                <!-- Hidden honeypot for spam protection -->
+                <input type="text" name="honeypot" style="display: none;" tabindex="-1" autocomplete="off">
             </div>
         </form>
     </div>
 </div>
-
-<!-- Hidden honeypot -->
-<input type="text" name="honeypot" style="display: none;" tabindex="-1" autocomplete="off">
 
 <script>
 let currentStep = 1;
