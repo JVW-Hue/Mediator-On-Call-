@@ -55,16 +55,35 @@
         font-size: 1.1rem;
         line-height: 1.8;
     }
-    .reference-box {
+    .notification-box {
         background: #f8f9fa;
         border-radius: 10px;
-        padding: 20px;
+        padding: 25px;
         margin: 25px 0;
         border-left: 4px solid #667eea;
     }
-    .reference-box p {
-        font-size: 0.95rem;
+    .notification-box p {
+        font-size: 1rem;
         margin: 0;
+        text-align: left;
+    }
+    .notification-box ul {
+        text-align: left;
+        margin: 15px 0 0 0;
+        padding-left: 20px;
+    }
+    .notification-box li {
+        color: #555;
+        margin-bottom: 8px;
+    }
+    .contact-info {
+        margin-top: 25px;
+        padding-top: 25px;
+        border-top: 1px solid #eee;
+    }
+    .contact-info p {
+        font-size: 0.95rem;
+        color: #888;
     }
     .btn-home {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -81,35 +100,20 @@
         box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
         color: white;
     }
-    .steps-list {
-        text-align: left;
-        background: #f8f9fa;
-        border-radius: 15px;
-        padding: 25px;
-        margin: 25px 0;
-    }
-    .steps-list h5 {
-        color: #333;
-        margin-bottom: 15px;
+    .btn-outline-home {
+        border: 2px solid #667eea;
+        color: #667eea;
+        padding: 13px 40px;
+        border-radius: 50px;
         font-weight: 600;
+        margin: 10px;
+        transition: all 0.3s;
+        background: transparent;
     }
-    .steps-list ol {
-        margin: 0;
-        padding-left: 20px;
-    }
-    .steps-list li {
-        color: #555;
-        margin-bottom: 10px;
-        line-height: 1.6;
-    }
-    .contact-info {
-        margin-top: 25px;
-        padding-top: 25px;
-        border-top: 1px solid #eee;
-    }
-    .contact-info p {
-        font-size: 0.95rem;
-        color: #888;
+    .btn-outline-home:hover {
+        background: #667eea;
+        color: white;
+        transform: translateY(-3px);
     }
 </style>
 {% endblock %}
@@ -123,33 +127,29 @@
             </svg>
         </div>
         
-        <h2>Dispute Submitted Successfully!</h2>
-        <p>Thank you for submitting your dispute through our Pro Bono Community Mediation platform. We have received your information and our team will review it shortly.</p>
+        <h2>Thank You for Filling in the Form</h2>
         
-        <div class="reference-box">
-            <p><strong>What happens next?</strong></p>
-            <p>Your information will be monitored and you will be contacted with updates regarding your mediation process.</p>
-        </div>
-        
-        <div class="steps-list">
-            <h5>The Process</h5>
-            <ol>
-                <li>Our Registrar will review your dispute</li>
-                <li>You will receive notification about the outcome</li>
-                <li>If approved, the Respondent will be contacted</li>
-                <li>A mediator will be assigned if both parties agree</li>
-            </ol>
+        <div class="notification-box">
+            <p><strong>Your submission has been received.</strong></p>
+            <p>Your information is currently being reviewed by our team. You will receive an SMS notification shortly with further details regarding your dispute.</p>
+            
+            <ul>
+                <li>Our Registrar will assess your dispute</li>
+                <li>You will be notified via SMS of the outcome</li>
+                <li>Further instructions will be provided once your case is reviewed</li>
+            </ul>
         </div>
         
         <div class="contact-info">
-            <p>Questions? Contact us at <strong>complaints@probonomediation.co.za</strong></p>
+            <p>Should you have any enquiries, please contact us at:</p>
+            <p><strong>complaints@probonomediation.co.za</strong></p>
         </div>
         
         <div class="mt-4">
-            <a href="{% url 'disputes:apply' %}" class="btn btn-home">
+            <a href="{% url 'disputes:apply' %}" class="btn btn-outline-home">
                 <i class="bi bi-plus-circle"></i> Submit Another Dispute
             </a>
-            <a href="/" class="btn btn-home" style="background: #6c757d;">
+            <a href="/" class="btn btn-home">
                 <i class="bi bi-house"></i> Home
             </a>
         </div>

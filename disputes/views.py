@@ -211,7 +211,7 @@ def _apply_view(request):
                 messages.warning(request, f"Your dispute involves {dispute.get_dispute_type_display()} matters which are not eligible for mediation. Your file has been closed.")
                 return render(request, "disputes/rejected_not_eligible.html", {"dispute": dispute})
             
-            messages.success(request, "Thank you! Your dispute has been submitted successfully. We will review your case and contact you shortly.")
+            messages.success(request, "Your dispute has been submitted successfully. You will receive an SMS notification shortly.")
             return redirect("disputes:application_success")
     else:
         form = DisputeForm()
