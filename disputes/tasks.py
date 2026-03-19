@@ -44,14 +44,12 @@ def send_email_notification(self, to_email: str, subject: str, body: str):
 @shared_task(bind=True, max_retries=3)
 def send_message_1_dispute_registered(self, to_email: str, applicant_name: str, case_id: int):
     """MESSAGE 1: After registering your dispute - Confirmation to applicant"""
-    subject = f"Your Dispute Has Been Registered - Case #{case_id}"
+    subject = f"Thank You for Submitting Your Dispute - Case #{case_id}"
     body = f"""Dear {applicant_name},
 
-Your dispute has successfully been registered and referred to the Registrar.
+Thank you for submitting your dispute. Your information has been received and will be monitored by our team.
 
-The Registrar shall now assess and determine whether your dispute can be mediated.
-
-Once assessed you shall receive a notification from the Registrar with regards to the way forward.
+We will review your case and contact you shortly with further instructions.
 
 Regards,
 Admin Team"""

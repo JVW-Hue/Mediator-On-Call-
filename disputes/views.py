@@ -174,7 +174,7 @@ def _apply_view(request):
                 # Clean up temp photos
                 temp_photos.delete()
             
-            # Send Message 1: Dispute registered confirmation to applicant
+            # Send Message 1: Thank you for submitting dispute confirmation
             if dispute.applicant_email:
                 send_message_1_dispute_registered.delay(
                     to_email=dispute.applicant_email,
