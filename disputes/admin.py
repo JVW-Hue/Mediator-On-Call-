@@ -138,9 +138,11 @@ class CustomAdminSite(admin.AdminSite):
             return True
         return False
     
-    def login(self, request, extra_context=None):
-        from django.contrib.auth.views import redirect_to_login
-        return redirect_to_login(request.get_full_path())
+    def admin_view(self, view, cacheable=False):
+        inner = self._wrap_view(view)
+        if settings.DEBUG:
+            return inner
+        return cacheable or settings.USE_I18N, (), inner
 
 admin_site = CustomAdminSite(name='custom_admin')
 admin_site.register(Dispute, DisputeAdmin)
