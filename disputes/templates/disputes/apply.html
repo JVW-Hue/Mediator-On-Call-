@@ -97,7 +97,7 @@
                         <input type="tel" name="applicant_cell" class="form-control" placeholder="e.g. 0821234567" maxlength="20" required>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label>Email Address <span class="optional-badge">UNCOMPULSORY</span></label>
+                        <label>Email Address <span class="optional-badge">OPTIONAL</span></label>
                         <input type="email" name="applicant_email" class="form-control" placeholder="Optional">
                     </div>
                 </div>
@@ -112,17 +112,17 @@
                         <input type="text" name="respondent_name" class="form-control" id="ind_respondent_name" required>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label>Respondent Last Name <span class="optional-badge">UNCOMPULSORY</span></label>
+                        <label>Respondent Last Name <span class="optional-badge">OPTIONAL</span></label>
                         <input type="text" name="respondent_surname" class="form-control">
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label>Respondent Cell Number <span class="optional-badge">UNCOMPULSORY</span></label>
+                        <label>Respondent Cell Number <span class="optional-badge">OPTIONAL</span></label>
                         <input type="tel" name="respondent_cell" class="form-control" placeholder="Optional">
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label>Respondent Email <span class="optional-badge">UNCOMPULSORY</span></label>
+                        <label>Respondent Email <span class="optional-badge">OPTIONAL</span></label>
                         <input type="email" name="respondent_email" class="form-control" placeholder="Optional">
                     </div>
                 </div>
@@ -142,7 +142,7 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label>Owner/Representative Last Name <span class="optional-badge">UNCOMPULSORY</span></label>
+                        <label>Owner/Representative Last Name <span class="optional-badge">OPTIONAL</span></label>
                         <input type="text" name="owner_surname" class="form-control">
                     </div>
                     <div class="col-md-6 mb-3">
@@ -152,7 +152,7 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label>Business Email <span class="optional-badge">UNCOMPULSORY</span></label>
+                        <label>Business Email <span class="optional-badge">OPTIONAL</span></label>
                         <input type="email" name="respondent_email" class="form-control" placeholder="Optional">
                     </div>
                 </div>
@@ -187,21 +187,21 @@
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label>Describe Your Dispute <span class="optional-badge">UNCOMPULSORY</span></label>
+                        <label>Describe Your Dispute <span class="optional-badge">OPTIONAL</span></label>
                     <textarea name="description" class="form-control" rows="5" placeholder="Please describe your dispute in detail..."></textarea>
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label>Preferred Mediation Location <span class="optional-badge">UNCOMPULSORY</span></label>
+                        <label>Preferred Mediation Location <span class="optional-badge">OPTIONAL</span></label>
                         <input type="text" name="mediation_location" class="form-control" placeholder="e.g. Johannesburg, Cape Town">
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label>Preferred Date/Time <span class="optional-badge">UNCOMPULSORY</span></label>
+                        <label>Preferred Date/Time <span class="optional-badge">OPTIONAL</span></label>
                         <input type="datetime-local" name="preferred_date" class="form-control">
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label>Brief Summary for Mediator <span class="optional-badge">UNCOMPULSORY</span></label>
+                        <label>Brief Summary for Mediator <span class="optional-badge">OPTIONAL</span></label>
                     <textarea name="summary" class="form-control" rows="3" placeholder="Brief summary of the issue..."></textarea>
                 </div>
             </div>
@@ -210,25 +210,25 @@
             <div class="form-section hidden" id="step5">
                 <h5><i class="bi bi-camera"></i> Step 5: Add Photos (Optional)</h5>
                 <p class="text-muted">Take or upload photos one at a time. Each photo will be saved as you add it.</p>
-                <div class="mb-3">
-                    <div class="d-flex gap-2 flex-wrap mb-3" id="photo-upload-area">
-                        <label for="id_photo" class="btn btn-outline-primary">
-                            <i class="bi bi-camera-fill"></i> Add Photo
-                        </label>
-                        <input type="file" id="id_photo" name="photo" accept="image/*" capture="environment" class="d-none">
-                        <button type="button" id="btn-take-photo" class="btn btn-outline-secondary">
-                            <i class="bi bi-phone"></i> Use Camera
-                        </button>
+                    <div class="mb-3">
+                        <div class="d-flex gap-2 flex-wrap mb-3" id="photo-upload-area">
+                            <label for="id_photo" class="btn btn-outline-primary">
+                                <i class="bi bi-camera-fill"></i> Add Photos
+                            </label>
+                            <input type="file" id="id_photo" name="photo" accept="image/*" capture="environment" class="d-none" multiple>
+                            <button type="button" id="btn-take-photo" class="btn btn-outline-secondary">
+                                <i class="bi bi-phone"></i> Use Camera
+                            </button>
+                        </div>
+                        <div id="photo-preview" class="mt-3 d-flex gap-2 flex-wrap"></div>
+                        <small class="text-muted d-block mt-2">Click "Add Photos" to select from gallery or take new photos. You can select multiple photos at once.</small>
+                        <div id="photo-count" class="mt-2 text-success fw-bold"></div>
                     </div>
-                    <div id="photo-preview" class="mt-3 d-flex gap-2 flex-wrap"></div>
-                    <small class="text-muted d-block mt-2">Click "Add Photo" to select from gallery or take a new photo. Each photo will be saved immediately.</small>
-                    <div id="photo-count" class="mt-2 text-success fw-bold"></div>
-                </div>
             </div>
             
             <!-- Step 6: Documents -->
             <div class="form-section hidden" id="step6">
-                <h5><i class="bi bi-paperclip"></i> Step 6: Supporting Documents <span class="optional-badge" style="font-size: 0.65rem;">UNCOMPULSORY</span></h5>
+                <h5><i class="bi bi-paperclip"></i> Step 6: Supporting Documents <span class="optional-badge" style="font-size: 0.65rem;">OPTIONAL</span></h5>
                 <p class="text-muted">Upload documents to support your dispute (PDF, images, Word files).</p>
                 <div class="mb-3" id="documents-container">
                     <div class="input-group mb-2">
@@ -350,20 +350,22 @@ function previousStep() {
     }
 }
 
-// Photo upload via AJAX - one at a time
+// Photo upload via AJAX - multiple photos at once
 let photoCount = 0;
 
 document.getElementById('id_photo').addEventListener('change', function(e) {
-    var file = e.target.files[0];
-    if (!file) return;
+    var files = e.target.files;
+    if (files.length === 0) return;
     
-    uploadPhoto(file);
-    e.target.value = ''; // Reset input so same file can be selected again
+    uploadPhotos(Array.from(files));
+    e.target.value = ''; // Reset input so same files can be selected again
 });
 
-function uploadPhoto(file) {
+function uploadPhotos(files) {
     var formData = new FormData();
-    formData.append('photo', file);
+    for (var i = 0; i < files.length; i++) {
+        formData.append('photo[]', files[i]);
+    }
     
     fetch('/apply/upload-photo/', {
         method: 'POST',
@@ -375,16 +377,19 @@ function uploadPhoto(file) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            addPhotoToPreview(data.photo_id, data.photo_url);
-            photoCount++;
+            // Add all uploaded photos to preview
+            data.photos.forEach(photo => {
+                addPhotoToPreview(photo.id, photo.photo_url);
+            });
+            photoCount = data.total_count;
             updatePhotoCount();
         } else {
-            alert('Error uploading photo: ' + data.error);
+            alert('Error uploading photos: ' + data.error);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error uploading photo. Please try again.');
+        alert('Error uploading photos. Please try again.');
     });
 }
 

@@ -29,41 +29,55 @@ from .tasks import (
 
 @require_POST
 def upload_photo_ajax(request):
-    """Handle AJAX photo upload - saves photo temporarily and returns success"""
+    """Handle AJAX photo upload - saves photos temporarily and returns success"""
     from django.http import JsonResponse
-    from django.core.files.base import ContentFile
-    import base64
+    import logging
     
-    if not request.FILES.get('photo'):
-        return JsonResponse({'success': False, 'error': 'No photo provided'}, status=400)
+    logger = logging.getLogger(__name__)
     
-    photo = request.FILES['photo']
+    # Handle both single file (legacy) and multiple files
+    files = request.FILES.getlist('photo') if 'photo' in request.FILES else request.FILES.getlist('photo[]')
     
-    # Validate file type
-    if not photo.content_type.startswith('image/'):
-        return JsonResponse({'success': False, 'error': 'Only image files are allowed'}, status=400)
+    if not files:
+        return JsonResponse({'success': False, 'error': 'No photos provided'}, status=400)
     
-    # Validate file size (max 10MB)
-    if photo.size > 10 * 1024 * 1024:
-        return JsonResponse({'success': False, 'error': 'File size must be less than 10MB'}, status=400)
+    uploaded_photos = []
     
-    # Get session key for temporary storage
-    session_key = request.session.session_key
-    if not session_key:
-        request.session.create()
+    for photo in files:
+        # Validate file type
+        if not photo.content_type.startswith('image/'):
+            return JsonResponse({'success': False, 'error': f'File {photo.name} is not an image. Only image files are allowed.'}, status=400)
+        
+        # Validate file size (max 10MB)
+        if photo.size > 10 * 1024 * 1024:
+            return JsonResponse({'success': False, 'error': f'File {photo.name} is too large. File size must be less than 10MB.'}, status=400)
+        
+        # Get session key for temporary storage
         session_key = request.session.session_key
+        if not session_key:
+            request.session.create()
+            session_key = request.session.session_key
+        
+        # Save temporary photo
+        temp_photo = TempDisputePhoto.objects.create(
+            session_key=session_key,
+            image=photo
+        )
+        
+        uploaded_photos.append({
+            'id': temp_photo.id,
+            'photo_url': temp_photo.image.url
+        })
     
-    # Save temporary photo
-    temp_photo = TempDisputePhoto.objects.create(
-        session_key=session_key,
-        image=photo
-    )
+    # Get updated count for this session
+    session_key = request.session.session_key
+    photo_count = TempDisputePhoto.objects.filter(session_key=session_key).count() if session_key else 0
     
     return JsonResponse({
         'success': True,
-        'photo_id': temp_photo.id,
-        'photo_url': temp_photo.image.url,
-        'message': 'Photo uploaded successfully'
+        'photos': uploaded_photos,
+        'total_count': photo_count,
+        'message': f'{len(uploaded_photos)} photo(s) uploaded successfully'
     })
 
 
