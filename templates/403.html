@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Access Denied – Pro Bono Community Mediation{% endblock %}
+
+{% block extra_css %}
+<style>
+    .error-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: calc(100vh - 200px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .error-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        padding: 50px;
+        max-width: 500px;
+        text-align: center;
+        animation: slideUp 0.5s ease-out;
+    }
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .error-icon {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 30px;
+    }
+    .error-icon svg {
+        width: 50px;
+        height: 50px;
+        fill: white;
+    }
+    .error-card h2 {
+        color: #333;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+    .error-card p {
+        color: #666;
+        font-size: 1.1rem;
+        line-height: 1.8;
+    }
+    .error-card code {
+        background: #f8f9fa;
+        padding: 5px 10px;
+        border-radius: 5px;
+        color: #dc3545;
+        font-size: 0.9rem;
+    }
+    .btn-home {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 15px 40px;
+        border-radius: 50px;
+        font-weight: 600;
+        margin: 10px;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+    }
+    .btn-home:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+    .btn-outline-home {
+        border: 2px solid #667eea;
+        color: #667eea;
+        padding: 13px 40px;
+        border-radius: 50px;
+        font-weight: 600;
+        margin: 10px;
+        transition: all 0.3s;
+        background: transparent;
+        text-decoration: none;
+        display: inline-block;
+    }
+    .btn-outline-home:hover {
+        background: #667eea;
+        color: white;
+        transform: translateY(-3px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-card">
+        <div class="error-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
+            </svg>
+        </div>
+        
+        <h2>Access Denied</h2>
+        
+        <p>{{ exception }}</p>
+        
+        <p>You are authenticated as <code>{{ user }}</code>, but are not authorized to access this page.</p>
+        
+        <p>Please contact the administrator if you believe this is an error.</p>
+        
+        <div class="mt-4">
+            <a href="{% url 'logout' %}" class="btn btn-outline-home">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+            <a href="{% url 'login' %}" class="btn btn-home">
+                <i class="bi bi-box-arrow-in-right"></i> Login with Different Account
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
