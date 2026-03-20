@@ -460,18 +460,58 @@ def assign_mediator(request):
 @mediator_required
 def mediator_dashboard(request):
     mediator = get_object_or_404(Mediator, user=request.user)
+    
+    # Get upcoming sessions
     upcoming = MediationSession.objects.filter(
         mediator=mediator,
         scheduled_at__gte=timezone.now(),
     ).order_by("scheduled_at")
+    
+    # Get past sessions
     past = MediationSession.objects.filter(
         mediator=mediator,
         scheduled_at__lt=timezone.now(),
     ).order_by("-scheduled_at")
+    
+    # Get assigned disputes
+    assigned_cases = Dispute.objects.filter(
+        mediator=mediator,
+        status__in=['mediation_scheduled', 'mediation_in_progress', 'ready_for_assignment']
+    ).order_by("-updated_at")
+    
+    # Get pending cases (not yet scheduled)
+    pending_cases = Dispute.objects.filter(
+        mediator=mediator,
+        status='mediator_assigned'
+    ).order_by("-updated_at")
+    
+    # Get completed cases
+    completed_cases = Dispute.objects.filter(
+        mediator=mediator,
+        status__in=['mediated', 'arbitration', 'closed']
+    ).order_by("-updated_at")
+    
+    # Stats
+    stats = {
+        'assigned_count': assigned_cases.count(),
+        'pending_count': pending_cases.count(),
+        'completed_count': completed_cases.count(),
+        'upcoming_count': upcoming.count(),
+        'past_count': past.count(),
+    }
+    
     return render(
         request,
         "dashboard/mediator_home.html",
-        {"upcoming": upcoming, "past": past, "mediator": mediator},
+        {
+            "upcoming": upcoming,
+            "past": past,
+            "mediator": mediator,
+            "assigned_cases": assigned_cases,
+            "pending_cases": pending_cases,
+            "completed_cases": completed_cases,
+            "stats": stats,
+        },
     )
 
 
