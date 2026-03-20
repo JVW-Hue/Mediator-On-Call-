@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Access Denied – Pro Bono Community Mediation{% endblock %}
+{% block title %}Access Restricted – Pro Bono Community Mediation{% endblock %}
 
 {% block extra_css %}
 <style>
-    .error-container {
+    .restricted-container {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         min-height: calc(100vh - 200px);
         display: flex;
@@ -12,12 +12,12 @@
         justify-content: center;
         padding: 20px;
     }
-    .error-card {
+    .restricted-card {
         background: white;
         border-radius: 20px;
         box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         padding: 50px;
-        max-width: 500px;
+        max-width: 600px;
         text-align: center;
         animation: slideUp 0.5s ease-out;
     }
@@ -25,37 +25,49 @@
         from { opacity: 0; transform: translateY(30px); }
         to { opacity: 1; transform: translateY(0); }
     }
-    .error-icon {
+    .restricted-icon {
         width: 100px;
         height: 100px;
-        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         margin: 0 auto 30px;
     }
-    .error-icon svg {
+    .restricted-icon svg {
         width: 50px;
         height: 50px;
         fill: white;
     }
-    .error-card h2 {
+    .restricted-card h2 {
         color: #333;
         font-weight: 700;
         margin-bottom: 15px;
     }
-    .error-card p {
+    .restricted-card p {
         color: #666;
-        font-size: 1.1rem;
+        font-size: 1.05rem;
         line-height: 1.8;
     }
-    .error-card code {
-        background: #f8f9fa;
-        padding: 5px 10px;
-        border-radius: 5px;
-        color: #dc3545;
-        font-size: 0.9rem;
+    .info-box {
+        background: linear-gradient(135deg, #e8f4f8 0%, #d4edda 100%);
+        border-radius: 15px;
+        padding: 25px;
+        margin: 25px 0;
+        text-align: left;
+    }
+    .info-box h5 {
+        color: #155724;
+        margin-bottom: 10px;
+    }
+    .info-box ul {
+        margin: 0;
+        padding-left: 20px;
+    }
+    .info-box li {
+        color: #555;
+        margin-bottom: 8px;
     }
     .btn-home {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -95,29 +107,38 @@
 {% endblock %}
 
 {% block content %}
-<div class="error-container">
-    <div class="error-card">
-        <div class="error-icon">
+<div class="restricted-container">
+    <div class="restricted-card">
+        <div class="restricted-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
                 <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
                 <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
             </svg>
         </div>
         
-        <h2>Access Denied</h2>
+        <h2>Access Restricted</h2>
         
-        <p>{{ exception }}</p>
+        <p>You do not have permission to access this page.</p>
         
-        <p>You are authenticated as <code>{{ user }}</code>, but are not authorized to access this page.</p>
+        <div class="info-box">
+            <h5><i class="bi bi-info-circle"></i> What does this mean?</h5>
+            <ul>
+                <li>This area is for administrators and mediators only</li>
+                <li>If you submitted a dispute, your case is being processed</li>
+                <li><strong>You will receive SMS notifications about your case progress</strong></li>
+                <li>Check your phone for updates on your dispute status</li>
+                <li>If you need assistance, contact us at <strong>complaints@probonomediation.co.za</strong></li>
+            </ul>
+        </div>
         
-        <p>Please contact the administrator if you believe this is an error.</p>
+        <p>For dispute updates and notifications, please wait for SMS messages regarding your case.</p>
         
         <div class="mt-4">
             <a href="{% url 'logout' %}" class="btn btn-outline-home">
                 <i class="bi bi-box-arrow-right"></i> Logout
             </a>
-            <a href="{% url 'login' %}" class="btn btn-home">
-                <i class="bi bi-box-arrow-in-right"></i> Login with Different Account
+            <a href="/" class="btn btn-home">
+                <i class="bi bi-house"></i> Go to Home
             </a>
         </div>
     </div>

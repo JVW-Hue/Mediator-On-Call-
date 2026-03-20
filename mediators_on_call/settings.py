@@ -35,6 +35,11 @@ LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/login/"
 
+# Custom error handlers
+handler403 = 'mediators_on_call.views.custom_permission_denied'
+handler404 = 'mediators_on_call.views.custom_page_not_found'
+handler500 = 'mediators_on_call.views.custom_server_error'
+
 if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
