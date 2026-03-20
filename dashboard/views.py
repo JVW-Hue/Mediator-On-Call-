@@ -477,19 +477,19 @@ def mediator_dashboard(request):
     assigned_cases = Dispute.objects.filter(
         mediator=mediator,
         status__in=['mediation_scheduled', 'mediation_in_progress', 'ready_for_assignment']
-    ).order_by("-updated_at")
+    ).order_by("-created_at")
     
     # Get pending cases (not yet scheduled)
     pending_cases = Dispute.objects.filter(
         mediator=mediator,
         status='mediator_assigned'
-    ).order_by("-updated_at")
+    ).order_by("-created_at")
     
     # Get completed cases
     completed_cases = Dispute.objects.filter(
         mediator=mediator,
         status__in=['mediated', 'arbitration', 'closed']
-    ).order_by("-updated_at")
+    ).order_by("-created_at")
     
     # Stats
     stats = {
