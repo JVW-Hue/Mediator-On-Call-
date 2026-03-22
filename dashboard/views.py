@@ -40,8 +40,8 @@ def mediator_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            return auth_views.LoginView.as_view()(request, *args, **kwargs)
-        if not hasattr(request.user, 'mediator'):
+            return redirect('/login/')
+        if not hasattr(request.user, 'mediator') and not request.user.is_staff:
             return redirect('no_access')
         return view_func(request, *args, **kwargs)
     return _wrapped_view
@@ -52,6 +52,7 @@ class CustomLoginView(auth_views.LoginView):
     
     def form_valid(self, form):
         from django.db import OperationalError, IntegrityError
+        import logging
         try:
             remember_me = self.request.POST.get('remember_me')
             if remember_me:
