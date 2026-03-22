@@ -41,6 +41,12 @@ def upload_photo_ajax(request):
     if not files:
         return JsonResponse({'success': False, 'error': 'No photos provided'}, status=400)
     
+    # Check if Pillow is available
+    try:
+        from PIL import Image
+    except ImportError:
+        return JsonResponse({'success': False, 'error': 'Image upload is temporarily unavailable. Please try again later or contact support.'}, status=503)
+    
     uploaded_photos = []
     
     for photo in files:
@@ -59,15 +65,19 @@ def upload_photo_ajax(request):
             session_key = request.session.session_key
         
         # Save temporary photo
-        temp_photo = TempDisputePhoto.objects.create(
-            session_key=session_key,
-            image=photo
-        )
-        
-        uploaded_photos.append({
-            'id': temp_photo.id,
-            'photo_url': temp_photo.image.url
-        })
+        try:
+            temp_photo = TempDisputePhoto.objects.create(
+                session_key=session_key,
+                image=photo
+            )
+            
+            uploaded_photos.append({
+                'id': temp_photo.id,
+                'photo_url': temp_photo.image.url
+            })
+        except Exception as e:
+            logger.error(f"Error saving photo: {e}")
+            return JsonResponse({'success': False, 'error': 'Failed to save image. Please try again.'}, status=500)
     
     # Get updated count for this session
     session_key = request.session.session_key
@@ -182,14 +192,20 @@ def _apply_view(request):
                 # Link temporary photos to the dispute
                 session_key = request.session.session_key
                 if session_key:
-                    temp_photos = TempDisputePhoto.objects.filter(session_key=session_key)
-                    for temp_photo in temp_photos:
-                        DisputePhoto.objects.create(
-                            dispute=dispute,
-                            image=temp_photo.image
-                        )
-                    # Clean up temp photos
-                    temp_photos.delete()
+                    try:
+                        temp_photos = TempDisputePhoto.objects.filter(session_key=session_key)
+                        for temp_photo in temp_photos:
+                            try:
+                                DisputePhoto.objects.create(
+                                    dispute=dispute,
+                                    image=temp_photo.image
+                                )
+                            except Exception as e:
+                                logging.warning(f"Could not save photo: {e}")
+                        # Clean up temp photos
+                        temp_photos.delete()
+                    except Exception as e:
+                        logging.warning(f"Error linking photos: {e}")
                 
                 # Send Message 1: Thank you for submitting dispute confirmation
                 if dispute.applicant_email:
