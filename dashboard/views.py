@@ -109,6 +109,9 @@ def signup(request):
     from django.contrib.auth import get_user_model
     from django import forms
     from disputes.models import Mediator
+    from django.db import OperationalError
+    from django.contrib import messages
+    from django.contrib.auth import authenticate, login
     
     User = get_user_model()
     
@@ -120,54 +123,64 @@ def signup(request):
         user_type = forms.ChoiceField(choices=[('mediator', 'Mediator'), ('staff', 'Staff')], label="I am a:")
         cell = forms.CharField(max_length=20, required=False, label="Cell Phone Number")
         
-    def clean_username(self):
-        username = self.cleaned_data['username']
-        try:
-            if User.objects.filter(username=username).exists():
-                raise forms.ValidationError("Username already exists")
-        except Exception:
-            # If database tables don't exist yet, allow the username to pass validation
-            # Migrations will be run separately
-            pass
-        return username
+        def clean_username(self):
+            username = self.cleaned_data['username']
+            try:
+                if User.objects.filter(username=username).exists():
+                    raise forms.ValidationError("Username already exists")
+            except OperationalError:
+                # If the database table doesn't exist yet, we can't check for duplicates
+                # In this case, we'll allow the username to pass validation
+                # The user will be informed later if there's an issue
+                pass
+            return username
         
-    def clean(self):
-        cleaned_data = super().clean()
-        try:
-            if cleaned_data.get('password1') != cleaned_data.get('password2'):
-                raise forms.ValidationError("Passwords do not match")
-        except Exception:
-            # If there's a database error, still check if passwords match
-            # This is a fallback in case of migration issues
-            pass
-        return cleaned_data
+        def clean(self):
+            cleaned_data = super().clean()
+            try:
+                if cleaned_data.get('password1') != cleaned_data.get('password2'):
+                    raise forms.ValidationError("Passwords do not match")
+            except OperationalError:
+                # If there's a database error during validation, we'll still check the passwords
+                # This is a fallback in case of migration issues
+                if cleaned_data.get('password1') != cleaned_data.get('password2'):
+                    raise forms.ValidationError("Passwords do not match")
+            return cleaned_data
     
     if request.method == 'POST':
         form = SignupForm(request.POST)
         if form.is_valid():
-            user_type = form.cleaned_data['user_type']
-            user = User.objects.create_user(
-                username=form.cleaned_data['username'],
-                email=form.cleaned_data['email'],
-                password=form.cleaned_data['password1'],
-                is_staff=(user_type == 'staff')
-            )
-            
-            if user_type == 'mediator':
-                cell = form.cleaned_data.get('cell', '')
-                Mediator.objects.create(user=user, cell=cell)
-            
-            from django.contrib.auth import authenticate, login
-            user = authenticate(username=form.cleaned_data['username'], password=form.cleaned_data['password1'])
-            if user:
-                login(request, user)
-                if user.is_staff:
-                    return redirect('dashboard:admin_home')
+            try:
+                user_type = form.cleaned_data['user_type']
+                user = User.objects.create_user(
+                    username=form.cleaned_data['username'],
+                    email=form.cleaned_data['email'],
+                    password=form.cleaned_data['password1'],
+                    is_staff=(user_type == 'staff')
+                )
+                
+                if user_type == 'mediator':
+                    cell = form.cleaned_data.get('cell', '')
+                    Mediator.objects.create(user=user, cell=cell)
+                
+                user = authenticate(username=form.cleaned_data['username'], password=form.cleaned_data['password1'])
+                if user:
+                    login(request, user)
+                    if user.is_staff:
+                        return redirect('dashboard:admin_home')
+                    else:
+                        return redirect('dashboard:mediator_home')
                 else:
-                    return redirect('dashboard:mediator_home')
+                    messages.error(request, "Authentication failed after user creation.")
+                    return render(request, 'registration/signup.html', {'form': form})
+            except OperationalError as e:
+                messages.error(request, "There was a temporary database error. Please try again in a moment. If the problem persists, please contact the administrator.")
+                return render(request, 'registration/signup.html', {'form': form})
+            except Exception as e:
+                messages.error(request, "An unexpected error occurred during registration. Please try again.")
+                return render(request, 'registration/signup.html', {'form': form})
     else:
         form = SignupForm()
-    
     return render(request, 'registration/signup.html', {'form': form})
 
 
