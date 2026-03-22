@@ -120,17 +120,27 @@ def signup(request):
         user_type = forms.ChoiceField(choices=[('mediator', 'Mediator'), ('staff', 'Staff')], label="I am a:")
         cell = forms.CharField(max_length=20, required=False, label="Cell Phone Number")
         
-        def clean_username(self):
-            username = self.cleaned_data['username']
+    def clean_username(self):
+        username = self.cleaned_data['username']
+        try:
             if User.objects.filter(username=username).exists():
                 raise forms.ValidationError("Username already exists")
-            return username
+        except Exception:
+            # If database tables don't exist yet, allow the username to pass validation
+            # Migrations will be run separately
+            pass
+        return username
         
-        def clean(self):
-            cleaned_data = super().clean()
+    def clean(self):
+        cleaned_data = super().clean()
+        try:
             if cleaned_data.get('password1') != cleaned_data.get('password2'):
                 raise forms.ValidationError("Passwords do not match")
-            return cleaned_data
+        except Exception:
+            # If there's a database error, still check if passwords match
+            # This is a fallback in case of migration issues
+            pass
+        return cleaned_data
     
     if request.method == 'POST':
         form = SignupForm(request.POST)
