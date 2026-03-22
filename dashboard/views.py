@@ -59,15 +59,22 @@ class CustomLoginView(auth_views.LoginView):
                 self.request.session.set_expiry(60 * 60 * 24 * 30)  # 30 days
             else:
                 self.request.session.set_expiry(0)  # Session expires when browser closes
-            return super().form_valid(form)
+            response = super().form_valid(form)
+            return response
         except (OperationalError, IntegrityError) as e:
-            logging.error(f"Database error during login: {e}")
+            logging.error(f"Database error during login form_valid: {e}")
             from django.contrib import messages
             messages.error(self.request, "There was a temporary problem logging in. Please try again.")
+            return self.form_invalid(form)
+        except Exception as e:
+            logging.error(f"Unexpected error during login form_valid: {e}")
+            from django.contrib import messages
+            messages.error(self.request, "An unexpected error occurred. Please try again.")
             return self.form_invalid(form)
 
     def get_success_url(self):
         from django.db import OperationalError, IntegrityError
+        import logging
         try:
             user = self.request.user
             if user.is_staff or user.is_superuser:
@@ -77,7 +84,11 @@ class CustomLoginView(auth_views.LoginView):
                 return '/dashboard/mediator/'
             except Mediator.DoesNotExist:
                 return '/no-access/'
-        except (OperationalError, IntegrityError):
+        except (OperationalError, IntegrityError) as e:
+            logging.error(f"Database error during get_success_url: {e}")
+            return '/dashboard/'
+        except Exception as e:
+            logging.error(f"Unexpected error during get_success_url: {e}")
             return '/dashboard/'
     
     def form_invalid(self, form):
