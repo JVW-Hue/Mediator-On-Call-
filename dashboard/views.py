@@ -2,14 +2,17 @@ from datetime import datetime, timedelta
 import io
 import json
 import zipfile
+import logging
 from functools import wraps
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm
+from django import forms
 from django.core.exceptions import PermissionDenied
-from django.db import models
+from django.db import models, OperationalError
 from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -51,7 +54,6 @@ class CustomLoginView(auth_views.LoginView):
     template_name = 'registration/login.html'
     
     def form_valid(self, form):
-        from django.db import OperationalError, IntegrityError
         import logging
         try:
             remember_me = self.request.POST.get('remember_me')
@@ -61,19 +63,13 @@ class CustomLoginView(auth_views.LoginView):
                 self.request.session.set_expiry(0)  # Session expires when browser closes
             response = super().form_valid(form)
             return response
-        except (OperationalError, IntegrityError) as e:
-            logging.error(f"Database error during login form_valid: {e}")
+        except Exception as e:
+            logging.error(f"Error during login form_valid: {e}")
             from django.contrib import messages
             messages.error(self.request, "There was a temporary problem logging in. Please try again.")
             return self.form_invalid(form)
-        except Exception as e:
-            logging.error(f"Unexpected error during login form_valid: {e}")
-            from django.contrib import messages
-            messages.error(self.request, "An unexpected error occurred. Please try again.")
-            return self.form_invalid(form)
 
     def get_success_url(self):
-        from django.db import OperationalError, IntegrityError
         import logging
         try:
             user = self.request.user
@@ -84,11 +80,8 @@ class CustomLoginView(auth_views.LoginView):
                 return '/dashboard/mediator/'
             except Mediator.DoesNotExist:
                 return '/no-access/'
-        except (OperationalError, IntegrityError) as e:
-            logging.error(f"Database error during get_success_url: {e}")
-            return '/dashboard/'
         except Exception as e:
-            logging.error(f"Unexpected error during get_success_url: {e}")
+            logging.error(f"Error during get_success_url: {e}")
             return '/dashboard/'
     
     def form_invalid(self, form):
