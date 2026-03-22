@@ -53,8 +53,15 @@ def mediator_required(view_func):
 class CustomLoginView(auth_views.LoginView):
     template_name = 'registration/login.html'
     
+    def post(self, request, *args, **kwargs):
+        try:
+            return super().post(request, *args, **kwargs)
+        except OperationalError as e:
+            logging.error(f"Database error during login: {e}")
+            messages.error(request, "The system is temporarily unavailable. Please try again in a few minutes.")
+            return self.render_to_response(self.get_context_data(form=AuthenticationForm()))
+    
     def form_valid(self, form):
-        import logging
         try:
             remember_me = self.request.POST.get('remember_me')
             if remember_me:
@@ -65,12 +72,10 @@ class CustomLoginView(auth_views.LoginView):
             return response
         except Exception as e:
             logging.error(f"Error during login form_valid: {e}")
-            from django.contrib import messages
             messages.error(self.request, "There was a temporary problem logging in. Please try again.")
             return self.form_invalid(form)
 
     def get_success_url(self):
-        import logging
         try:
             user = self.request.user
             if user.is_staff or user.is_superuser:
@@ -85,7 +90,6 @@ class CustomLoginView(auth_views.LoginView):
             return '/dashboard/'
     
     def form_invalid(self, form):
-        """If the form is invalid, render the invalid form."""
         return self.render_to_response(self.get_context_data(form=form))
 
     def get_context_data(self, **kwargs):

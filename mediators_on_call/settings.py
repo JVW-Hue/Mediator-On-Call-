@@ -92,6 +92,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'mediators_on_call.middleware.DatabaseErrorMiddleware',
 ]
 
 ROOT_URLCONF = 'mediators_on_call.urls'
