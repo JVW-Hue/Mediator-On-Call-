@@ -750,42 +750,6 @@ def assign_mediator_post(request):
     
     AuditLog.objects.create(
         dispute=dispute,
-        user=request.user,
-        action=f"Mediator {mediator_name} assigned via modal, session scheduled for {scheduled_at}",
-    )
-    
-    messages.success(request, f"Mediator {mediator_name} assigned to Dispute #{dispute_id}!")
-    return redirect("dashboard:dispute_list")
-
-
-@staff_member_required
-def test_notification(request):
-    """Test page for sending notifications."""
-    if request.method == "POST":
-        phone = request.POST.get("phone", "").strip()
-        message = request.POST.get("message", "").strip()
-        
-        if phone and message:
-            try:
-                notify_recipient.delay(to=phone, body=message)
-                messages.success(request, f"Notification queued for {phone}")
-            except Exception as e:
-                messages.error(request, f"Error: {e}")
-        else:
-            messages.error(request, "Please provide both phone and message")
-        
-        return redirect("dashboard:test_notification")
-    
-    from django.conf import settings
-    twilio_configured = bool(
-        settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN
-    )
-    return render(request, "dashboard/test_notification.html", {
-        "debug_mode": settings.DEBUG,
-        "twilio_configured": twilio_configured,
-    })
-
-
 @staff_member_required
 def download_case_file(request, pk):
     """Download all case documents as a ZIP file for arbitration."""
