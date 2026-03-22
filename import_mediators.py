@@ -10,7 +10,7 @@ from disputes.models import Mediator
 User = get_user_model()
 
 print("Loading Excel file...")
-wb = openpyxl.load_workbook('UPDATED MEDIATORS PANEL. 5 JULY 2024.xlsx')
+wb = openpyxl.load_workbook('Mediators UPDATED MEDIATORS PANEL. 5 JULY 2024.xlsx')
 sheet = wb.active
 
 # Print header to understand columns
