@@ -143,76 +143,87 @@ except ImportError:
 
 
 def _apply_view(request):
+    from django.db import OperationalError, IntegrityError
+    
     if request.method == "POST":
         form = DisputeForm(request.POST, request.FILES)
         formset = DisputeDocumentFormSet(
             request.POST, request.FILES, queryset=DisputeDocument.objects.none()
         )
         if form.is_valid() and formset.is_valid():
-            # Check for potential duplicate
-            applicant_cell = form.cleaned_data.get('applicant_cell', '')
-            applicant_name = form.cleaned_data.get('applicant_name', '')
-            applicant_surname = form.cleaned_data.get('applicant_surname', '')
-            
-            # Check if similar dispute exists
-            existing = Dispute.objects.filter(
-                applicant_cell=applicant_cell,
-                applicant_name__iexact=applicant_name,
-                applicant_surname__iexact=applicant_surname,
-                status__in=['submitted', 'forwarded', 'responded', 'mediation_scheduled']
-            ).first()
-            
-            if existing:
-                messages.warning(request, "A similar dispute has already been submitted. Please contact us if this is a new dispute.")
-            
-            dispute = form.save()
-            AuditLog.objects.create(
-                dispute=dispute,
-                user=None,
-                action="Dispute submitted",
-            )
-            documents = formset.save(commit=False)
-            for doc in documents:
-                doc.dispute = dispute
-                doc.save()
-            
-            # Link temporary photos to the dispute
-            session_key = request.session.session_key
-            if session_key:
-                temp_photos = TempDisputePhoto.objects.filter(session_key=session_key)
-                for temp_photo in temp_photos:
-                    DisputePhoto.objects.create(
-                        dispute=dispute,
-                        image=temp_photo.image
-                    )
-                # Clean up temp photos
-                temp_photos.delete()
-            
-            # Send Message 1: Thank you for submitting dispute confirmation
-            if dispute.applicant_email:
-                send_message_1_dispute_registered.delay(
-                    to_email=dispute.applicant_email,
-                    applicant_name=dispute.applicant_name,
-                    case_id=dispute.id,
-                )
-            
-            # Automatically reject family, labour, or property disputes
-            INELIGIBLE_TYPES = ['family', 'labour', 'property']
-            if dispute.dispute_type in INELIGIBLE_TYPES:
-                dispute.status = "rejected"
-                dispute.is_mediatable = False
-                dispute.screening_notes = f"Automatic rejection: {dispute.get_dispute_type_display()} disputes are not eligible for mediation under South African law."
-                dispute.save()
+            try:
+                # Check for potential duplicate
+                applicant_cell = form.cleaned_data.get('applicant_cell', '')
+                applicant_name = form.cleaned_data.get('applicant_name', '')
+                applicant_surname = form.cleaned_data.get('applicant_surname', '')
+                
+                # Check if similar dispute exists
+                existing = Dispute.objects.filter(
+                    applicant_cell=applicant_cell,
+                    applicant_name__iexact=applicant_name,
+                    applicant_surname__iexact=applicant_surname,
+                    status__in=['submitted', 'forwarded', 'responded', 'mediation_scheduled']
+                ).first()
+                
+                if existing:
+                    messages.warning(request, "A similar dispute has already been submitted. Please contact us if this is a new dispute.")
+                
+                dispute = form.save()
                 AuditLog.objects.create(
                     dispute=dispute,
                     user=None,
-                    action=f"Dispute auto-rejected - {dispute.get_dispute_type_display()} not eligible",
+                    action="Dispute submitted",
                 )
-                messages.warning(request, f"Your dispute involves {dispute.get_dispute_type_display()} matters which are not eligible for mediation. Your file has been closed.")
-                return render(request, "disputes/rejected_not_eligible.html", {"dispute": dispute})
-            
-            messages.success(request, "Your dispute has been submitted successfully. You will receive an SMS notification shortly.")
-            return redirect("disputes:application_success")
+                documents = formset.save(commit=False)
+                for doc in documents:
+                    doc.dispute = dispute
+                    doc.save()
+                
+                # Link temporary photos to the dispute
+                session_key = request.session.session_key
+                if session_key:
+                    temp_photos = TempDisputePhoto.objects.filter(session_key=session_key)
+                    for temp_photo in temp_photos:
+                        DisputePhoto.objects.create(
+                            dispute=dispute,
+                            image=temp_photo.image
+                        )
+                    # Clean up temp photos
+                    temp_photos.delete()
+                
+                # Send Message 1: Thank you for submitting dispute confirmation
+                if dispute.applicant_email:
+                    try:
+                        send_message_1_dispute_registered.delay(
+                            to_email=dispute.applicant_email,
+                            applicant_name=dispute.applicant_name,
+                            case_id=dispute.id,
+                        )
+                    except Exception:
+                        pass
+                
+                # Automatically reject family, labour, or property disputes
+                INELIGIBLE_TYPES = ['family', 'labour', 'property']
+                if dispute.dispute_type in INELIGIBLE_TYPES:
+                    dispute.status = "rejected"
+                    dispute.is_mediatable = False
+                    dispute.screening_notes = f"Automatic rejection: {dispute.get_dispute_type_display()} disputes are not eligible for mediation under South African law."
+                    dispute.save()
+                    AuditLog.objects.create(
+                        dispute=dispute,
+                        user=None,
+                        action=f"Dispute auto-rejected - {dispute.get_dispute_type_display()} not eligible",
+                    )
+                    messages.warning(request, f"Your dispute involves {dispute.get_dispute_type_display()} matters which are not eligible for mediation. Your file has been closed.")
+                    return render(request, "disputes/rejected_not_eligible.html", {"dispute": dispute})
+                
+                messages.success(request, "Your dispute has been submitted successfully. You will receive an SMS notification shortly.")
+                return redirect("disputes:application_success")
+                
+            except (OperationalError, IntegrityError) as e:
+                logging.error(f"Database error submitting dispute: {e}")
+                messages.error(request, "There was a temporary problem saving your dispute. Please try again in a moment. If the problem persists, contact us directly.")
+                return render(request, "disputes/apply.html", {"form": form, "formset": formset})
         else:
             # Form is invalid - render with errors
             return render(request, "disputes/apply.html", {"form": form, "formset": formset})

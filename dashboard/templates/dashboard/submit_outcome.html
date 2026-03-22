@@ -1,48 +1,152 @@
 {% extends "dashboard/base.html" %}
 
-{% block title %}Submit Outcome – Dispute #{{ dispute.id }}{% endblock %}
+{% block title %}Submit Outcome – Dispute #{{ dispute.id }} – Pro Bono Community Mediation{% endblock %}
 
 {% block dashboard_content %}
-<div class="container mt-4">
-    <h2 class="mb-3">Submit Outcome for Dispute #{{ dispute.id }}</h2>
-
-    <p class="text-muted">
-        Mediation session on {{ session.scheduled_at }} with applicant
-        {{ dispute.applicant_name }} {{ dispute.applicant_surname }} and respondent
-        {% if dispute.respondent_type == 'ind' %}
-            {{ dispute.respondent_name }} {{ dispute.respondent_surname }}
-        {% else %}
-            {{ dispute.business_name }}
-        {% endif %}
-    </p>
-
-    <form method="post" enctype="multipart/form-data" class="card p-3">
-        {% csrf_token %}
-
-        <div class="mb-3">
-            <label class="form-label">Outcome</label>
-            {{ form.outcome }}
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Outcome document (optional)</label>
-            {{ form.outcome_file }}
-        </div>
-
-        <div class="form-check mb-3">
-            {{ form.arbitration }}
-            <label class="form-check-label">
-                Mark dispute as referred to arbitration
-            </label>
-        </div>
-
-        <button type="submit" class="btn btn-primary">
-            Submit Outcome
-        </button>
-        <a href="{% url 'dashboard:mediator_home' %}" class="btn btn-secondary ms-2">
-            Cancel
-        </a>
-    </form>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-check-circle text-success"></i> Submit Mediation Outcome
+    </h1>
+    <a href="{% url 'dashboard:mediator_home' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
 </div>
-{% endblock dashboard_content %}
 
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Session Details Card -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-calendar-event"></i> Session Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Case ID:</strong> #{{ dispute.id }}</p>
+                        <p class="mb-2"><strong>Dispute Type:</strong> {{ dispute.get_dispute_type_display }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Scheduled:</strong> {{ session.scheduled_at|date:"d M Y H:i" }}</p>
+                        <p class="mb-2"><strong>Status:</strong> <span class="badge bg-info">{{ dispute.get_status_display }}</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parties Card -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="bi bi-person-fill"></i> Applicant</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-1"><strong>{{ dispute.applicant_name }} {{ dispute.applicant_surname }}</strong></p>
+                        <p class="mb-0"><i class="bi bi-envelope"></i> {{ dispute.applicant_email|default:"—" }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="bi bi-person-badge"></i> Respondent</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if dispute.respondent_type == 'ind' %}
+                        <p class="mb-1"><strong>{{ dispute.respondent_name }} {{ dispute.respondent_surname }}</strong></p>
+                        {% else %}
+                        <p class="mb-1"><strong>{{ dispute.business_name }}</strong></p>
+                        {% endif %}
+                        <p class="mb-0"><i class="bi bi-envelope"></i> {{ dispute.respondent_email|default:"—" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Outcome Form -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-pencil-square"></i> Mediation Outcome</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label for="id_outcome" class="form-label fw-bold">
+                            <i class="bi bi-chat-quote"></i> Outcome Description
+                        </label>
+                        <textarea name="outcome" id="id_outcome" class="form-control" rows="8" required
+                                  placeholder="Describe the outcome of the mediation session, including any agreements reached, decisions made, and next steps..."></textarea>
+                        <small class="text-muted">Provide a detailed description of the mediation outcome.</small>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="id_outcome_file" class="form-label fw-bold">
+                            <i class="bi bi-file-earmark-arrow-up"></i> Outcome Document (Optional)
+                        </label>
+                        <input type="file" name="outcome_file" id="id_outcome_file" class="form-control" accept=".pdf,.doc,.docx,.txt">
+                        <small class="text-muted">Upload a signed agreement or formal outcome document.</small>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input type="checkbox" name="arbitration" id="id_arbitration" class="form-check-input">
+                            <label for="id_arbitration" class="form-check-label fw-bold">
+                                <i class="bi bi-exclamation-triangle text-warning"></i> Mark dispute as referred to arbitration
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-1 ms-4">
+                            Check this if the case requires arbitration instead of mediation.
+                        </small>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-check-circle"></i> Submit Outcome
+                        </button>
+                        <a href="{% url 'dashboard:mediator_home' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Help & Info -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm sticky-top" style="top: 20px;">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Submission Guidelines</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-3">
+                        <i class="bi bi-check-circle text-success"></i>
+                        <strong>Describe the outcome clearly</strong>
+                        <br><small class="text-muted">Include any agreements reached between parties.</small>
+                    </li>
+                    <li class="mb-3">
+                        <i class="bi bi-check-circle text-success"></i>
+                        <strong>Document any follow-up actions</strong>
+                        <br><small class="text-muted">Note any next steps or future meetings required.</small>
+                    </li>
+                    <li class="mb-3">
+                        <i class="bi bi-check-circle text-success"></i>
+                        <strong>Upload supporting documents</strong>
+                        <br><small class="text-muted">Include signed agreements or other formal documents.</small>
+                    </li>
+                    <li class="mb-0">
+                        <i class="bi bi-check-circle text-success"></i>
+                        <strong>Both parties will be notified</strong>
+                        <br><small class="text-muted">Applicant and respondent will receive the outcome.</small>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

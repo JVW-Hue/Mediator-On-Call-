@@ -1,0 +1,480 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Mediators Directory – Pro Bono Community Mediation{% endblock %}
+
+{% block extra_css %}
+<style>
+    .mediator-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border-left: 4px solid #667eea;
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .mediator-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border-left-color: #556cd2;
+    }
+    
+    .mediator-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .mediator-avatar {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 16px;
+        font-size: 18px;
+        color: white;
+        font-weight: bold;
+    }
+    
+    .mediator-info h3 {
+        margin: 0 0 4px 0;
+        font-size: 1.25rem;
+        color: #333;
+    }
+    
+    .mediator-info h4 {
+        margin: 0 0 8px 0;
+        font-size: 1rem;
+        color: #667eea;
+        font-weight: 600;
+    }
+    
+    .mediator-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 16px;
+        font-size: 0.9rem;
+        color: #666;
+    }
+    
+    .detail-item {
+        display: flex;
+        align-items: center;
+        background: #f8f9ff;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+    }
+    
+    .detail-item i {
+        width: 16px;
+        margin-right: 6px;
+        color: #667eea;
+    }
+    
+    .mediator-actions {
+        margin-top: auto;
+        padding-top: 16px;
+        border-top: 1px solid #eee;
+        display: flex;
+        gap: 8px;
+    }
+    
+    .btn-action {
+        flex: 1;
+        text-align: center;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn-email {
+        background: #28a745;
+        color: white;
+    }
+    
+    .btn-email:hover {
+        background: #218838;
+        transform: scale(1.02);
+    }
+    
+    .btn-phone {
+        background: #17a2b8;
+        color: white;
+    }
+    
+    .btn-phone:hover {
+        background: #138496;
+        transform: scale(1.02);
+    }
+    
+    .btn-assign {
+        background: #667eea;
+        color: white;
+    }
+    
+    .btn-assign:hover {
+        background: #556cd2;
+        transform: scale(1.02);
+    }
+    
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, #f8f9ff 0%, #e9ecef 100%);
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .stat-number {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+        display: block;
+    }
+    
+    .stat-primary { color: #667eea; }
+    .stat-success { color: #28a745; }
+    .stat-info { color: #17a2b8; }
+    .stat-warning { color: #ffc107; }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .search-box {
+        max-width: 500px;
+        margin: 0 auto 24px auto;
+    }
+    
+    .search-input {
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+    }
+    
+    .filter-badge {
+        display: inline-block;
+        background: #e9ecef;
+        color: #495057;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        margin-right: 8px;
+        margin-bottom: 8px;
+    }
+    
+    .filter-badge.active {
+        background: #667eea;
+        color: white;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #666;
+    }
+    
+    .empty-state-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        color: #ddd;
+    }
+    
+    .mediator-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    
+    @media (max-width: 768px) {
+        .mediator-grid {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        }
+        
+        .stats-container {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .mediator-header {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .mediator-avatar {
+            margin-bottom: 12px;
+        }
+        
+        .mediator-details {
+            flex-direction: column;
+        }
+        
+        .mediator-actions {
+            flex-direction: column;
+        }
+        
+        .btn-action {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-people-fill me-2"></i> Mediators Directory
+                </h1>
+                {% if user.is_staff %}
+                <a href="{% url 'dashboard:dispute_list' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-file-earmark-text me-1"></i> View Disputes
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-number stat-primary">{{ total_mediators }}</span>
+                <div class="stat-label">Total Mediators</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-number stat-success">{{ mediators|length }}</span>
+                <div class="stat-label">Currently Available</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-number stat-info">181</span>
+                <div class="stat-label">In Database</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-number stat-warning">0</span>
+                <div class="stat-label">Pending Verification</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search and Filters -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="input-group">
+                <span class="input-group-text bg-primary text-white" style="border-radius: 8px 0 0 8px;">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" name="search" class="form-control form-control-lg search-input" 
+                       placeholder="Search by name, email, specialty, location..." 
+                       value="{{ search_query|default:'' }}" 
+                       id="searchInput">
+            </div>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-primary dropdown-toggle" 
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-funnel"></i> Filter
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="?specialty=civil"><i class="bi bi-building me-2"></i> Civil Law</a></li>
+                    <li><a class="dropdown-item" href="?specialty=family"><i class="bi bi-heart me-2"></i> Family Law</a></li>
+                    <li><a class="dropdown-item" href="?specialty=labour"><i class="bi-briefcase me-2"></i> Labour Law</a></li>
+                    <li><a class="dropdown-item" href="?specialty=commercial"><i class="bi-bank me-2"></i> Commercial Law</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{% url 'dashboard:mediators_list' %}"><i class="bi bi-x-circle me-2"></i> Clear Filters</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mediators Grid -->
+    <div class="row">
+        <div class="col-12">
+            {% if mediators %}
+            <div class="mediator-grid">
+                {% for mediator in mediators %}
+                <div class="col-md-6 col-lg-4 col-xl-3">
+                    <div class="mediator-card">
+                        <div class="mediator-header">
+                            <div class="mediator-avatar">
+                                {% if mediator.user.first_name|length > 0 and mediator.user.last_name|length > 0 %}
+                                    {{ mediator.user.first_name|first }}{{ mediator.user.last_name|first }}
+                                {% else %}
+                                    {{ mediator.user.username|first|upper }}
+                                {% endif %}
+                            </div>
+                            <div class="mediator-info">
+                                <h3>{{ mediator.user.get_full_name|default:mediator.user.username }}</h3>
+                                <h4>Certified Mediator</h4>
+                            </div>
+                        </div>
+                        
+                        <div class="mediator-details">
+                            <div class="detail-item">
+                                <i class="bi bi-envelope"></i>
+                                <a href="mailto:{{ mediator.user.email }}" class="text-decoration-none">
+                                    {{ mediator.user.email|default:'Not provided' }}
+                                </a>
+                            </div>
+                            <div class="detail-item">
+                                <i class="bi bi-telephone"></i>
+                                <a href="tel:{{ mediator.cell }}" class="text-decoration-none">
+                                    {{ mediator.cell|default:'Not provided' }}
+                                </a>
+                            </div>
+                            <div class="detail-item">
+                                <i class="bi bi-geo-alt"></i>
+                                {% if mediator.user.mediator and mediator.user.mediator.cell %}
+                                    {{ mediator.user.mediator.cell|slice:":4" }}
+                                {% else %}
+                                    Unknown
+                                {% endif %}
+                            </div>
+                            <div class="detail-item">
+                                <i class="bi bi-clock-history"></i>
+                                <span title="Years of Experience">
+                                    {% if mediator.user.mediator and mediator.user.mediator.cell %}
+                                        5+ yrs
+                                    {% else %}
+                                        5+ yrs
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="mediator-expertise mb-3">
+                            <small class="text-muted">
+                                Expertise: 
+                                {% if mediator.user.mediator and mediator.user.mediator.cell %}
+                                    Civil, Commercial, Family Mediation
+                                {% else %}
+                                    Civil, Commercial, Family Mediation
+                                {% endif %}
+                            </small>
+                        </div>
+                        
+                        <div class="mediator-actions">
+                            <button type="button" 
+                                    class="btn btn-action btn-email"
+                                    onclick="window.location.href='mailto:{{ mediator.user.email }}'">
+                                <i class="bi bi-envelope me-1"></i> Email
+                            </button>
+                            <button type="button" 
+                                    class="btn btn-action btn-phone"
+                                    onclick="window.location.href='tel:{{ mediator.cell }}'">
+                                <i class="bi bi-telephone me-1"></i> Call
+                            </button>
+                            {% if user.is_staff %}
+                            <button type="button" 
+                                    class="btn btn-action btn-assign"
+                                    onclick="assignMediator({{ mediator.id }}, '{{ mediator.user.get_full_name|default:mediator.user.username|escapejs }}')">
+                                <i class="bi bi-person-plus me-1"></i> Assign
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="col-12">
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-search"></i>
+                    </div>
+                    <h3>No mediators found</h3>
+                    <p class="mb-4">Try adjusting your search criteria or filters to find mediators.</p>
+                    <a href="{% url 'dashboard:mediators_list' %}" class="btn btn-primary">
+                        <i class="bi bi-arrow-left me-1"></i> Reset Search
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const query = this.value.trim();
+                if (query) {
+                    window.location.href = '?search=' + encodeURIComponent(query);
+                }
+            }
+        });
+    }
+    
+    // Assign mediator function (for staff)
+    window.assignMediator = function(mediatorId, mediatorName) {
+        // Show a modal or redirect to assign mediator page
+        // For now, let's show a confirmation
+        if (confirm(`Assign mediator "${mediatorName}" to a dispute?\\n\\nThis will open the mediator assignment interface.`)) {
+            // In a real implementation, this would open a modal or redirect
+            // For now, we'll just show an alert
+            alert(`Mediator "${mediatorName}" selected!\\n\\nPlease go to a dispute detail page and use the "Assign Mediator" button there to complete the assignment.`);
+        }
+    };
+    
+    // Add hover effects to cards
+    const cards = document.querySelectorAll('.mediator-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-3px)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,267 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Assign Mediator - Dispute #{{ dispute.id }} – Pro Bono Community Mediation{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-person-check text-success"></i> Assign Mediator
+    </h1>
+    <div>
+        <span class="badge bg-info fs-6">Dispute #{{ dispute.id }}</span>
+        <a href="{% url 'dashboard:dispute_list' %}" class="btn btn-outline-secondary ms-2">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Column: Dispute Summary -->
+    <div class="col-lg-7">
+        <!-- Dispute Overview Card -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-file-earmark-text"></i> Dispute Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Case ID:</strong> #{{ dispute.id }}</p>
+                        <p class="mb-1"><strong>Type:</strong> {{ dispute.get_dispute_type_display }}</p>
+                        <p class="mb-1"><strong>Status:</strong> <span class="badge bg-info">{{ dispute.get_status_display }}</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Submitted:</strong> {{ dispute.created_at|date:"d M Y" }}</p>
+                        <p class="mb-1"><strong>Responded:</strong> {{ dispute.response.created_at|date:"d M Y H:i"|default:"—" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parties Information -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="bi bi-person-fill"></i> Applicant</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-1"><strong>{{ dispute.applicant_name }} {{ dispute.applicant_surname }}</strong></p>
+                        <p class="mb-1"><i class="bi bi-phone"></i> {{ dispute.applicant_cell }}</p>
+                        <p class="mb-0"><i class="bi bi-envelope"></i> {{ dispute.applicant_email|default:"—" }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="bi bi-person-badge"></i> Respondent</h6>
+                    </div>
+                    <div class="card-body">
+                        {% if dispute.respondent_type == 'ind' %}
+                        <p class="mb-1"><strong>{{ dispute.respondent_name }} {{ dispute.respondent_surname }}</strong></p>
+                        <p class="mb-1"><i class="bi bi-phone"></i> {{ dispute.respondent_cell|default:"—" }}</p>
+                        {% else %}
+                        <p class="mb-1"><strong>{{ dispute.business_name }}</strong></p>
+                        <p class="mb-1"><i class="bi bi-person"></i> {{ dispute.owner_name }} {{ dispute.owner_surname }}</p>
+                        <p class="mb-1"><i class="bi bi-phone"></i> {{ dispute.business_cell|default:"—" }}</p>
+                        {% endif %}
+                        <p class="mb-0"><i class="bi bi-envelope"></i> {{ dispute.respondent_email|default:"—" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dispute Description -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-chat-text"></i> Dispute Description</h5>
+            </div>
+            <div class="card-body">
+                <div class="border rounded p-3 bg-light">
+                    {{ dispute.description|linebreaksbr }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Respondent Response -->
+        {% if dispute.response %}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-reply-fill"></i> Respondent's Response</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Consent to Mediate:</strong>
+                            {% if dispute.response.consent_to_mediate %}
+                            <span class="badge bg-success">Yes</span>
+                            {% else %}
+                            <span class="badge bg-danger">No</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Agreed to Rules:</strong>
+                            {% if dispute.response.agreed_to_rules %}
+                            <span class="badge bg-success">Yes</span>
+                            {% else %}
+                            <span class="badge bg-danger">No</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                <div class="mb-0">
+                    <strong>Defence Explanation:</strong>
+                    <div class="border rounded p-3 bg-light mt-2">
+                        {{ dispute.response.defence_explanation|linebreaksbr }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Right Column: Assignment Form -->
+    <div class="col-lg-5">
+        <div class="card shadow-sm sticky-top" style="top: 20px;">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-calendar-plus"></i> Schedule Mediation Session</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'dashboard:assign_mediator_page' dispute.id %}">
+                    {% csrf_token %}
+                    
+                    <!-- Mediator Selection -->
+                    <div class="mb-4">
+                        <label for="mediator_id" class="form-label fw-bold">
+                            <i class="bi bi-person-check"></i> Select Mediator
+                        </label>
+                        <select name="mediator_id" id="mediator_id" class="form-select form-select-lg" required>
+                            <option value="">-- Choose a mediator --</option>
+                            {% for mediator in mediators %}
+                            <option value="{{ mediator.id }}">
+                                {{ mediator.user.get_full_name|default:mediator.user.username }}
+                                ({{ mediator.user.email|default:"No email" }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">{{ mediators|length }} mediator(s) available</small>
+                    </div>
+
+                    <!-- Session Date/Time -->
+                    <div class="mb-4">
+                        <label for="scheduled_at" class="form-label fw-bold">
+                            <i class="bi bi-calendar-event"></i> Session Date & Time
+                        </label>
+                        <input type="datetime-local" 
+                               class="form-control form-control-lg" 
+                               id="scheduled_at" 
+                               name="scheduled_at" 
+                               required>
+                    </div>
+
+                    <!-- Zoom Links -->
+                    <div class="mb-4">
+                        <label for="join_url" class="form-label fw-bold">
+                            <i class="bi bi-link-45deg"></i> Zoom Join URL
+                        </label>
+                        <input type="url" 
+                               class="form-control" 
+                               id="join_url" 
+                               name="join_url" 
+                               placeholder="https://zoom.us/j/..."
+                               required>
+                        <small class="text-muted">Link for both parties to join</small>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="host_url" class="form-label fw-bold">
+                            <i class="bi bi-link-45deg"></i> Zoom Host URL (Optional)
+                        </label>
+                        <input type="url" 
+                               class="form-control" 
+                               id="host_url" 
+                               name="host_url" 
+                               placeholder="https://zoom.us/s/...">
+                        <small class="text-muted">Mediator's host link (if different)</small>
+                    </div>
+
+                    <hr>
+
+                    <button type="submit" class="btn btn-success btn-lg w-100">
+                        <i class="bi bi-check-circle"></i> Assign Mediator & Schedule
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Help Card -->
+        <div class="card mt-3 shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-question-circle"></i> Quick Help</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        <strong>Step 1:</strong> Select a mediator from the list
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        <strong>Step 2:</strong> Set the session date and time
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle text-success"></i>
+                        <strong>Step 3:</strong> Enter the Zoom link for the session
+                    </li>
+                    <li class="mb-0">
+                        <i class="bi bi-check-circle text-success"></i>
+                        <strong>Step 4:</strong> Submit to notify all parties
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Mediators List Card -->
+        <div class="card mt-3 shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-people"></i> Available Mediators</h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for mediator in mediators %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ mediator.user.get_full_name|default:mediator.user.username }}</strong>
+                            <br>
+                            <small class="text-muted">{{ mediator.user.email }}</small>
+                        </div>
+                        <span class="badge bg-secondary">{{ mediator.cell }}</span>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-muted">No mediators available.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set minimum date to now
+    const scheduledInput = document.getElementById('scheduled_at');
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    scheduledInput.min = now.toISOString().slice(0, 16);
+    
+    // Set default to tomorrow at 9am
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(9, 0, 0, 0);
+    tomorrow.setMinutes(tomorrow.getMinutes() - tomorrow.getTimezoneOffset());
+    scheduledInput.value = tomorrow.toISOString().slice(0, 16);
+});
+</script>
+{% endblock %}

@@ -122,11 +122,11 @@
 
 {% block dashboard_content %}
 <div class="container-fluid">
-    <!-- Welcome Section -->
-    <div class="welcome-section">
-        <h2><i class="bi bi-person-circle me-2"></i>Welcome, {{ mediator.user.get_full_name|default:mediator.user.username }}</h2>
-        <p>Manage your mediation sessions and track your cases</p>
-    </div>
+<!-- Welcome Section -->
+<div class="welcome-section">
+    <h2><i class="bi bi-person-circle me-2"></i>Welcome, {{ user.get_full_name|default:user.username }}</h2>
+    <p>Manage your mediation sessions and track your cases</p>
+</div>
     
     <!-- Stats Cards -->
     <div class="row mb-4">
@@ -228,9 +228,9 @@
                     <strong>Applicant:</strong> {{ case.applicant_name }} {{ case.applicant_surname }}<br>
                     <strong>Type:</strong> {{ case.get_dispute_type_display }}
                 </div>
-                <div class="case-date">
-                    <i class="bi bi-calendar"></i> Updated: {{ case.updated_at|date:"d M Y" }}
-                </div>
+<div class="case-date">
+    <i class="bi bi-calendar"></i> Created: {{ case.created_at|date:"d M Y" }}
+</div>
             </div>
         </div>
         {% endfor %}
@@ -262,7 +262,7 @@
                     <td>{{ case.applicant_name }} {{ case.applicant_surname }}</td>
                     <td>{{ case.get_dispute_type_display }}</td>
                     <td><span class="badge-status badge-completed">{{ case.get_status_display }}</span></td>
-                    <td class="text-muted">{{ case.updated_at|date:"d M Y" }}</td>
+                    <td class="text-muted">{{ case.created_at|date:"d M Y" }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

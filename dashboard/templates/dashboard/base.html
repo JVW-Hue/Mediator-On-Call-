@@ -46,36 +46,30 @@ document.addEventListener('DOMContentLoaded', function() {
                             <i class="bi bi-speedometer2"></i> Dashboard
                         </a>
                     </li>
-                    {% if user.is_staff %}
                     <li class="nav-item">
                         <a class="nav-link{% if request.resolver_match.url_name == 'dispute_list' %} active{% endif %}"
                            href="{% url 'dashboard:dispute_list' %}">
                             <i class="bi bi-files"></i> Disputes
                         </a>
                     </li>
-                    {% endif %}
-                    {% if user.is_staff %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'dashboard:mediator_home' %}">
+                        <a class="nav-link{% if request.resolver_match.url_name == 'mediators_list' %} active{% endif %}" 
+                           href="{% url 'dashboard:mediators_list' %}">
                             <i class="bi bi-people"></i> Mediators
                         </a>
                     </li>
-                    {% endif %}
-                    {% if user.mediator %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'dashboard:mediator_home' %}">
+                        <a class="nav-link{% if request.resolver_match.url_name == 'mediator_sessions' %} active{% endif %}"
+                           href="{% url 'dashboard:mediator_sessions' %}">
                             <i class="bi bi-calendar-check"></i> My Sessions
                         </a>
                     </li>
-                    {% endif %}
-                    {% if user.is_staff %}
                     <li class="nav-item">
                         <a class="nav-link{% if request.resolver_match.url_name == 'test_notification' %} active{% endif %}"
                            href="{% url 'dashboard:test_notification' %}">
                             <i class="bi bi-bell"></i> Test Notification
                         </a>
                     </li>
-                    {% endif %}
                 </ul>
                 <hr>
                 <div class="px-3">

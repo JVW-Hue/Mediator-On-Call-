@@ -57,15 +57,13 @@
             <td>{{ dispute.created_at|date:"Y-m-d" }}</td>
             <td>
                 {% if dispute.status == 'submitted' %}
-                    <button type="button" class="btn btn-sm btn-outline-primary screen-btn"
-                            data-dispute-id="{{ dispute.id }}"
-                            data-bs-toggle="modal"
-                            data-bs-target="#screeningModal">Screen</button>
+                    <a href="{% url 'dashboard:screen_dispute_page' dispute.pk %}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye"></i> Screen
+                    </a>
                 {% elif dispute.status in 'responded ready_for_assignment' %}
-                    <button type="button" class="btn btn-sm btn-outline-success assign-btn"
-                            data-dispute-id="{{ dispute.id }}"
-                            data-bs-toggle="modal"
-                            data-bs-target="#assignModal">Assign Mediator</button>
+                    <a href="{% url 'dashboard:assign_mediator_page' dispute.pk %}" class="btn btn-sm btn-outline-success">
+                        <i class="bi bi-person-check"></i> Assign Mediator
+                    </a>
                 {% endif %}
                 <a href="{% url 'dashboard:dispute_detail' dispute.pk %}" class="btn btn-sm btn-outline-secondary">View</a>
                 <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ dispute.id }}">Delete</button>

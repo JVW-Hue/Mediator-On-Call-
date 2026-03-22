@@ -1,0 +1,270 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Screen Dispute #{{ dispute.id }} – Pro Bono Community Mediation{% endblock %}
+
+{% block dashboard_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-search text-primary"></i> Screen Dispute #{{ dispute.id }}
+    </h1>
+    <div>
+        <span class="badge bg-warning text-dark fs-6">{{ dispute.get_status_display }}</span>
+        <a href="{% url 'dashboard:dispute_list' %}" class="btn btn-outline-secondary ms-2">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Column: Dispute Details -->
+    <div class="col-lg-8">
+        <!-- Applicant Information -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-fill"></i> Applicant Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Full Name:</strong> {{ dispute.applicant_name }} {{ dispute.applicant_surname }}</p>
+                        <p class="mb-2"><strong>Cell Phone:</strong> {{ dispute.applicant_cell }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Email:</strong> {{ dispute.applicant_email|default:"—" }}</p>
+                        <p class="mb-2"><strong>Submitted:</strong> {{ dispute.created_at|date:"d M Y H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Respondent Information -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-person-badge"></i> Respondent Information</h5>
+            </div>
+            <div class="card-body">
+                {% if dispute.respondent_type == 'ind' %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Type:</strong> Individual</p>
+                        <p class="mb-2"><strong>Full Name:</strong> {{ dispute.respondent_name }} {{ dispute.respondent_surname }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Cell Phone:</strong> {{ dispute.respondent_cell|default:"—" }}</p>
+                        <p class="mb-2"><strong>Email:</strong> {{ dispute.respondent_email|default:"—" }}</p>
+                    </div>
+                </div>
+                {% else %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Type:</strong> Business</p>
+                        <p class="mb-2"><strong>Business Name:</strong> {{ dispute.business_name }}</p>
+                        <p class="mb-2"><strong>Owner:</strong> {{ dispute.owner_name }} {{ dispute.owner_surname }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Business Cell:</strong> {{ dispute.business_cell|default:"—" }}</p>
+                        <p class="mb-2"><strong>Email:</strong> {{ dispute.respondent_email|default:"—" }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Dispute Details -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-file-text"></i> Dispute Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Dispute Type:</strong></p>
+                        <span class="badge bg-primary fs-6">{{ dispute.get_dispute_type_display }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Eligible for Mediation:</strong></p>
+                        {% if dispute.is_eligible %}
+                        <span class="badge bg-success fs-6">Yes</span>
+                        {% else %}
+                        <span class="badge bg-danger fs-6">No - Referred Type</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <p class="mb-1"><strong>Dispute Description:</strong></p>
+                    <div class="border rounded p-3 bg-light">
+                        {{ dispute.description|linebreaksbr }}
+                    </div>
+                </div>
+
+                {% if dispute.preferred_date %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Preferred Date:</strong> {{ dispute.preferred_date|date:"d M Y" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-2"><strong>Location:</strong> {{ dispute.mediation_location|default:"—" }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Photos -->
+        {% with photos=dispute.photos.all %}
+        {% if photos %}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="bi bi-images"></i> Supporting Photos ({{ photos|length }})</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for photo in photos %}
+                    <div class="col-md-4 col-6 mb-3">
+                        <a href="{{ photo.image.url }}" target="_blank">
+                            <img src="{{ photo.image.url }}" class="img-fluid rounded shadow-sm" alt="Dispute photo {{ forloop.counter }}">
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <!-- Documents -->
+        {% with docs=dispute.documents.all %}
+        {% if docs %}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="bi bi-paperclip"></i> Supporting Documents ({{ docs|length }})</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for doc in docs %}
+                    <li class="list-group-item">
+                        <a href="{{ doc.file.url }}" target="_blank" rel="noopener">
+                            <i class="bi bi-file-earmark-pdf text-danger"></i> {{ doc.file.name|cut:"dispute_docs/" }}
+                        </a>
+                        <small class="text-muted float-end">Uploaded {{ doc.uploaded_at|date:"d M Y" }}</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Right Column: Screening Form -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm sticky-top" style="top: 20px;">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-clipboard-check"></i> Screening Decision</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'dashboard:screen_dispute_page' dispute.id %}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Screening Notes</label>
+                        <textarea name="notes" class="form-control" rows="4" placeholder="Add your screening notes here...">{{ dispute.screening_notes|default:"" }}</textarea>
+                    </div>
+
+                    <hr>
+
+                    <!-- Accept Option -->
+                    <div class="mb-3 p-3 border rounded bg-light">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="decision" id="accept" value="accept" required>
+                            <label class="form-check-label fw-bold text-success" for="accept">
+                                <i class="bi bi-check-circle-fill"></i> Accept - Mediatable
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-1 ms-4">
+                            Case will be forwarded to the respondent for their response.
+                        </small>
+                    </div>
+
+                    <!-- Reject Option -->
+                    <div class="mb-3 p-3 border rounded bg-light">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="decision" id="reject" value="reject">
+                            <label class="form-check-label fw-bold text-danger" for="reject">
+                                <i class="bi bi-x-circle-fill"></i> Reject - Not Mediatable
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-1 ms-4">
+                            Case will be closed and applicant notified.
+                        </small>
+                    </div>
+
+                    <div id="rejectOptions" style="display: none;">
+                        <div class="mb-3 ms-4">
+                            <label class="form-label fw-bold">Refer To</label>
+                            <select name="refer_to" class="form-select">
+                                <option value="">-- No Referral --</option>
+                                <option value="legal">Legal Aid</option>
+                                <option value="court">Court</option>
+                                <option value="police">Police</option>
+                                <option value="labour">Labour Department</option>
+                                <option value="family">Family Services</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-3 ms-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="offer_foresolve" id="offer_foresolve">
+                                <label class="form-check-label" for="offer_foresolve">
+                                    Offer Foresolve Service
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3 ms-4">
+                            <label class="form-label fw-bold">Referral Details</label>
+                            <textarea name="refer_notes" class="form-control" rows="2" placeholder="Add referral details..."></textarea>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <button type="submit" class="btn btn-primary w-100 btn-lg">
+                        <i class="bi bi-send"></i> Submit Decision
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Case Info Card -->
+        <div class="card mt-3 shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Case Information</h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-1"><strong>Case ID:</strong> #{{ dispute.id }}</p>
+                <p class="mb-1"><strong>Created:</strong> {{ dispute.created_at|date:"d M Y H:i" }}</p>
+                <p class="mb-0"><strong>Current Status:</strong> <span class="badge bg-warning text-dark">{{ dispute.get_status_display }}</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const rejectRadio = document.getElementById('reject');
+    const acceptRadio = document.getElementById('accept');
+    const rejectOptions = document.getElementById('rejectOptions');
+    
+    function toggleRejectOptions() {
+        rejectOptions.style.display = rejectRadio.checked ? 'block' : 'none';
+    }
+    
+    rejectRadio.addEventListener('change', toggleRejectOptions);
+    acceptRadio.addEventListener('change', toggleRejectOptions);
+    
+    // Initial check
+    toggleRejectOptions();
+});
+</script>
+{% endblock %}

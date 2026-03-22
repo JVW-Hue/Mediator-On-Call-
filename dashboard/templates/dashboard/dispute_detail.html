@@ -4,8 +4,20 @@
 
 {% block dashboard_content %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Dispute #{{ dispute.id }}</h1>
-    <a href="{% url 'dashboard:dispute_list' %}" class="btn btn-outline-secondary">Back to List</a>
+    <h1 class="h2">
+        <i class="bi bi-file-earmark-text"></i> Dispute #{{ dispute.id }}
+        <span class="badge bg-{% if dispute.status == 'submitted' %}warning{% elif dispute.status == 'mediation_scheduled' %}success{% elif dispute.status == 'mediated' %}primary{% else %}info{% endif %} ms-2">
+            {{ dispute.get_status_display }}
+        </span>
+    </h1>
+    <div>
+        {% if not dispute.mediator %}
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#assignMediatorModal">
+            <i class="bi bi-person-plus"></i> Assign Mediator
+        </button>
+        {% endif %}
+        <a href="{% url 'dashboard:dispute_list' %}" class="btn btn-outline-secondary ms-2">Back to List</a>
+    </div>
 </div>
 
 <div class="row">
@@ -161,4 +173,93 @@
     </div>
 </div>
 {% endif %}
+
+<!-- Assign Mediator Modal -->
+<div class="modal fade" id="assignMediatorModal" tabindex="-1" aria-labelledby="assignMediatorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="assignMediatorModalLabel">
+                    <i class="bi bi-person-check"></i> Assign Mediator to Dispute #{{ dispute.id }}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'dashboard:assign_mediator_to_dispute' dispute.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <!-- Client Info Summary -->
+                    <div class="alert alert-info mb-4">
+                        <strong><i class="bi bi-person"></i> Applicant:</strong> {{ dispute.applicant_name }} {{ dispute.applicant_surname }} ({{ dispute.applicant_cell }})<br>
+                        <strong><i class="bi bi-person-badge"></i> Respondent:</strong>
+                        {% if dispute.respondent_type == 'ind' %}
+                            {{ dispute.respondent_name }} {{ dispute.respondent_surname }}
+                        {% else %}
+                            {{ dispute.business_name }}
+                        {% endif %}
+                        <br>
+                        <strong><i class="bi bi-tag"></i> Type:</strong> {{ dispute.get_dispute_type_display }}
+                    </div>
+                    
+                    <!-- Mediator Selection -->
+                    <div class="mb-3">
+                        <label for="mediator_id" class="form-label fw-bold">
+                            <i class="bi bi-people"></i> Select Mediator
+                        </label>
+                        <select name="mediator_id" id="mediator_id" class="form-select form-select-lg" required>
+                            <option value="">-- Choose a mediator from the database --</option>
+                            {% for mediator in mediators %}
+                            <option value="{{ mediator.id }}">
+                                {{ mediator.user.get_full_name|default:mediator.user.username }}
+                                | {{ mediator.user.email|default:"No email" }}
+                                | {{ mediator.cell }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">{{ mediators|length }} mediators available in the database</small>
+                    </div>
+                    
+                    <!-- Session Date/Time -->
+                    <div class="mb-3">
+                        <label for="scheduled_at" class="form-label fw-bold">
+                            <i class="bi bi-calendar-event"></i> Session Date & Time
+                        </label>
+                        <input type="datetime-local" class="form-control form-control-lg" id="scheduled_at" name="scheduled_at" required>
+                    </div>
+                    
+                    <!-- Zoom Link -->
+                    <div class="mb-3">
+                        <label for="zoom_link" class="form-label fw-bold">
+                            <i class="bi bi-camera-video"></i> Zoom Link
+                        </label>
+                        <input type="url" class="form-control" id="zoom_link" name="zoom_link" placeholder="https://zoom.us/j/..." value="https://zoom.us/j/pending">
+                        <small class="text-muted">Enter the Zoom meeting link for the session</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="bi bi-check-circle"></i> Assign Mediator & Notify
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set minimum date to now
+    const scheduledInput = document.getElementById('scheduled_at');
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    scheduledInput.min = now.toISOString().slice(0, 16);
+    
+    // Set default to tomorrow at 9am
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(9, 0, 0, 0);
+    tomorrow.setMinutes(tomorrow.getMinutes() - tomorrow.getTimezoneOffset());
+    scheduledInput.value = tomorrow.toISOString().slice(0, 16);
+});
+</script>
 {% endblock %}
