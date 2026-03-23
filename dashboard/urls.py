@@ -17,6 +17,7 @@ urlpatterns = [
     path("assign/", views.assign_mediator_post, name="assign_mediator"),
     path("referred-cases/", views.referred_cases_view, name="referred_cases"),
     path("mediatable-cases/", views.mediatable_cases_view, name="mediatable_cases"),
+    path("mediators/", views.mediators_list, name="mediators_list"),
     path("mediator/", views.mediator_dashboard, name="mediator_home"),
     path("mediator/sessions/", views.mediator_sessions, name="mediator_sessions"),
     path("mediator/accept/<int:dispute_id>/", views.mediator_accept_case, name="mediator_accept_case"),
