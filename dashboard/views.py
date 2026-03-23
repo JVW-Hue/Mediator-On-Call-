@@ -354,19 +354,62 @@ def assign_mediator_to_dispute(request, pk):
         except Exception:
             pass
     
-    AuditLog.objects.create(
-        dispute=dispute,
-        user=request.user,
-        action=f"Mediator {mediator_name} assigned, session scheduled for {scheduled_at}",
-    )
-    
-    messages.success(request, f"Mediator {mediator_name} assigned to Dispute #{dispute.id}! Notifications sent.")
-    return redirect("dashboard:dispute_detail", pk=pk)
+        AuditLog.objects.create(
+            dispute=dispute,
+            user=request.user,
+            action=f"Dispute accepted and forwarded to respondent",
+        )
+    else:
+        dispute.is_mediatable = False
+        dispute.status = "rejected"
+        if refer_to:
+            dispute.screening_notes = f"REFERRED TO: {refer_to.upper()}. Notes: {notes}. Referral details: {refer_notes}"
+        else:
+            dispute.screening_notes = notes
+
+        if refer_to or offer_foresolve:
+            referral_type = "foresolve" if offer_foresolve else refer_to
+            ReferredCase.objects.update_or_create(
+                dispute=dispute,
+                defaults={
+                    "referred_to": referral_type,
+                    "referred_by": request.user,
+                    "notes": notes,
+                    "referral_details": refer_notes,
+                },
+            )
+        
+        # Send Message 2: Dispute rejected notification
+        if dispute.applicant_email:
+            send_message_2_dispute_rejected.delay(
+                to_email=dispute.applicant_email,
+                applicant_name=dispute.applicant_name,
+                case_id=dispute.id,
+            )
+
+        # Send SMS notification
+        if dispute.applicant_cell:
+            sms_body = (
+                "After reviewing your request we have found that the dispute cannot be mediated. "
+                "Your file has been closed. You are welcome to lodge an enquiry to complaints@probonomediation.co.za"
+            )
+            _send_notification(notify_recipient, to=dispute.applicant_cell, body=sms_body)
+
+        AuditLog.objects.create(
+            dispute=dispute,
+            user=request.user,
+            action=f"Dispute rejected - referred to {refer_to}" if refer_to else "Dispute rejected - not mediatable",
+        )
+
+        messages.warning(request, f"Dispute #{dispute_id} rejected and applicant notified.")
+
+    return redirect("dashboard:dispute_list")
 
 
 @staff_member_required
 @require_POST
 def screen_dispute(request):
+    """Process screening decision from dispute list."""
     dispute_id = request.POST.get("dispute_id")
     decision = request.POST.get("decision")
     notes = request.POST.get("notes", "")
@@ -624,78 +667,6 @@ def screen_dispute_page(request, pk):
 
 
 @staff_member_required
-def assign_mediator_page(request, pk):
-    """Show page for assigning mediator to a dispute."""
-    dispute = get_object_or_404(Dispute, pk=pk, status__in=["responded", "ready_for_assignment"])
-    mediators = Mediator.objects.select_related("user").all()
-    
-    if request.method == "POST":
-        mediator_id = request.POST.get("mediator_id")
-        scheduled_at_str = request.POST.get("scheduled_at")
-        join_url = request.POST.get("join_url", "")
-        host_url = request.POST.get("host_url", "")
-
-        mediator = get_object_or_404(Mediator, id=mediator_id)
-
-        try:
-            scheduled_at = datetime.fromisoformat(scheduled_at_str)
-        except (ValueError, AttributeError):
-            messages.error(request, "Invalid date/time format.")
-            return render(request, "dashboard/assign_mediator.html", {"dispute": dispute, "mediators": mediators})
-        
-        if timezone.is_naive(scheduled_at):
-            scheduled_at = timezone.make_aware(scheduled_at, timezone.utc)
-
-        respondent_name = (
-            f"{dispute.respondent_name or ''} {dispute.respondent_surname or ''}".strip()
-            or dispute.business_name
-            or "Respondent"
-        )
-
-        session = MediationSession.objects.create(
-            dispute=dispute,
-            mediator=mediator,
-            scheduled_at=scheduled_at,
-            zoom_link=join_url,
-            host_link=host_url,
-        )
-
-        dispute.status = "mediation_scheduled"
-        dispute.mediator = mediator
-        dispute.save()
-
-        mediator_name = mediator.user.get_full_name() or mediator.user.username
-        mediator_email = mediator.user.email
-
-        # Send Message 8: Notify mediator
-        if mediator_email:
-            send_message_8_mediator_assigned_mediator.delay(
-                to_email=mediator_email,
-                mediator_name=mediator_name,
-                case_id=dispute.id,
-            )
-        
-        # Send Message 8: Notify parties
-        send_message_8_mediator_assigned_parties.delay(
-            applicant_email=dispute.applicant_email,
-            respondent_email=dispute.respondent_email or dispute.business_email,
-            mediator_name=mediator_name,
-            case_id=dispute.id,
-        )
-
-        AuditLog.objects.create(
-            dispute=dispute,
-            user=request.user,
-            action=f"Mediator {mediator_name} assigned, session scheduled for {scheduled_at}",
-        )
-
-        messages.success(request, f"Mediator assigned! Session scheduled for {scheduled_at}.")
-        return redirect("dashboard:dispute_list")
-    
-    return render(request, "dashboard/assign_mediator.html", {"dispute": dispute, "mediators": mediators})
-
-
-@staff_member_required
 @require_POST
 def assign_mediator_post(request):
     """Handle assign mediator from modal on dispute list."""
@@ -750,105 +721,12 @@ def assign_mediator_post(request):
     
     AuditLog.objects.create(
         dispute=dispute,
-@staff_member_required
-def download_case_file(request, pk):
-    """Download all case documents as a ZIP file for arbitration."""
-    dispute = get_object_or_404(Dispute, pk=pk)
+        user=request.user,
+        action=f"Mediator {mediator_name} assigned via modal, session scheduled for {scheduled_at}",
+    )
     
-    buffer = io.BytesIO()
-    with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
-        case_data = {
-            "dispute_id": dispute.id,
-            "applicant": {
-                "name": dispute.applicant_name,
-                "surname": dispute.applicant_surname,
-                "cell": dispute.applicant_cell,
-                "email": dispute.applicant_email,
-            },
-            "respondent": {
-                "type": dispute.respondent_type,
-                "name": dispute.respondent_name,
-                "surname": dispute.respondent_surname,
-                "cell": dispute.respondent_cell,
-                "business_name": dispute.business_name,
-                "owner_name": dispute.owner_name,
-                "owner_surname": dispute.owner_surname,
-                "business_cell": dispute.business_cell,
-                "email": dispute.respondent_email,
-            },
-            "dispute_type": dispute.dispute_type,
-            "description": dispute.description,
-            "status": dispute.status,
-            "created_at": str(dispute.created_at),
-        }
-        
-        if hasattr(dispute, 'response'):
-            case_data["respondent_response"] = {
-                "consent_to_mediate": dispute.response.consent_to_mediate,
-                "agreed_to_rules": dispute.response.agreed_to_rules,
-                "defence_explanation": dispute.response.defence_explanation,
-                "created_at": str(dispute.response.created_at),
-            }
-        
-        if hasattr(dispute, 'mediation'):
-            case_data["mediation"] = {
-                "mediator": str(dispute.mediation.mediator) if dispute.mediation.mediator else None,
-                "scheduled_at": str(dispute.mediation.scheduled_at),
-                "zoom_link": dispute.mediation.zoom_link,
-                "outcome": dispute.mediation.outcome,
-            }
-        
-        zf.writestr('case_info.json', json.dumps(case_data, indent=2))
-        
-        for doc in dispute.documents.all():
-            if doc.file:
-                zf.writestr(f'applicant_docs/{doc.file.name}', doc.file.read())
-        
-        if hasattr(dispute, 'response'):
-            for doc in dispute.response.documents.all():
-                if doc.file:
-                    zf.writestr(f'respondent_docs/{doc.file.name}', doc.file.read())
-        
-        if hasattr(dispute, 'mediation'):
-            if dispute.mediation.outcome_file:
-                zf.writestr('mediation/outcome.txt', dispute.mediation.outcome)
-            if dispute.mediation.outcome_file and dispute.mediation.outcome_file.name:
-                try:
-                    zf.writestr('mediation/outcome_file', dispute.mediation.outcome_file.read())
-                except:
-                    pass
-            if dispute.mediation.arbitration_agreement:
-                try:
-                    zf.writestr('mediation/arbitration_agreement', dispute.mediation.arbitration_agreement.read())
-                except:
-                    pass
-            if dispute.mediation.pre_arbitration_minute:
-                try:
-                    zf.writestr('mediation/pre_arbitration_minute', dispute.mediation.pre_arbitration_minute.read())
-                except:
-                    pass
-    
-    buffer.seek(0)
-    response = HttpResponse(buffer, content_type='application/zip')
-    response['Content-Disposition'] = f'attachment; filename=case_{dispute.id}_arbitration.zip'
-    return response
-
-
-@login_required
-@mediator_required
-def mediator_sessions(request):
-    """Show mediation sessions for the current user."""
-    sessions = MediationSession.objects.none()  # Empty queryset by default
-    
-    # If user has a mediator profile, show their sessions
-    if hasattr(request.user, 'mediator'):
-        mediator = request.user.mediator
-        sessions = MediationSession.objects.filter(mediator=mediator).order_by('-scheduled_at')
-    # If user is staff, show all sessions
-    elif request.user.is_staff:
-        sessions = MediationSession.objects.all().order_by('-scheduled_at')
-    
-    return render(request, 'dashboard/mediator_sessions.html', {'sessions': sessions})
+    messages.success(request, f"Mediator {mediator_name} assigned to Dispute #{dispute_id}!")
+    return redirect("dashboard:dispute_list")
 
 
 @staff_member_required
@@ -944,6 +822,23 @@ Mediators on Call Team
     
     messages.success(request, f"Case #{dispute_id} accepted. Applicant has been notified to confirm details.")
     return redirect("dashboard:mediator_sessions")
+
+
+@login_required
+@mediator_required
+def mediator_sessions(request):
+    """Show mediation sessions for the current user."""
+    sessions = MediationSession.objects.none()  # Empty queryset by default
+    
+    # If user has a mediator profile, show their sessions
+    if hasattr(request.user, 'mediator'):
+        mediator = request.user.mediator
+        sessions = MediationSession.objects.filter(mediator=mediator).order_by('-scheduled_at')
+    # If user is staff, show all sessions
+    elif request.user.is_staff:
+        sessions = MediationSession.objects.all().order_by('-scheduled_at')
+    
+    return render(request, 'dashboard/mediator_sessions.html', {'sessions': sessions})
 
 
 @login_required
@@ -1070,3 +965,159 @@ def mediators_list(request):
         'search_query': search,
     }
     return render(request, 'dashboard/mediators_list.html', context)
+
+
+@staff_member_required
+def download_case_file(request, pk):
+    """Download all case documents as a ZIP file for arbitration."""
+    dispute = get_object_or_404(Dispute, pk=pk)
+    
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+        case_data = {
+            "dispute_id": dispute.id,
+            "applicant": {
+                "name": dispute.applicant_name,
+                "surname": dispute.applicant_surname,
+                "cell": dispute.applicant_cell,
+                "email": dispute.applicant_email,
+            },
+            "respondent": {
+                "type": dispute.respondent_type,
+                "name": dispute.respondent_name,
+                "surname": dispute.respondent_surname,
+                "cell": dispute.respondent_cell,
+                "business_name": dispute.business_name,
+                "owner_name": dispute.owner_name,
+                "owner_surname": dispute.owner_surname,
+                "business_cell": dispute.business_cell,
+                "email": dispute.respondent_email,
+            },
+            "dispute_type": dispute.dispute_type,
+            "description": dispute.description,
+            "status": dispute.status,
+            "created_at": str(dispute.created_at),
+        }
+        
+        if hasattr(dispute, 'response'):
+            case_data["respondent_response"] = {
+                "consent_to_mediate": dispute.response.consent_to_mediate,
+                "agreed_to_rules": dispute.response.agreed_to_rules,
+                "defence_explanation": dispute.response.defence_explanation,
+                "created_at": str(dispute.response.created_at),
+            }
+        
+        if hasattr(dispute, 'mediation'):
+            case_data["mediation"] = {
+                "mediator": str(dispute.mediation.mediator) if dispute.mediation.mediator else None,
+                "scheduled_at": str(dispute.mediation.scheduled_at),
+                "zoom_link": dispute.mediation.zoom_link,
+                "outcome": dispute.mediation.outcome,
+            }
+        
+        zf.writestr('case_info.json', json.dumps(case_data, indent=2))
+        
+        for doc in dispute.documents.all():
+            if doc.file:
+                zf.writestr(f'applicant_docs/{doc.file.name}', doc.file.read())
+        
+        if hasattr(dispute, 'response'):
+            for doc in dispute.response.documents.all():
+                if doc.file:
+                    zf.writestr(f'respondent_docs/{doc.file.name}', doc.file.read())
+        
+        if hasattr(dispute, 'mediation'):
+            if dispute.mediation.outcome_file:
+                zf.writestr('mediation/outcome.txt', dispute.mediation.outcome)
+            if dispute.mediation.outcome_file and dispute.mediation.outcome_file.name:
+                try:
+                    zf.writestr('mediation/outcome_file', dispute.mediation.outcome_file.read())
+                except:
+                    pass
+            if dispute.mediation.arbitration_agreement:
+                try:
+                    zf.writestr('mediation/arbitration_agreement', dispute.mediation.arbitration_agreement.read())
+                except:
+                    pass
+            if dispute.mediation.pre_arbitration_minute:
+                try:
+                    zf.writestr('mediation/pre_arbitration_minute', dispute.mediation.pre_arbitration_minute.read())
+                except:
+                    pass
+    
+    buffer.seek(0)
+    response = HttpResponse(buffer, content_type='application/zip')
+    response['Content-Disposition'] = f'attachment; filename=case_{dispute.id}_arbitration.zip'
+    return response
+
+
+@staff_member_required
+def assign_mediator_page(request, pk):
+    """Show page for assigning mediator to a dispute."""
+    dispute = get_object_or_404(Dispute, pk=pk, status__in=["responded", "ready_for_assignment"])
+    mediators = Mediator.objects.select_related("user").all()
+    
+    if request.method == "POST":
+        mediator_id = request.POST.get("mediator_id")
+        scheduled_at_str = request.POST.get("scheduled_at")
+        join_url = request.POST.get("join_url", "")
+        host_url = request.POST.get("host_url", "")
+
+        mediator = get_object_or_404(Mediator, id=mediator_id)
+
+        try:
+            scheduled_at = datetime.fromisoformat(scheduled_at_str)
+        except (ValueError, AttributeError):
+            messages.error(request, "Invalid date/time format.")
+            return render(request, "dashboard/assign_mediator.html", {"dispute": dispute, "mediators": mediators})
+        
+        if timezone.is_naive(scheduled_at):
+            scheduled_at = timezone.make_aware(scheduled_at, timezone.utc)
+
+        respondent_name = (
+            f"{dispute.respondent_name or ''} {dispute.respondent_surname or ''}".strip()
+            or dispute.business_name
+            or "Respondent"
+        )
+
+        session = MediationSession.objects.create(
+            dispute=dispute,
+            mediator=mediator,
+            scheduled_at=scheduled_at,
+            zoom_link=join_url,
+            host_link=host_url,
+        )
+
+        dispute.status = "mediation_scheduled"
+        dispute.mediator = mediator
+        dispute.save()
+
+        mediator_name = mediator.user.get_full_name() or mediator.user.username
+        mediator_email = mediator.user.email
+
+        # Send Message 8: Notify mediator
+        if mediator_email:
+            send_message_8_mediator_assigned_mediator.delay(
+                to_email=mediator_email,
+                mediator_name=mediator_name,
+                case_id=dispute.id,
+            )
+        
+        # Send Message 8: Notify parties
+        send_message_8_mediator_assigned_parties.delay(
+            applicant_email=dispute.applicant_email,
+            respondent_email=dispute.respondent_email or dispute.business_email,
+            mediator_name=mediator_name,
+            case_id=dispute.id,
+        )
+
+        AuditLog.objects.create(
+            dispute=dispute,
+            user=request.user,
+            action=f"Mediator {mediator_name} assigned, session scheduled for {scheduled_at}",
+        )
+
+        messages.success(request, f"Mediator assigned! Session scheduled for {scheduled_at}.")
+        return redirect("dashboard:dispute_list")
+    
+    return render(request, "dashboard/assign_mediator.html", {"dispute": dispute, "mediators": mediators})
