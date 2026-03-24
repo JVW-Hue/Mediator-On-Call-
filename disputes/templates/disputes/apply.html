@@ -29,27 +29,25 @@
     .required-badge {
         background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
         color: white;
-        padding: 4px 12px;
+        padding: 3px 10px;
         border-radius: 20px;
-        font-size: 0.7rem;
+        font-size: 0.65rem;
         font-weight: 600;
-        margin-left: 8px;
+        margin-left: 6px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3);
         display: inline-block;
     }
     .optional-badge {
         background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
         color: white;
-        padding: 4px 12px;
+        padding: 3px 10px;
         border-radius: 20px;
-        font-size: 0.7rem;
+        font-size: 0.65rem;
         font-weight: 600;
-        margin-left: 8px;
+        margin-left: 6px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        box-shadow: 0 2px 5px rgba(108, 117, 125, 0.3);
         display: inline-block;
     }
     .form-section {
@@ -78,29 +76,11 @@
     .hidden {
         display: none !important;
     }
-    input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-    input[type="number"] {
-        -moz-appearance: textfield;
-    }
-    .card.cursor-pointer {
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-    .card.cursor-pointer:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-    }
-    .cursor-pointer {
-        cursor: pointer;
-    }
     .step-indicator {
         display: flex;
         justify-content: center;
         margin-bottom: 30px;
+        flex-wrap: wrap;
     }
     .step-dot {
         width: 44px;
@@ -110,7 +90,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 10px;
+        margin: 5px 8px;
         font-weight: bold;
         color: #666;
         transition: all 0.3s ease;
@@ -149,6 +129,29 @@
         border-color: #667eea;
         background: linear-gradient(135deg, #f0f2ff 0%, #e8eaff 100%);
     }
+    .gmail-link {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.4rem 0.8rem;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        color: #333;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        margin-top: 0.3rem;
+    }
+    .gmail-link:hover {
+        background: #f8f9ff;
+        border-color: #667eea;
+        color: #667eea;
+    }
+    .gmail-link img {
+        width: 18px;
+        height: 18px;
+        margin-right: 0.5rem;
+    }
 </style>
 {% endblock %}
 
@@ -159,303 +162,306 @@
         <h2><i class="bi bi-file-earmark-plus me-2"></i> Submit a Dispute</h2>
         <p>Complete the form below to submit your dispute for mediation</p>
     </div>
-            <div class="step-dot" id="step-dot-4">4</div>
-            <div class="step-dot" id="step-dot-5">5</div>
-            <div class="step-dot" id="step-dot-6">6</div>
+    
+    <!-- Step Indicator -->
+    <div class="step-indicator mb-4">
+        <div class="step-dot active" id="step-dot-1">1</div>
+        <div class="step-dot" id="step-dot-2">2</div>
+        <div class="step-dot" id="step-dot-3">3</div>
+        <div class="step-dot" id="step-dot-4">4</div>
+        <div class="step-dot" id="step-dot-5">5</div>
+        <div class="step-dot" id="step-dot-6">6</div>
+    </div>
+    
+    <form method="post" enctype="multipart/form-data" id="disputeForm">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        
+        <!-- Form Errors -->
+        {% if form.errors %}
+        <div class="alert alert-danger" style="border-radius: 12px;">
+            <h5><i class="bi bi-exclamation-triangle-fill me-2"></i>Please correct the following errors:</h5>
+            <ul class="mb-0 mt-2">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                    <li><strong>{{ error }}</strong></li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        <!-- Step 1: Your Information (Applicant) -->
+        <div class="form-section" id="step1">
+            <h5><i class="bi bi-person"></i> Step 1: Your Information (Applicant)</h5>
+            <div class="row mt-3">
+                <div class="col-md-6 mb-3">
+                    <label>First Name <span class="required-badge">REQUIRED</span></label>
+                    <input type="text" name="applicant_name" class="form-control {% if form.applicant_name.errors %}is-invalid{% endif %}" placeholder="Enter your first name" required>
+                    {% if form.applicant_name.errors %}
+                    <div class="invalid-feedback">{{ form.applicant_name.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>Last Name <span class="required-badge">REQUIRED</span></label>
+                    <input type="text" name="applicant_surname" class="form-control {% if form.applicant_surname.errors %}is-invalid{% endif %}" placeholder="Enter your last name" required>
+                    {% if form.applicant_surname.errors %}
+                    <div class="invalid-feedback">{{ form.applicant_surname.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label>Cell Number <span class="required-badge">REQUIRED</span></label>
+                    <input type="tel" name="applicant_cell" class="form-control {% if form.applicant_cell.errors %}is-invalid{% endif %}" placeholder="e.g. 0821234567" maxlength="20" required>
+                    {% if form.applicant_cell.errors %}
+                    <div class="invalid-feedback">{{ form.applicant_cell.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>Email Address <span class="optional-badge">OPTIONAL</span></label>
+                    <input type="email" name="applicant_email" class="form-control" placeholder="Enter your email address (optional)">
+                    <a href="https://accounts.google.com/signup" target="_blank" class="gmail-link">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>
+                        Don't have email? Create Gmail account
+                    </a>
+                </div>
+            </div>
         </div>
         
-        <form method="post" enctype="multipart/form-data" id="disputeForm">
-            {% csrf_token %}
-            {{ formset.management_form }}
-            
-            <!-- Form Errors -->
-            {% if form.errors %}
-            <div class="alert alert-danger" style="border-radius: 10px; border: none; background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%); color: #721c24; padding: 20px;">
-                <h5><i class="bi bi-exclamation-triangle-fill"></i> Please correct the following errors:</h5>
-                <ul class="mb-0 mt-3">
-                    {% for field, errors in form.errors.items %}
-                        {% for error in errors %}
-                        <li><strong>{{ error }}</strong></li>
-                        {% endfor %}
-                    {% endfor %}
-                </ul>
+        <!-- Step 2: Dispute Details -->
+        <div class="form-section hidden" id="step2">
+            <h5><i class="bi bi-file-text"></i> Step 2: Dispute Details</h5>
+            <div class="row mt-3">
+                <div class="col-md-6 mb-3">
+                    <label>Dispute Type <span class="required-badge">REQUIRED</span></label>
+                    <select name="dispute_type" class="form-select {% if form.dispute_type.errors %}is-invalid{% endif %}" required>
+                        <option value="">Select dispute type...</option>
+                        <option value="civil">Civil</option>
+                        <option value="commercial">Commercial</option>
+                        <option value="community">Community</option>
+                        <option value="construction">Construction</option>
+                        <option value="contractual">Contractual</option>
+                        <option value="criminal">Criminal</option>
+                        <option value="customary">Customary</option>
+                        <option value="damages">Damages</option>
+                        <option value="debts">Debts</option>
+                        <option value="divorce">Divorce</option>
+                        <option value="family">Family</option>
+                        <option value="labour">Labour</option>
+                        <option value="lease">Lease</option>
+                        <option value="loans">Loans</option>
+                        <option value="property">Property</option>
+                        <option value="religion">Religion</option>
+                        <option value="sales">Sales</option>
+                    </select>
+                    {% if form.dispute_type.errors %}
+                    <div class="invalid-feedback">{{ form.dispute_type.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>Preferred Location <span class="optional-badge">OPTIONAL</span></label>
+                    <input type="text" name="mediation_location" class="form-control" placeholder="e.g. Johannesburg, Cape Town">
+                </div>
             </div>
-            {% endif %}
+            <div class="mb-3">
+                <label>Describe Your Dispute <span class="required-badge">REQUIRED</span></label>
+                <textarea name="description" class="form-control" rows="4" placeholder="Please describe your dispute in detail..." required></textarea>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label>Preferred Date/Time <span class="optional-badge">OPTIONAL</span></label>
+                    <input type="datetime-local" name="preferred_date" class="form-control">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label>Brief Summary <span class="optional-badge">OPTIONAL</span></label>
+                    <textarea name="summary" class="form-control" rows="2" placeholder="Brief summary for mediator..."></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Step 3: Photos (Optional) -->
+        <div class="form-section hidden" id="step3">
+            <h5><i class="bi bi-camera"></i> Step 3: Add Photos <span class="optional-badge">OPTIONAL</span></h5>
+            <p class="text-muted">Take or upload photos to support your dispute. You can select multiple.</p>
+            <div class="mb-3">
+                <div class="d-flex gap-2 flex-wrap mb-3" id="photo-upload-area">
+                    <label for="id_photo" class="btn btn-primary">
+                        <i class="bi bi-camera-fill me-1"></i> Add Photos
+                    </label>
+                    <input type="file" id="id_photo" name="photo" accept="image/*" capture="environment" class="d-none" multiple>
+                </div>
+                <div id="photo-preview" class="mt-3 d-flex gap-2 flex-wrap" style="max-width: 100%; overflow: hidden;"></div>
+                <small class="text-muted d-block mt-2">Click "Add Photos" to select from gallery or take new photos. Leave empty to skip.</small>
+                <div id="photo-count" class="mt-2 text-success fw-bold"></div>
+            </div>
+        </div>
+        
+        <!-- Step 4: Documents (Optional) -->
+        <div class="form-section hidden" id="step4">
+            <h5><i class="bi bi-paperclip"></i> Step 4: Supporting Documents <span class="optional-badge">OPTIONAL</span></h5>
+            <p class="text-muted">Upload documents to support your dispute (PDF, images, Word files). Leave empty to skip.</p>
+            <div class="mb-3" id="documents-container">
+                <div class="input-group mb-2">
+                    <input type="file" name="document_set-0-file" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                    <button type="button" class="btn btn-success" onclick="addDocumentField()">
+                        <i class="bi bi-plus"></i>
+                    </button>
+                </div>
+            </div>
+            <input type="hidden" id="document-count" value="1">
+            <small class="text-muted d-block">Click + to add more documents.</small>
+            <div style="display: none;">
+                <input type="hidden" name="document_set-TOTAL_FORMS" id="id_document_set-TOTAL_FORMS" value="1">
+                <input type="hidden" name="document_set-INITIAL_FORMS" id="id_document_set-INITIAL_FORMS" value="0">
+                <input type="hidden" name="document_set-MIN_NUM_FORMS" id="id_document_set-MIN_NUM_FORMS" value="0">
+                <input type="hidden" name="document_set-MAX_NUM_FORMS" id="id_document_set-MAX_NUM_FORMS" value="5">
+            </div>
+        </div>
+        
+        <!-- Step 5: Respondent Type -->
+        <div class="form-section hidden" id="step5">
+            <h5><i class="bi bi-person-check"></i> Step 5: Who is your Respondent?</h5>
+            <p class="text-muted">Please select the type of respondent.</p>
             
-            <!-- Step 1: Respondent Type Selection -->
-            <div class="form-section" id="step1">
-                <h5><i class="bi bi-person-check"></i> Step 1: Who is your Respondent?</h5>
-                <p class="text-muted">Please select the type of respondent, then click Continue.</p>
-                
-                <div class="row mt-4">
-                    <div class="col-md-6">
-                        <div class="card h-100 cursor-pointer" id="card-individual" onclick="selectIndividual()">
-                            <div class="card-body text-center">
-                                <i class="bi bi-person" style="font-size: 3rem; color: #667eea;"></i>
-                                <h5 class="mt-3">Individual</h5>
-                                <p class="text-muted small">Select if the respondent is a person</p>
-                            </div>
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card h-100 cursor-pointer" id="card-individual" onclick="selectIndividual()">
+                        <div class="card-body text-center">
+                            <i class="bi bi-person" style="font-size: 3rem; color: #667eea;"></i>
+                            <h5 class="mt-3">Individual</h5>
+                            <p class="text-muted small">Select if the respondent is a person</p>
                         </div>
-                        <input type="radio" name="respondent_type" id="respondent_individual" value="ind" class="hidden" checked>
                     </div>
-                    <div class="col-md-6">
-                        <div class="card h-100 cursor-pointer" id="card-business" onclick="selectBusiness()">
-                            <div class="card-body text-center">
-                                <i class="bi bi-building" style="font-size: 3rem; color: #764ba2;"></i>
-                                <h5 class="mt-3">Business</h5>
-                                <p class="text-muted small">Select if the respondent is a company</p>
-                            </div>
+                    <input type="radio" name="respondent_type" id="respondent_individual" value="ind" class="hidden" checked>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100 cursor-pointer" id="card-business" onclick="selectBusiness()">
+                        <div class="card-body text-center">
+                            <i class="bi bi-building" style="font-size: 3rem; color: #764ba2;"></i>
+                            <h5 class="mt-3">Business</h5>
+                            <p class="text-muted small">Select if the respondent is a company</p>
                         </div>
-                        <input type="radio" name="respondent_type" id="respondent_business" value="bus" class="hidden">
                     </div>
+                    <input type="radio" name="respondent_type" id="respondent_business" value="bus" class="hidden">
                 </div>
             </div>
-            
-            <!-- Step 2: Your Information -->
-            <div class="form-section hidden" id="step2">
-                <h5><i class="bi bi-person"></i> Step 2: Your Information (Applicant)</h5>
-                <div class="row mt-3">
-                    <div class="col-md-6 mb-3">
-                        <label>First Name <span class="required-badge">COMPULSORY</span></label>
-                        <input type="text" name="applicant_name" class="form-control {% if form.applicant_name.errors %}is-invalid{% endif %}" placeholder="Enter your first name">
-                        {% if form.applicant_name.errors %}
-                        <div class="invalid-feedback">{{ form.applicant_name.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label>Last Name <span class="required-badge">COMPULSORY</span></label>
-                        <input type="text" name="applicant_surname" class="form-control {% if form.applicant_surname.errors %}is-invalid{% endif %}" placeholder="Enter your last name">
-                        {% if form.applicant_surname.errors %}
-                        <div class="invalid-feedback">{{ form.applicant_surname.errors.0 }}</div>
-                        {% endif %}
-                    </div>
+        </div>
+        
+        <!-- Step 6: Respondent Information (Individual) -->
+        <div class="form-section hidden" id="step6-individual">
+            <h5><i class="bi bi-person"></i> Step 6: Respondent Information (Individual)</h5>
+            <div class="row mt-3">
+                <div class="col-md-6 mb-3">
+                    <label>Respondent First Name <span class="required-badge">REQUIRED</span></label>
+                    <input type="text" name="respondent_name" class="form-control {% if form.respondent_name.errors %}is-invalid{% endif %}" id="ind_respondent_name" placeholder="Enter respondent's first name" required>
+                    {% if form.respondent_name.errors %}
+                    <div class="invalid-feedback">{{ form.respondent_name.errors.0 }}</div>
+                    {% endif %}
                 </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label>Cell Number <span class="required-badge">COMPULSORY</span></label>
-                        <input type="tel" name="applicant_cell" class="form-control {% if form.applicant_cell.errors %}is-invalid{% endif %}" placeholder="e.g. 0821234567" maxlength="20">
-                        {% if form.applicant_cell.errors %}
-                        <div class="invalid-feedback">{{ form.applicant_cell.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label>Email Address <span class="optional-badge">OPTIONAL</span></label>
-                        <input type="email" name="applicant_email" class="form-control" placeholder="Enter your email address (optional)">
-                    </div>
+                <div class="col-md-6 mb-3">
+                    <label>Respondent Last Name <span class="required-badge">REQUIRED</span></label>
+                    <input type="text" name="respondent_surname" class="form-control" placeholder="Enter respondent's last name" required>
                 </div>
             </div>
-            
-            <!-- Step 3: Respondent Information (Individual) -->
-            <div class="form-section hidden" id="step3-individual">
-                <h5><i class="bi bi-person"></i> Step 3: Respondent Information (Individual)</h5>
-                <div class="row mt-3">
-                    <div class="col-md-6 mb-3">
-                        <label>Respondent First Name <span class="required-badge">COMPULSORY</span></label>
-                        <input type="text" name="respondent_name" class="form-control {% if form.respondent_name.errors %}is-invalid{% endif %}" id="ind_respondent_name" placeholder="Enter respondent's first name">
-                        {% if form.respondent_name.errors %}
-                        <div class="invalid-feedback">{{ form.respondent_name.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label>Respondent Last Name <span class="optional-badge">OPTIONAL</span></label>
-                        <input type="text" name="respondent_surname" class="form-control" placeholder="Enter respondent's last name (optional)">
-                    </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label>Respondent Cell Number <span class="required-badge">REQUIRED</span></label>
+                    <input type="tel" name="respondent_cell" class="form-control" placeholder="Enter respondent's cell number" required>
                 </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label>Respondent Cell Number <span class="optional-badge">OPTIONAL</span></label>
-                        <input type="tel" name="respondent_cell" class="form-control" placeholder="Enter respondent's cell (optional)">
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label>Respondent Email <span class="optional-badge">OPTIONAL</span></label>
-                        <input type="email" name="respondent_email" class="form-control" placeholder="Enter respondent's email (optional)">
-                    </div>
+                <div class="col-md-6 mb-3">
+                    <label>Respondent Email <span class="optional-badge">OPTIONAL</span></label>
+                    <input type="email" name="respondent_email" class="form-control" placeholder="Enter respondent's email (optional)">
                 </div>
             </div>
-            
-            <!-- Step 3: Respondent Information (Business) -->
-            <div class="form-section hidden" id="step3-business">
-                <h5><i class="bi bi-building"></i> Step 3: Respondent Information (Business)</h5>
-                <div class="row mt-3">
-                    <div class="col-md-6 mb-3">
-                        <label>Business Name <span class="required-badge">COMPULSORY</span></label>
-                        <input type="text" name="business_name" class="form-control {% if form.business_name.errors %}is-invalid{% endif %}" id="bus_business_name" placeholder="Enter business name">
-                        {% if form.business_name.errors %}
-                        <div class="invalid-feedback">{{ form.business_name.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label>Owner/Representative First Name <span class="required-badge">COMPULSORY</span></label>
-                        <input type="text" name="owner_name" class="form-control {% if form.owner_name.errors %}is-invalid{% endif %}" id="bus_owner_name" placeholder="Enter owner/representative's first name">
-                        {% if form.owner_name.errors %}
-                        <div class="invalid-feedback">{{ form.owner_name.errors.0 }}</div>
-                        {% endif %}
-                    </div>
+        </div>
+        
+        <!-- Step 6: Respondent Information (Business) -->
+        <div class="form-section hidden" id="step6-business">
+            <h5><i class="bi bi-building"></i> Step 6: Respondent Information (Business)</h5>
+            <div class="row mt-3">
+                <div class="col-md-6 mb-3">
+                    <label>Business Name <span class="required-badge">REQUIRED</span></label>
+                    <input type="text" name="business_name" class="form-control {% if form.business_name.errors %}is-invalid{% endif %}" id="bus_business_name" placeholder="Enter business name" required>
+                    {% if form.business_name.errors %}
+                    <div class="invalid-feedback">{{ form.business_name.errors.0 }}</div>
+                    {% endif %}
                 </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label>Owner/Representative Last Name <span class="optional-badge">OPTIONAL</span></label>
-                        <input type="text" name="owner_surname" class="form-control" placeholder="Enter owner/representative's last name (optional)">
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label>Business Cell Number <span class="optional-badge">OPTIONAL</span></label>
-                        <input type="tel" name="business_cell" class="form-control" placeholder="Enter business cell (optional)">
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label>Business Email <span class="optional-badge">OPTIONAL</span></label>
-                        <input type="email" name="respondent_email" class="form-control" placeholder="Enter business email (optional)">
-                    </div>
+                <div class="col-md-6 mb-3">
+                    <label>Owner/Representative First Name <span class="required-badge">REQUIRED</span></label>
+                    <input type="text" name="owner_name" class="form-control {% if form.owner_name.errors %}is-invalid{% endif %}" id="bus_owner_name" placeholder="Enter owner/representative's first name" required>
+                    {% if form.owner_name.errors %}
+                    <div class="invalid-feedback">{{ form.owner_name.errors.0 }}</div>
+                    {% endif %}
                 </div>
             </div>
-            
-            <!-- Step 4: Dispute Details -->
-            <div class="form-section hidden" id="step4">
-                <h5><i class="bi bi-file-text"></i> Step 4: Dispute Details</h5>
-                <div class="row mt-3">
-                    <div class="col-md-6 mb-3">
-                        <label>Dispute Type <span class="required-badge">COMPULSORY</span></label>
-                        <select name="dispute_type" class="form-select {% if form.dispute_type.errors %}is-invalid{% endif %}">
-                            <option value="">Select dispute type...</option>
-                            <option value="civil">Civil</option>
-                            <option value="commercial">Commercial</option>
-                            <option value="community">Community</option>
-                            <option value="construction">Construction</option>
-                            <option value="contractual">Contractual</option>
-                            <option value="criminal">Criminal</option>
-                            <option value="customary">Customary</option>
-                            <option value="damages">Damages</option>
-                            <option value="debts">Debts</option>
-                            <option value="divorce">Divorce</option>
-                            <option value="family">Family</option>
-                            <option value="labour">Labour</option>
-                            <option value="lease">Lease</option>
-                            <option value="loans">Loans</option>
-                            <option value="property">Property</option>
-                            <option value="religion">Religion</option>
-                            <option value="sales">Sales</option>
-                        </select>
-                        {% if form.dispute_type.errors %}
-                        <div class="invalid-feedback">{{ form.dispute_type.errors.0 }}</div>
-                        {% endif %}
-                    </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label>Owner/Representative Last Name <span class="required-badge">REQUIRED</span></label>
+                    <input type="text" name="owner_surname" class="form-control" placeholder="Enter owner/representative's last name" required>
                 </div>
-                <div class="mb-3">
-                    <label>Describe Your Dispute <span class="optional-badge">OPTIONAL</span></label>
-                    <textarea name="description" class="form-control" rows="4" placeholder="Please describe your dispute in detail..."></textarea>
-                </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label>Preferred Mediation Location <span class="optional-badge">OPTIONAL</span></label>
-                        <input type="text" name="mediation_location" class="form-control" placeholder="e.g. Johannesburg, Cape Town">
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label>Preferred Date/Time <span class="optional-badge">OPTIONAL</span></label>
-                        <input type="datetime-local" name="preferred_date" class="form-control">
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <label>Brief Summary for Mediator <span class="optional-badge">OPTIONAL</span></label>
-                    <textarea name="summary" class="form-control" rows="3" placeholder="Brief summary of the issue..."></textarea>
+                <div class="col-md-6 mb-3">
+                    <label>Business Cell Number <span class="required-badge">REQUIRED</span></label>
+                    <input type="tel" name="business_cell" class="form-control" placeholder="Enter business cell number" required>
                 </div>
             </div>
-            
-            <!-- Step 5: Photo -->
-            <div class="form-section hidden" id="step5">
-                <h5><i class="bi bi-camera"></i> Step 5: Add Photos <span class="optional-badge">OPTIONAL</span></h5>
-                <p class="text-muted">Take or upload photos to support your dispute. You can select multiple at once.</p>
-                <div class="mb-3">
-                    <div class="d-flex gap-2 flex-wrap mb-3" id="photo-upload-area">
-                        <label for="id_photo" class="btn btn-primary">
-                            <i class="bi bi-camera-fill"></i> Add Photos
-                        </label>
-                        <input type="file" id="id_photo" name="photo" accept="image/*" capture="environment" class="d-none" multiple>
-                    </div>
-                    <div id="photo-preview" class="mt-3 d-flex gap-2 flex-wrap" style="max-width: 100%; overflow: hidden;"></div>
-                    <small class="text-muted d-block mt-2">Click "Add Photos" to select from gallery or take new photos. Leave empty to skip.</small>
-                    <div id="photo-count" class="mt-2 text-success fw-bold"></div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label>Business Email <span class="optional-badge">OPTIONAL</span></label>
+                    <input type="email" name="respondent_email" class="form-control" placeholder="Enter business email (optional)">
                 </div>
             </div>
-            
-            <!-- Step 6: Documents -->
-            <div class="form-section hidden" id="step6">
-                <h5><i class="bi bi-paperclip"></i> Step 6: Supporting Documents <span class="optional-badge">OPTIONAL</span></h5>
-                <p class="text-muted">Upload documents to support your dispute (PDF, images, Word files). Leave empty to skip.</p>
-                <div class="mb-3" id="documents-container">
-                    <div class="input-group mb-2">
-                        <input type="file" name="document_set-0-file" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
-                        <button type="button" class="btn btn-success" onclick="addDocumentField()">
-                            <i class="bi bi-plus"></i>
-                        </button>
-                    </div>
-                </div>
-                <input type="hidden" id="document-count" value="1">
-                <small class="text-muted d-block">Click + to add more documents.</small>
-                <!-- Hidden management form for Django formset -->
-                <div style="display: none;">
-                    <input type="hidden" name="document_set-TOTAL_FORMS" id="id_document_set-TOTAL_FORMS" value="1">
-                    <input type="hidden" name="document_set-INITIAL_FORMS" id="id_document_set-INITIAL_FORMS" value="0">
-                    <input type="hidden" name="document_set-MIN_NUM_FORMS" id="id_document_set-MIN_NUM_FORMS" value="0">
-                    <input type="hidden" name="document_set-MAX_NUM_FORMS" id="id_document_set-MAX_NUM_FORMS" value="5">
-                </div>
-            </div>
-            
-            <!-- Navigation Buttons -->
-            <div class="d-flex justify-content-between mb-4" id="nav-buttons">
-                <button type="button" class="btn btn-outline-secondary hidden" id="btn-back" onclick="previousStep()">
-                    <i class="bi bi-arrow-left me-1"></i> Back
-                </button>
-                <button type="button" class="btn btn-primary ms-auto" id="btn-next" onclick="nextStep()">
-                    Continue <i class="bi bi-arrow-right ms-1"></i>
-                </button>
-                <button type="button" class="btn btn-success ms-auto hidden" id="btn-submit" onclick="document.getElementById('disputeForm').submit();">
-                    <i class="bi bi-send me-1"></i> Submit Dispute
-                </button>
-                <!-- Hidden honeypot for spam protection -->
-                <input type="text" name="honeypot" style="display: none;" tabindex="-1" autocomplete="off">
-            </div>
-        </form>
-    </div>
+        </div>
+        
+        <!-- Navigation Buttons -->
+        <div class="d-flex justify-content-between mb-4" id="nav-buttons">
+            <button type="button" class="btn btn-outline-secondary hidden" id="btn-back" onclick="previousStep()">
+                <i class="bi bi-arrow-left me-1"></i> Back
+            </button>
+            <button type="button" class="btn btn-primary ms-auto" id="btn-next" onclick="nextStep()">
+                Continue <i class="bi bi-arrow-right ms-1"></i>
+            </button>
+            <button type="button" class="btn btn-success ms-auto hidden" id="btn-submit" onclick="submitForm()">
+                <i class="bi bi-send me-1"></i> Submit Dispute
+            </button>
+            <input type="text" name="honeypot" style="display: none;" tabindex="-1" autocomplete="off">
+        </div>
+    </form>
 </div>
 
 <script>
 let currentStep = 1;
 const totalSteps = 6;
+let respondentType = 'ind';
 
 function updateStepDisplay() {
     // Hide all steps
     document.getElementById('step1').classList.add('hidden');
     document.getElementById('step2').classList.add('hidden');
-    document.getElementById('step3-individual').classList.add('hidden');
-    document.getElementById('step3-business').classList.add('hidden');
+    document.getElementById('step3').classList.add('hidden');
     document.getElementById('step4').classList.add('hidden');
     document.getElementById('step5').classList.add('hidden');
-    document.getElementById('step6').classList.add('hidden');
+    document.getElementById('step6-individual').classList.add('hidden');
+    document.getElementById('step6-business').classList.add('hidden');
     
     // Reset all step dots
     for (let i = 1; i <= totalSteps; i++) {
-        document.getElementById('step-dot-' + i).classList.remove('active', 'completed');
+        var dot = document.getElementById('step-dot-' + i);
+        if (dot) {
+            dot.classList.remove('active', 'completed');
+        }
     }
     
     // Show current step
     if (currentStep === 1) {
         document.getElementById('step1').classList.remove('hidden');
         document.getElementById('step-dot-1').classList.add('active');
-        document.getElementById('btn-back').classList.add('hidden');
-        document.getElementById('btn-next').classList.remove('hidden');
-        document.getElementById('btn-submit').classList.add('hidden');
     } else if (currentStep === 2) {
         document.getElementById('step2').classList.remove('hidden');
         document.getElementById('step-dot-1').classList.add('completed');
         document.getElementById('step-dot-2').classList.add('active');
     } else if (currentStep === 3) {
-        var isBusiness = document.getElementById('respondent_business').checked;
-        if (isBusiness) {
-            document.getElementById('step3-business').classList.remove('hidden');
-        } else {
-            document.getElementById('step3-individual').classList.remove('hidden');
-        }
+        document.getElementById('step3').classList.remove('hidden');
         document.getElementById('step-dot-1').classList.add('completed');
         document.getElementById('step-dot-2').classList.add('completed');
         document.getElementById('step-dot-3').classList.add('active');
@@ -473,52 +479,46 @@ function updateStepDisplay() {
         document.getElementById('step-dot-4').classList.add('completed');
         document.getElementById('step-dot-5').classList.add('active');
     } else if (currentStep === 6) {
-        document.getElementById('step6').classList.remove('hidden');
+        if (respondentType === 'bus') {
+            document.getElementById('step6-business').classList.remove('hidden');
+        } else {
+            document.getElementById('step6-individual').classList.remove('hidden');
+        }
         document.getElementById('step-dot-1').classList.add('completed');
         document.getElementById('step-dot-2').classList.add('completed');
         document.getElementById('step-dot-3').classList.add('completed');
         document.getElementById('step-dot-4').classList.add('completed');
         document.getElementById('step-dot-5').classList.add('completed');
         document.getElementById('step-dot-6').classList.add('active');
-        document.getElementById('btn-next').classList.add('hidden');
-        document.getElementById('btn-submit').classList.remove('hidden');
     }
     
     // Show/hide back button
-    if (currentStep > 1) {
-        document.getElementById('btn-back').classList.remove('hidden');
-    }
+    document.getElementById('btn-back').classList.toggle('hidden', currentStep === 1);
+    
+    // Show/hide next/submit buttons
+    document.getElementById('btn-next').classList.toggle('hidden', currentStep === totalSteps);
+    document.getElementById('btn-submit').classList.toggle('hidden', currentStep !== totalSteps);
 }
 
 function selectIndividual() {
+    respondentType = 'ind';
     document.getElementById('respondent_individual').checked = true;
-    document.getElementById('card-individual').classList.add('border-primary');
-    document.getElementById('card-individual').style.background = '#e7f1ff';
-    document.getElementById('card-business').classList.remove('border-primary');
-    document.getElementById('card-business').style.background = '';
+    document.getElementById('card-individual').classList.add('selected');
+    document.getElementById('card-business').classList.remove('selected');
 }
 
 function selectBusiness() {
+    respondentType = 'bus';
     document.getElementById('respondent_business').checked = true;
-    document.getElementById('card-business').classList.add('border-primary');
-    document.getElementById('card-business').style.background = '#e7f1ff';
-    document.getElementById('card-individual').classList.remove('border-primary');
-    document.getElementById('card-individual').style.background = '';
+    document.getElementById('card-business').classList.add('selected');
+    document.getElementById('card-individual').classList.remove('selected');
 }
 
 function nextStep() {
-    // Validate current step before proceeding
-    if (currentStep === 1) {
-        var selected = document.querySelector('input[name="respondent_type"]:checked');
-        if (!selected) {
-            alert('Please select a respondent type to continue.');
-            return;
-        }
-    }
-    
     if (currentStep < totalSteps) {
         currentStep++;
         updateStepDisplay();
+        window.scrollTo({top: 0, behavior: 'smooth'});
     }
 }
 
@@ -526,10 +526,15 @@ function previousStep() {
     if (currentStep > 1) {
         currentStep--;
         updateStepDisplay();
+        window.scrollTo({top: 0, behavior: 'smooth'});
     }
 }
 
-// Photo upload via AJAX - multiple photos at once
+function submitForm() {
+    document.getElementById('disputeForm').submit();
+}
+
+// Photo upload
 let photoCount = 0;
 
 document.getElementById('id_photo').addEventListener('change', function(e) {
@@ -562,12 +567,12 @@ function uploadPhotos(files) {
             photoCount = data.total_count;
             updatePhotoCount();
         } else {
-            alert(data.error || 'Error uploading photos. Please try again.');
+            alert(data.error || 'Error uploading photos.');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error uploading photos. Please try again.');
+        alert('Error uploading photos.');
     });
 }
 
@@ -577,8 +582,7 @@ function addPhotoToPreview(photoId, photoUrl) {
     photoDiv.className = 'position-relative';
     photoDiv.style.display = 'inline-block';
     photoDiv.style.margin = '5px';
-    photoDiv.style.maxWidth = '160px';
-    photoDiv.innerHTML = '<img src="' + photoUrl + '" class="img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;"><button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0" onclick="removePhoto(' + photoId + ', this)"><i class="bi bi-x"></i></button>';
+    photoDiv.innerHTML = '<img src="' + photoUrl + '" class="img-thumbnail" style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px;"><button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0" style="border-radius: 50%; width: 24px; height: 24px; padding: 0;" onclick="removePhoto(' + photoId + ', this)"><i class="bi bi-x"></i></button>';
     preview.appendChild(photoDiv);
 }
 
@@ -598,9 +602,7 @@ function removePhoto(photoId, btn) {
             updatePhotoCount();
         }
     })
-    .catch(error => {
-        console.error('Error:', error);
-    });
+    .catch(error => console.error('Error:', error));
 }
 
 function updatePhotoCount() {
@@ -622,9 +624,7 @@ function loadExistingPhotos() {
             });
             updatePhotoCount();
         })
-        .catch(error => {
-            console.error('Error loading photos:', error);
-        });
+        .catch(error => console.error('Error:', error));
 }
 
 function getCookie(name) {
