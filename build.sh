@@ -1,24 +1,14 @@
 #!/usr/bin/env bash
 set -o errexit
 
+pip install -r requirements.txt
+
 python manage.py migrate --run-syncdb
-python manage.py collectstatic --noinput
+python manage.py collectstatic --noinput --clear
 
-# Create superuser if it doesn't exist
-python manage.py shell -c "
-from django.contrib.auth import get_user_model
-User = get_user_model()
-if not User.objects.filter(username='admin').exists():
-    User.objects.create_superuser('admin', 'admin@example.com', 'admin123')
-    print('Superuser created: admin / admin123')
-else:
-    print('Superuser already exists')
-"
+# Create superuser
+echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@example.com', 'admin123') if not User.objects.filter(username='admin').exists() else print('Admin exists')" | python manage.py shell
 
-# Load mediator data if files exist
-if [ -f users.json ]; then
-    python manage.py loaddata users.json || true
-fi
-if [ -f mediators.json ]; then
-    python manage.py loaddata mediators.json || true
-fi
+# Load fixture data
+python manage.py loaddata users.json 2>/dev/null || true
+python manage.py loaddata mediators.json 2>/dev/null || true
