@@ -26,14 +26,13 @@ try:
     call_command('migrate', '--run-syncdb', verbosity=0)
     logger.info("Migrations complete")
     
-    # Create superuser if it doesn't exist
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-    if not User.objects.filter(username='admin').exists():
-        User.objects.create_superuser('admin', 'admin@example.com', 'admin123')
-        logger.info("Superuser created: admin / admin123")
+    # Create superuser using management command
+    logger.info("Creating superuser...")
+    call_command('create_superuser')
     
     # Load fixture data if users are less than 10
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
     if User.objects.count() < 10:
         try:
             from pathlib import Path
