@@ -147,10 +147,28 @@
         border-color: #667eea;
         color: #667eea;
     }
-    .gmail-link img {
-        width: 18px;
-        height: 18px;
-        margin-right: 0.5rem;
+    .upload-section {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    .upload-box {
+        flex: 1;
+        padding: 1.5rem;
+        background: #f8f9ff;
+        border-radius: 12px;
+        border: 2px dashed #e0e0e0;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    .upload-box:hover {
+        border-color: #667eea;
+        background: #f0f2ff;
+    }
+    .upload-box i {
+        font-size: 2rem;
+        color: #667eea;
+        margin-bottom: 0.5rem;
     }
 </style>
 {% endblock %}
@@ -170,7 +188,6 @@
         <div class="step-dot" id="step-dot-3">3</div>
         <div class="step-dot" id="step-dot-4">4</div>
         <div class="step-dot" id="step-dot-5">5</div>
-        <div class="step-dot" id="step-dot-6">6</div>
     </div>
     
     <form method="post" enctype="multipart/form-data" id="disputeForm">
@@ -280,29 +297,38 @@
             </div>
         </div>
         
-        <!-- Step 3: Photos (Optional) -->
+        <!-- Step 3: Photos & Documents (Optional) -->
         <div class="form-section hidden" id="step3">
-            <h5><i class="bi bi-camera"></i> Step 3: Add Photos <span class="optional-badge">OPTIONAL</span></h5>
-            <p class="text-muted">Take or upload photos to support your dispute. You can select multiple.</p>
-            <div class="mb-3">
-                <div class="d-flex gap-2 flex-wrap mb-3" id="photo-upload-area">
-                    <label for="id_photo" class="btn btn-primary">
-                        <i class="bi bi-camera-fill me-1"></i> Add Photos
+            <h5><i class="bi bi-camera"></i> Step 3: Photos & Documents <span class="optional-badge">OPTIONAL</span></h5>
+            <p class="text-muted">Add photos and documents to support your dispute. You can skip this step.</p>
+            
+            <div class="upload-section">
+                <div class="upload-box">
+                    <i class="bi bi-camera-fill d-block"></i>
+                    <strong>Photos</strong>
+                    <p class="small text-muted mb-2">Take or upload photos</p>
+                    <label for="id_photo" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-plus"></i> Add Photos
                     </label>
                     <input type="file" id="id_photo" name="photo" accept="image/*" capture="environment" class="d-none" multiple>
                 </div>
-                <div id="photo-preview" class="mt-3 d-flex gap-2 flex-wrap" style="max-width: 100%; overflow: hidden;"></div>
-                <small class="text-muted d-block mt-2">Click "Add Photos" to select from gallery or take new photos. Leave empty to skip.</small>
-                <div id="photo-count" class="mt-2 text-success fw-bold"></div>
+                <div class="upload-box">
+                    <i class="bi bi-file-earmark-arrow-up d-block"></i>
+                    <strong>Documents</strong>
+                    <p class="small text-muted mb-2">Upload PDF, Word, images</p>
+                    <label for="doc-0" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-plus"></i> Add Files
+                    </label>
+                </div>
             </div>
-        </div>
-        
-        <!-- Step 4: Documents (Optional) -->
-        <div class="form-section hidden" id="step4">
-            <h5><i class="bi bi-paperclip"></i> Step 4: Supporting Documents <span class="optional-badge">OPTIONAL</span></h5>
-            <p class="text-muted">Upload documents to support your dispute (PDF, images, Word files). Leave empty to skip.</p>
+            
+            <!-- Photo Preview -->
+            <div id="photo-preview" class="d-flex gap-2 flex-wrap mb-3" style="max-width: 100%; overflow: hidden;"></div>
+            <div id="photo-count" class="mb-3 text-success fw-bold"></div>
+            
+            <!-- Documents -->
             <div class="mb-3" id="documents-container">
-                <div class="input-group mb-2">
+                <div class="input-group mb-2" id="doc-0">
                     <input type="file" name="document_set-0-file" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
                     <button type="button" class="btn btn-success" onclick="addDocumentField()">
                         <i class="bi bi-plus"></i>
@@ -310,7 +336,7 @@
                 </div>
             </div>
             <input type="hidden" id="document-count" value="1">
-            <small class="text-muted d-block">Click + to add more documents.</small>
+            <small class="text-muted d-block">Click + to add more documents. Leave empty to skip.</small>
             <div style="display: none;">
                 <input type="hidden" name="document_set-TOTAL_FORMS" id="id_document_set-TOTAL_FORMS" value="1">
                 <input type="hidden" name="document_set-INITIAL_FORMS" id="id_document_set-INITIAL_FORMS" value="0">
@@ -319,9 +345,9 @@
             </div>
         </div>
         
-        <!-- Step 5: Respondent Type -->
-        <div class="form-section hidden" id="step5">
-            <h5><i class="bi bi-person-check"></i> Step 5: Who is your Respondent?</h5>
+        <!-- Step 4: Respondent Type -->
+        <div class="form-section hidden" id="step4">
+            <h5><i class="bi bi-person-check"></i> Step 4: Who is your Respondent?</h5>
             <p class="text-muted">Please select the type of respondent.</p>
             
             <div class="row mt-4">
@@ -348,9 +374,9 @@
             </div>
         </div>
         
-        <!-- Step 6: Respondent Information (Individual) -->
-        <div class="form-section hidden" id="step6-individual">
-            <h5><i class="bi bi-person"></i> Step 6: Respondent Information (Individual)</h5>
+        <!-- Step 5: Respondent Information (Individual) -->
+        <div class="form-section hidden" id="step5-individual">
+            <h5><i class="bi bi-person"></i> Step 5: Respondent Information (Individual)</h5>
             <div class="row mt-3">
                 <div class="col-md-6 mb-3">
                     <label>Respondent First Name <span class="required-badge">REQUIRED</span></label>
@@ -376,9 +402,9 @@
             </div>
         </div>
         
-        <!-- Step 6: Respondent Information (Business) -->
-        <div class="form-section hidden" id="step6-business">
-            <h5><i class="bi bi-building"></i> Step 6: Respondent Information (Business)</h5>
+        <!-- Step 5: Respondent Information (Business) -->
+        <div class="form-section hidden" id="step5-business">
+            <h5><i class="bi bi-building"></i> Step 5: Respondent Information (Business)</h5>
             <div class="row mt-3">
                 <div class="col-md-6 mb-3">
                     <label>Business Name <span class="required-badge">REQUIRED</span></label>
@@ -431,7 +457,7 @@
 
 <script>
 let currentStep = 1;
-const totalSteps = 6;
+const totalSteps = 5;
 let respondentType = 'ind';
 
 function updateStepDisplay() {
@@ -440,9 +466,8 @@ function updateStepDisplay() {
     document.getElementById('step2').classList.add('hidden');
     document.getElementById('step3').classList.add('hidden');
     document.getElementById('step4').classList.add('hidden');
-    document.getElementById('step5').classList.add('hidden');
-    document.getElementById('step6-individual').classList.add('hidden');
-    document.getElementById('step6-business').classList.add('hidden');
+    document.getElementById('step5-individual').classList.add('hidden');
+    document.getElementById('step5-business').classList.add('hidden');
     
     // Reset all step dots
     for (let i = 1; i <= totalSteps; i++) {
@@ -472,24 +497,16 @@ function updateStepDisplay() {
         document.getElementById('step-dot-3').classList.add('completed');
         document.getElementById('step-dot-4').classList.add('active');
     } else if (currentStep === 5) {
-        document.getElementById('step5').classList.remove('hidden');
-        document.getElementById('step-dot-1').classList.add('completed');
-        document.getElementById('step-dot-2').classList.add('completed');
-        document.getElementById('step-dot-3').classList.add('completed');
-        document.getElementById('step-dot-4').classList.add('completed');
-        document.getElementById('step-dot-5').classList.add('active');
-    } else if (currentStep === 6) {
         if (respondentType === 'bus') {
-            document.getElementById('step6-business').classList.remove('hidden');
+            document.getElementById('step5-business').classList.remove('hidden');
         } else {
-            document.getElementById('step6-individual').classList.remove('hidden');
+            document.getElementById('step5-individual').classList.remove('hidden');
         }
         document.getElementById('step-dot-1').classList.add('completed');
         document.getElementById('step-dot-2').classList.add('completed');
         document.getElementById('step-dot-3').classList.add('completed');
         document.getElementById('step-dot-4').classList.add('completed');
-        document.getElementById('step-dot-5').classList.add('completed');
-        document.getElementById('step-dot-6').classList.add('active');
+        document.getElementById('step-dot-5').classList.add('active');
     }
     
     // Show/hide back button
@@ -582,7 +599,7 @@ function addPhotoToPreview(photoId, photoUrl) {
     photoDiv.className = 'position-relative';
     photoDiv.style.display = 'inline-block';
     photoDiv.style.margin = '5px';
-    photoDiv.innerHTML = '<img src="' + photoUrl + '" class="img-thumbnail" style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px;"><button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0" style="border-radius: 50%; width: 24px; height: 24px; padding: 0;" onclick="removePhoto(' + photoId + ', this)"><i class="bi bi-x"></i></button>';
+    photoDiv.innerHTML = '<img src="' + photoUrl + '" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover; border-radius: 10px;"><button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0" style="border-radius: 50%; width: 22px; height: 22px; padding: 0; font-size: 0.7rem;" onclick="removePhoto(' + photoId + ', this)"><i class="bi bi-x"></i></button>';
     preview.appendChild(photoDiv);
 }
 
