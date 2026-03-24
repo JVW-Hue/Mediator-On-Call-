@@ -50,6 +50,8 @@ try:
                 call_command('loaddata', str(mediators_file), verbosity=0)
             
             logger.info("Fixture data loaded")
+        except UnicodeDecodeError as e:
+            logger.warning(f"Encoding error loading fixtures (data may not be loaded): {e}")
         except Exception as e:
             logger.error(f"Error loading fixtures: {e}")
             
