@@ -144,13 +144,6 @@
         color: #667eea;
         font-size: 0.9rem;
     }
-    .detail-item a {
-        color: #555;
-        text-decoration: none;
-    }
-    .detail-item a:hover {
-        color: #667eea;
-    }
     .mediator-expertise {
         font-size: 0.85rem;
         color: #666;
@@ -171,8 +164,9 @@
         border-radius: 8px;
         font-weight: 500;
         transition: all 0.3s ease;
-        border: none;
+        text-decoration: none;
         cursor: pointer;
+        border: none;
     }
     .btn-email {
         background: #e8f5e9;
@@ -232,6 +226,7 @@
         font-weight: 500;
         cursor: pointer;
         transition: all 0.3s ease;
+        text-decoration: none;
     }
     .filter-badge:hover, .filter-badge.active {
         background: #667eea;
@@ -322,19 +317,11 @@
                 <div class="mediator-details">
                     <div class="detail-item">
                         <i class="bi bi-envelope"></i>
-                        <a href="mailto:{{ mediator.user.email }}">
-                            {{ mediator.user.email|default:'No email' }}
-                        </a>
+                        <span>{{ mediator.user.email|default:'No email' }}</span>
                     </div>
                     <div class="detail-item">
                         <i class="bi bi-telephone"></i>
-                        <a href="tel:{{ mediator.cell }}">
-                            {{ mediator.cell|default:'No phone' }}
-                        </a>
-                    </div>
-                    <div class="detail-item">
-                        <i class="bi bi-geo-alt"></i>
-                        <span>{{ mediator.cell|slice:":4"|default:"N/A" }}</span>
+                        <span>{{ mediator.cell|default:'No phone' }}</span>
                     </div>
                 </div>
                 
@@ -346,22 +333,28 @@
                 </div>
                 
                 <div class="mediator-actions">
-                    <button type="button" 
-                            class="btn btn-action btn-email"
-                            onclick="window.location.href='mailto:{{ mediator.user.email }}'">
+                    {% if mediator.user.email %}
+                    <a href="mailto:{{ mediator.user.email }}" class="btn-action btn-email">
                         <i class="bi bi-envelope me-1"></i> Email
-                    </button>
-                    <button type="button" 
-                            class="btn btn-action btn-phone"
-                            onclick="window.location.href='tel:{{ mediator.cell }}'">
+                    </a>
+                    {% else %}
+                    <span class="btn-action" style="background: #f5f5f5; color: #999; cursor: not-allowed;">
+                        <i class="bi bi-envelope me-1"></i> No Email
+                    </span>
+                    {% endif %}
+                    {% if mediator.cell %}
+                    <a href="tel:{{ mediator.cell }}" class="btn-action btn-phone">
                         <i class="bi bi-telephone me-1"></i> Call
-                    </button>
+                    </a>
+                    {% else %}
+                    <span class="btn-action" style="background: #f5f5f5; color: #999; cursor: not-allowed;">
+                        <i class="bi bi-telephone me-1"></i> No Phone
+                    </span>
+                    {% endif %}
                     {% if user.is_staff %}
-                    <button type="button" 
-                            class="btn btn-action btn-assign"
-                            onclick="assignMediator({{ mediator.id }}, '{{ mediator.user.get_full_name|default:mediator.user.username|escapejs }}')">
+                    <a href="{% url 'dashboard:assign_mediator_page' 1 %}" class="btn-action btn-assign">
                         <i class="bi bi-person-plus me-1"></i> Assign
-                    </button>
+                    </a>
                     {% endif %}
                 </div>
             </div>
@@ -397,12 +390,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
-    window.assignMediator = function(mediatorId, mediatorName) {
-        if (confirm('Assign mediator "' + mediatorName + '" to a dispute?\n\nThis will open the mediator assignment interface.')) {
-            alert('Mediator "' + mediatorName + '" selected!\n\nPlease go to a dispute detail page and use the "Assign Mediator" button there to complete the assignment.');
-        }
-    };
 });
 </script>
 {% endblock %}
