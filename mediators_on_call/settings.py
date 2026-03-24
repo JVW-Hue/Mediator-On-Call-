@@ -35,6 +35,9 @@ LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/login/"
 
+# Make staff_member_required use our login page
+ADMIN_LOGIN_URL = LOGIN_URL
+
 # Custom error handlers
 handler403 = 'mediators_on_call.views.custom_permission_denied'
 handler404 = 'mediators_on_call.views.custom_page_not_found'

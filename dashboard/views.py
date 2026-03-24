@@ -27,6 +27,17 @@ from disputes.tasks import notify_recipient, send_message_2_dispute_rejected, se
 from disputes.forms import MediationOutcomeForm
 
 
+def staff_required(view_func):
+    """Custom staff decorator that uses our login page."""
+    @wraps(view_func)
+    @login_required(login_url='/login/')
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_staff:
+            return redirect('/no-access/')
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+
 def _send_notification(task_func, *args, **kwargs):
     """Try async (Celery), fall back to sync if Celery unavailable."""
     try:
@@ -181,7 +192,7 @@ def signup(request):
     return render(request, 'registration/signup.html', {'form': form})
 
 
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(staff_required, name="dispatch")
 class AdminDashboardView(TemplateView):
     template_name = "dashboard/admin_home.html"
 
@@ -220,7 +231,7 @@ class AdminDashboardView(TemplateView):
         return context
 
 
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(staff_required, name="dispatch")
 class DisputeListView(ListView):
     model = Dispute
     template_name = "dashboard/dispute_list.html"
@@ -259,7 +270,7 @@ class DisputeListView(ListView):
         return context
 
 
-@staff_member_required
+@staff_required
 def delete_dispute(request, pk):
     dispute = get_object_or_404(Dispute, pk=pk)
     dispute.delete()
@@ -267,7 +278,7 @@ def delete_dispute(request, pk):
     return redirect("dashboard:dispute_list")
 
 
-@method_decorator(staff_member_required, name="dispatch")
+@method_decorator(staff_required, name="dispatch")
 class DisputeDetailView(DetailView):
     model = Dispute
     template_name = "dashboard/dispute_detail.html"
@@ -279,7 +290,7 @@ class DisputeDetailView(DetailView):
         return context
 
 
-@staff_member_required
+@staff_required
 @require_POST
 def assign_mediator_to_dispute(request, pk):
     """Assign mediator directly from dispute detail page."""
@@ -364,7 +375,7 @@ def assign_mediator_to_dispute(request, pk):
     return redirect("dashboard:dispute_list")
 
 
-@staff_member_required
+@staff_required
 @require_POST
 def screen_dispute(request):
     """Process screening decision from dispute list."""
@@ -497,7 +508,7 @@ def screen_dispute(request):
     return redirect("dashboard:dispute_list")
 
 
-@staff_member_required
+@staff_required
 def screen_dispute_page(request, pk):
     """Show full dispute profile for screening."""
     dispute = get_object_or_404(Dispute, pk=pk, status="submitted")
@@ -624,7 +635,7 @@ def screen_dispute_page(request, pk):
     return render(request, "dashboard/screen_dispute.html", {"dispute": dispute})
 
 
-@staff_member_required
+@staff_required
 @require_POST
 def assign_mediator_post(request):
     """Handle assign mediator from modal on dispute list."""
@@ -687,7 +698,7 @@ def assign_mediator_post(request):
     return redirect("dashboard:dispute_list")
 
 
-@staff_member_required
+@staff_required
 def referred_cases_view(request):
     referred = ReferredCase.objects.select_related('dispute', 'referred_by').order_by('-referred_at')
     stats = {}
@@ -701,7 +712,7 @@ def referred_cases_view(request):
     })
 
 
-@staff_member_required
+@staff_required
 def mediatable_cases_view(request):
     mediatable = MediatableCase.objects.select_related('dispute', 'accepted_by').order_by('-accepted_at')
     forwarded_count = sum(1 for c in mediatable if c.dispute.status == 'forwarded')
@@ -924,7 +935,7 @@ def mediators_list(request):
     return render(request, 'dashboard/mediators_list.html', context)
 
 
-@staff_member_required
+@staff_required
 def download_case_file(request, pk):
     """Download all case documents as a ZIP file for arbitration."""
     dispute = get_object_or_404(Dispute, pk=pk)
@@ -1008,7 +1019,7 @@ def download_case_file(request, pk):
     return response
 
 
-@staff_member_required
+@staff_required
 def assign_mediator_page(request, pk):
     """Show page for assigning mediator to a dispute."""
     dispute = get_object_or_404(Dispute, pk=pk, status__in=["responded", "ready_for_assignment"])
