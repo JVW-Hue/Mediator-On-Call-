@@ -2,239 +2,345 @@
 
 {% block title %}Disputes – Pro Bono Community Mediation{% endblock %}
 
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 1.5rem 2rem;
+        margin-bottom: 1.5rem;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .page-header h1 {
+        font-weight: 700;
+        margin-bottom: 0;
+        font-size: 1.5rem;
+    }
+    .filter-tabs {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
+    .filter-tab {
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        background: white;
+        color: #555;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .filter-tab:hover {
+        background: #f0f2ff;
+        color: #667eea;
+        transform: translateY(-2px);
+    }
+    .filter-tab.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    .disputes-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+    .dispute-row {
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f0f2ff;
+        transition: all 0.3s ease;
+    }
+    .dispute-row:hover {
+        background: #f8f9ff;
+    }
+    .dispute-row:last-child {
+        border-bottom: none;
+    }
+    .dispute-id {
+        font-weight: 700;
+        color: #667eea;
+        min-width: 60px;
+    }
+    .dispute-info {
+        flex: 1;
+        margin-left: 1rem;
+    }
+    .dispute-applicant {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.2rem;
+    }
+    .dispute-respondent {
+        font-size: 0.85rem;
+        color: #666;
+    }
+    .dispute-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .status-badge {
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .status-submitted { background: #fff3cd; color: #856404; }
+    .status-screening { background: #e2e3f1; color: #383d6e; }
+    .status-rejected { background: #f8d7da; color: #721c24; }
+    .status-mediator_assigned { background: #d1ecf1; color: #0c5460; }
+    .status-applicant_confirmed { background: #d4edda; color: #155724; }
+    .status-forwarded { background: #cce5ff; color: #004085; }
+    .status-responded { background: #d4edda; color: #155724; }
+    .status-respondent_agreed { background: #d4edda; color: #155724; }
+    .status-ready_for_assignment { background: #e2d9f3; color: #5a3d8a; }
+    .status-mediation_scheduled { background: #cce5ff; color: #004085; }
+    .status-mediated { background: #d4edda; color: #155724; }
+    .status-closed { background: #e9ecef; color: #495057; }
+    .status-arbitration { background: #f8d7da; color: #721c24; }
+    .status-respondent_no_response { background: #fff3cd; color: #856404; }
+    .type-badge {
+        padding: 0.25rem 0.6rem;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 500;
+        background: #f0f2ff;
+        color: #667eea;
+        margin-right: 0.5rem;
+    }
+    .dispute-date {
+        font-size: 0.8rem;
+        color: #888;
+        min-width: 80px;
+        text-align: right;
+    }
+    .dispute-actions {
+        display: flex;
+        gap: 0.3rem;
+        margin-left: 1rem;
+    }
+    .btn-action {
+        padding: 0.4rem 0.7rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-screen {
+        background: #e3f2fd;
+        color: #1565c0;
+    }
+    .btn-screen:hover {
+        background: #1565c0;
+        color: white;
+    }
+    .btn-assign {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+    .btn-assign:hover {
+        background: #2e7d32;
+        color: white;
+    }
+    .btn-view {
+        background: #f0f2ff;
+        color: #667eea;
+    }
+    .btn-view:hover {
+        background: #667eea;
+        color: white;
+    }
+    .btn-delete {
+        background: #ffebee;
+        color: #c62828;
+    }
+    .btn-delete:hover {
+        background: #c62828;
+        color: white;
+    }
+    .duplicate-badge {
+        background: #fff3cd;
+        color: #856404;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #888;
+    }
+    .empty-state i {
+        font-size: 4rem;
+        opacity: 0.3;
+        margin-bottom: 1rem;
+    }
+    .modal-content {
+        border-radius: 16px;
+        border: none;
+    }
+    .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 16px 16px 0 0;
+        border-bottom: none;
+    }
+    .modal-header .btn-close {
+        filter: brightness(0) invert(1);
+    }
+    @media (max-width: 768px) {
+        .dispute-row {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .dispute-meta {
+            margin-top: 0.5rem;
+        }
+        .dispute-actions {
+            margin-left: 0;
+            margin-top: 0.5rem;
+        }
+        .dispute-date {
+            text-align: left;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block dashboard_content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Disputes</h1>
-    <div>
-        {% if current_status %}
-        <a href="{% url 'dashboard:dispute_list' %}" class="btn btn-outline-secondary">Clear Filter</a>
-        {% endif %}
-    </div>
+<!-- Page Header -->
+<div class="page-header">
+    <h1><i class="bi bi-files me-2"></i> Disputes</h1>
+    <span class="badge bg-white text-dark">{{ disputes|length }} total</span>
 </div>
 
 {% if duplicates_exist %}
-<div class="alert alert-warning alert-dismissible fade show" role="alert">
-    <strong>Warning:</strong> Potential duplicate disputes detected (same applicant name and cell). Please review and delete duplicates.
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<div class="alert alert-warning alert-dismissible fade show" style="border-radius: 12px;">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <strong>Warning:</strong> Potential duplicate disputes detected. Please review and delete duplicates.
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 </div>
 {% endif %}
 
-<table id="disputesTable" class="table table-striped table-bordered">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Applicant</th>
-            <th>Respondent</th>
-            <th>Type</th>
-            <th>Status</th>
-            <th>Created</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
+<!-- Filter Tabs -->
+<div class="filter-tabs">
+    <a href="{% url 'dashboard:dispute_list' %}" class="filter-tab {% if not current_status %}active{% endif %}">
+        <i class="bi bi-grid me-1"></i> All
+    </a>
+    <a href="?status=submitted" class="filter-tab {% if current_status == 'submitted' %}active{% endif %}">
+        <i class="bi bi-hourglass-split me-1"></i> Pending
+    </a>
+    <a href="?status=forwarded" class="filter-tab {% if current_status == 'forwarded' %}active{% endif %}">
+        <i class="bi bi-send me-1"></i> Forwarded
+    </a>
+    <a href="?status=responded" class="filter-tab {% if current_status == 'responded' %}active{% endif %}">
+        <i class="bi bi-reply me-1"></i> Responded
+    </a>
+    <a href="?status=mediation_scheduled" class="filter-tab {% if current_status == 'mediation_scheduled' %}active{% endif %}">
+        <i class="bi bi-calendar-check me-1"></i> Scheduled
+    </a>
+    <a href="?status=rejected" class="filter-tab {% if current_status == 'rejected' %}active{% endif %}">
+        <i class="bi bi-x-circle me-1"></i> Rejected
+    </a>
+</div>
+
+<!-- Disputes List -->
+<div class="disputes-card">
+    {% if disputes %}
         {% for dispute in disputes %}
-        <tr class="{% if dispute.is_duplicate %}table-warning{% endif %}">
-            <td>{{ dispute.id }}</td>
-            <td>
-                {{ dispute.applicant_name }} {{ dispute.applicant_surname }}
-                {% if dispute.is_duplicate %}
-                <span class="badge bg-warning text-dark">Duplicate?</span>
-                {% endif %}
-            </td>
-            <td>
-                {% if dispute.respondent_type == 'ind' %}
-                    {{ dispute.respondent_name }} {{ dispute.respondent_surname }}
-                {% else %}
-                    {{ dispute.business_name }}
-                {% endif %}
-            </td>
-            <td>{{ dispute.get_dispute_type_display }}</td>
-            <td>
-                <span class="badge bg-{% if dispute.status == 'submitted' %}warning{% elif dispute.status == 'forwarded' %}info{% elif dispute.status == 'responded' %}primary{% elif dispute.status == 'mediation_scheduled' %}success{% elif dispute.status == 'closed' %}secondary{% else %}dark{% endif %}">
+        <div class="dispute-row">
+            <div class="dispute-id">#{{ dispute.id }}</div>
+            <div class="dispute-info">
+                <div class="dispute-applicant">
+                    {{ dispute.applicant_name }} {{ dispute.applicant_surname }}
+                    {% if dispute.is_duplicate %}
+                    <span class="duplicate-badge">DUPLICATE?</span>
+                    {% endif %}
+                </div>
+                <div class="dispute-respondent">
+                    <i class="bi bi-person me-1"></i>
+                    {% if dispute.respondent_type == 'ind' %}
+                        {{ dispute.respondent_name }} {{ dispute.respondent_surname }}
+                    {% else %}
+                        {{ dispute.business_name }}
+                    {% endif %}
+                    <span class="type-badge">{{ dispute.get_dispute_type_display }}</span>
+                </div>
+            </div>
+            <div class="dispute-meta">
+                <span class="status-badge status-{{ dispute.status }}">
                     {{ dispute.get_status_display }}
                 </span>
-            </td>
-            <td>{{ dispute.created_at|date:"Y-m-d" }}</td>
-            <td>
+            </div>
+            <div class="dispute-date">{{ dispute.created_at|date:"M d, Y" }}</div>
+            <div class="dispute-actions">
                 {% if dispute.status == 'submitted' %}
-                    <a href="{% url 'dashboard:screen_dispute_page' dispute.pk %}" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-eye"></i> Screen
-                    </a>
-                {% elif dispute.status in 'responded ready_for_assignment' %}
-                    <a href="{% url 'dashboard:assign_mediator_page' dispute.pk %}" class="btn btn-sm btn-outline-success">
-                        <i class="bi bi-person-check"></i> Assign Mediator
-                    </a>
+                <a href="{% url 'dashboard:screen_dispute_page' dispute.pk %}" class="btn-action btn-screen">
+                    <i class="bi bi-eye"></i> Screen
+                </a>
                 {% endif %}
-                <a href="{% url 'dashboard:dispute_detail' dispute.pk %}" class="btn btn-sm btn-outline-secondary">View</a>
-                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ dispute.id }}">Delete</button>
-                
-                <!-- Delete Modal -->
-                <div class="modal fade" id="deleteModal{{ dispute.id }}" tabindex="-1">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Confirm Delete</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                Are you sure you want to delete this dispute? This action cannot be undone.
-                            </div>
-                            <div class="modal-footer">
-                                <form method="post" action="{% url 'dashboard:delete_dispute' dispute.id %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger">Delete</button>
-                                </form>
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            </div>
+                {% if dispute.status in 'responded ready_for_assignment' %}
+                <a href="{% url 'dashboard:assign_mediator_page' dispute.pk %}" class="btn-action btn-assign">
+                    <i class="bi bi-person-plus"></i> Assign
+                </a>
+                {% endif %}
+                <a href="{% url 'dashboard:dispute_detail' dispute.pk %}" class="btn-action btn-view">
+                    <i class="bi bi-eye"></i> View
+                </a>
+                <button type="button" class="btn-action btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal{{ dispute.id }}">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+            
+            <!-- Delete Modal -->
+            <div class="modal fade" id="deleteModal{{ dispute.id }}" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Confirm Delete</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Are you sure you want to delete Dispute <strong>#{{ dispute.id }}</strong>?</p>
+                            <p class="text-muted small">This action cannot be undone.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <form method="post" action="{% url 'dashboard:delete_dispute' dispute.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="bi bi-trash me-1"></i> Delete
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
-            </td>
-        </tr>
+            </div>
+        </div>
         {% endfor %}
-    </tbody>
-</table>
-
-<!-- Screening Modal -->
-<div class="modal fade" id="screeningModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Screen Dispute #<span id="screenDisputeId"></span></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form method="post" action="{% url 'dashboard:screen_dispute' %}" id="screeningForm">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <input type="hidden" name="dispute_id" id="screenDisputeIdInput">
-                    <div class="mb-3">
-                        <label class="form-label">Decision</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="decision" id="acceptRadio" value="accept" checked>
-                            <label class="form-check-label" for="acceptRadio">Accept (mediatable)</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="decision" id="rejectRadio" value="reject">
-                            <label class="form-check-label" for="rejectRadio">Reject / Refer to Other</label>
-                        </div>
-                    </div>
-                    <div class="mb-3" id="referralSection" style="display:none;">
-                        <label for="referTo" class="form-label">Refer to (department/person)</label>
-                        <select class="form-select" name="refer_to" id="referTo">
-                            <option value="">-- Select --</option>
-                            <option value="legal">Legal Department</option>
-                            <option value="court">Court</option>
-                            <option value="police">Police</option>
-                            <option value="labour">Labour Relations</option>
-                            <option value="family">Family Court</option>
-                            <option value="other">Other</option>
-                        </select>
-                        <div class="mt-2">
-                            <label for="referNotes" class="form-label">Referral Notes</label>
-                            <textarea class="form-control" name="refer_notes" id="referNotes" rows="2" placeholder="Additional details..."></textarea>
-                        </div>
-                    </div>
-                    <div class="mb-3" id="foresolveOption" style="display:none;">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="offer_foresolve" id="offerForesolve">
-                            <label class="form-check-label" for="offerForesolve">
-                                Offer Foresolve diversion (optional)
-                            </label>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="screeningNotes" class="form-label">Internal Notes</label>
-                        <textarea class="form-control" name="notes" id="screeningNotes" rows="2"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Submit</button>
-                </div>
-            </form>
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <h4>No disputes found</h4>
+            <p>No disputes match the current filter.</p>
+            <a href="{% url 'dashboard:dispute_list' %}" class="btn btn-primary">
+                <i class="bi bi-arrow-left me-1"></i> View All
+            </a>
         </div>
-    </div>
+    {% endif %}
 </div>
-
-<!-- Assign Mediator Modal -->
-<div class="modal fade" id="assignModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Assign Mediator for Dispute #<span id="assignDisputeId"></span></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form method="post" action="{% url 'dashboard:assign_mediator' %}" id="assignForm">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <input type="hidden" name="dispute_id" id="assignDisputeIdInput">
-                    <div class="mb-3">
-                        <label for="mediatorSelect" class="form-label">Mediator</label>
-                        <select class="form-select" name="mediator_id" id="mediatorSelect" required>
-                            <option value="">Choose...</option>
-                            {% for mediator in mediators %}
-                                <option value="{{ mediator.id }}">{{ mediator.user.get_full_name|default:mediator.user.username }} ({{ mediator.cell }})</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="sessionDate" class="form-label">Date &amp; Time</label>
-                        <input type="datetime-local" class="form-control" name="scheduled_at" id="sessionDate" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create &amp; Notify</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof $ !== 'undefined') {
-        $('#disputesTable').DataTable();
-    }
-
-    var screeningModal = document.getElementById('screeningModal');
-    if (screeningModal) {
-        screeningModal.addEventListener('show.bs.modal', function(event) {
-            var button = event.relatedTarget;
-            var disputeId = button.getAttribute('data-dispute-id');
-            document.getElementById('screenDisputeId').textContent = disputeId;
-            document.getElementById('screenDisputeIdInput').value = disputeId;
-            document.getElementById('screeningForm').reset();
-            document.getElementById('screenDisputeIdInput').value = disputeId;
-            document.getElementById('acceptRadio').checked = true;
-            document.getElementById('foresolveOption').style.display = 'none';
-            document.getElementById('referralSection').style.display = 'none';
-        });
-    }
-
-    document.querySelectorAll('input[name="decision"]').forEach(function(radio) {
-        radio.addEventListener('change', function(e) {
-            if (e.target.value === 'reject') {
-                document.getElementById('foresolveOption').style.display = 'block';
-                document.getElementById('referralSection').style.display = 'block';
-            } else {
-                document.getElementById('foresolveOption').style.display = 'none';
-                document.getElementById('referralSection').style.display = 'none';
-            }
-        });
-    });
-
-    var assignModal = document.getElementById('assignModal');
-    if (assignModal) {
-        assignModal.addEventListener('show.bs.modal', function(event) {
-            var button = event.relatedTarget;
-            var disputeId = button.getAttribute('data-dispute-id');
-            document.getElementById('assignDisputeId').textContent = disputeId;
-            document.getElementById('assignDisputeIdInput').value = disputeId;
-            document.getElementById('assignForm').reset();
-            document.getElementById('assignDisputeIdInput').value = disputeId;
-        });
-    }
-});
-</script>
 {% endblock %}

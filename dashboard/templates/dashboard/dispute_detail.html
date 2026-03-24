@@ -2,243 +2,480 @@
 
 {% block title %}Dispute #{{ dispute.id }} – Pro Bono Community Mediation{% endblock %}
 
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 1.5rem 2rem;
+        margin-bottom: 1.5rem;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .page-header h1 {
+        font-weight: 700;
+        margin-bottom: 0;
+        font-size: 1.5rem;
+    }
+    .status-badge {
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-left: 1rem;
+    }
+    .status-submitted { background: rgba(255,255,255,0.2); }
+    .status-forwarded { background: rgba(255,255,255,0.2); }
+    .status-responded { background: rgba(255,255,255,0.2); }
+    .status-mediation_scheduled { background: rgba(255,255,255,0.2); }
+    .status-mediated { background: rgba(255,255,255,0.2); }
+    .status-rejected { background: rgba(255,255,255,0.2); }
+    .status-closed { background: rgba(255,255,255,0.2); }
+    .header-actions .btn {
+        margin-left: 0.5rem;
+    }
+    .info-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        overflow: hidden;
+        height: 100%;
+    }
+    .info-card-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 2px solid #f0f2ff;
+        font-weight: 600;
+        color: #333;
+        display: flex;
+        align-items: center;
+    }
+    .info-card-header i {
+        color: #667eea;
+        margin-right: 0.5rem;
+    }
+    .info-card-body {
+        padding: 1.5rem;
+    }
+    .info-item {
+        margin-bottom: 1rem;
+    }
+    .info-item:last-child {
+        margin-bottom: 0;
+    }
+    .info-label {
+        font-size: 0.8rem;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.2rem;
+    }
+    .info-value {
+        font-weight: 500;
+        color: #333;
+    }
+    .description-box {
+        background: #f8f9ff;
+        border-radius: 12px;
+        padding: 1rem;
+        border-left: 4px solid #667eea;
+    }
+    .audit-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+    .audit-entry {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f0f2ff;
+        display: flex;
+        align-items: flex-start;
+    }
+    .audit-entry:last-child {
+        border-bottom: none;
+    }
+    .audit-icon {
+        width: 36px;
+        height: 36px;
+        background: #f0f2ff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        flex-shrink: 0;
+    }
+    .audit-icon i {
+        color: #667eea;
+    }
+    .audit-content {
+        flex: 1;
+    }
+    .audit-action {
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 0.2rem;
+    }
+    .audit-meta {
+        font-size: 0.8rem;
+        color: #888;
+    }
+    .doc-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background: #f8f9ff;
+        border-radius: 10px;
+        margin-bottom: 0.5rem;
+        text-decoration: none;
+        color: #333;
+        transition: all 0.3s ease;
+    }
+    .doc-item:hover {
+        background: #f0f2ff;
+        color: #667eea;
+    }
+    .doc-item i {
+        margin-right: 0.75rem;
+        color: #667eea;
+    }
+    .modal-content {
+        border-radius: 16px;
+        border: none;
+    }
+    .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 16px 16px 0 0;
+        border-bottom: none;
+    }
+    .modal-header .btn-close {
+        filter: brightness(0) invert(1);
+    }
+</style>
+{% endblock %}
+
 {% block dashboard_content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">
-        <i class="bi bi-file-earmark-text"></i> Dispute #{{ dispute.id }}
-        <span class="badge bg-{% if dispute.status == 'submitted' %}warning{% elif dispute.status == 'mediation_scheduled' %}success{% elif dispute.status == 'mediated' %}primary{% else %}info{% endif %} ms-2">
-            {{ dispute.get_status_display }}
-        </span>
-    </h1>
-    <div>
+<!-- Page Header -->
+<div class="page-header">
+    <div class="d-flex align-items-center">
+        <h1><i class="bi bi-file-earmark-text me-2"></i> Dispute #{{ dispute.id }}</h1>
+        <span class="status-badge status-{{ dispute.status }}">{{ dispute.get_status_display }}</span>
+    </div>
+    <div class="header-actions">
         {% if not dispute.mediator %}
-        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#assignMediatorModal">
-            <i class="bi bi-person-plus"></i> Assign Mediator
+        <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#assignMediatorModal">
+            <i class="bi bi-person-plus me-1"></i> Assign Mediator
         </button>
         {% endif %}
-        <a href="{% url 'dashboard:dispute_list' %}" class="btn btn-outline-secondary ms-2">Back to List</a>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-md-6">
-        <div class="card mb-3">
-            <div class="card-header">Applicant</div>
-            <div class="card-body">
-                <p class="mb-1"><strong>Name:</strong> {{ dispute.applicant_name }} {{ dispute.applicant_surname }}</p>
-                <p class="mb-1"><strong>Cell:</strong> {{ dispute.applicant_cell }}</p>
-                <p class="mb-0"><strong>Email:</strong> {{ dispute.applicant_email|default:"—" }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card mb-3">
-            <div class="card-header">Respondent</div>
-            <div class="card-body">
-                {% if dispute.respondent_type == 'ind' %}
-                    <p class="mb-1"><strong>Name:</strong> {{ dispute.respondent_name }} {{ dispute.respondent_surname }}</p>
-                    <p class="mb-1"><strong>Cell:</strong> {{ dispute.respondent_cell|default:"—" }}</p>
-                {% else %}
-                    <p class="mb-1"><strong>Business:</strong> {{ dispute.business_name }}</p>
-                    <p class="mb-1"><strong>Owner:</strong> {{ dispute.owner_name }} {{ dispute.owner_surname }}</p>
-                    <p class="mb-1"><strong>Cell:</strong> {{ dispute.business_cell|default:"—" }}</p>
-                {% endif %}
-                <p class="mb-0"><strong>Email:</strong> {{ dispute.respondent_email|default:"—" }}</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="card mb-3">
-    <div class="card-header">Dispute Details</div>
-    <div class="card-body">
-        <p class="mb-1"><strong>Type:</strong> {{ dispute.get_dispute_type_display }}</p>
-        <p class="mb-1"><strong>Description:</strong></p>
-        <div class="border p-3 bg-light mb-2">{{ dispute.description|linebreaks }}</div>
-        <p class="mb-1"><strong>Status:</strong> <span class="badge bg-info">{{ dispute.get_status_display }}</span></p>
-        <p class="mb-1"><strong>Created:</strong> {{ dispute.created_at }}</p>
-        {% if dispute.screened_at %}
-            <p class="mb-1"><strong>Screened by:</strong> {{ dispute.screened_by.get_full_name|default:dispute.screened_by.username }} on {{ dispute.screened_at }}</p>
-            <p class="mb-0"><strong>Screening notes:</strong> {{ dispute.screening_notes|default:"—" }}</p>
-        {% endif %}
-    </div>
-</div>
-
-{% with docs=dispute.documents.all %}
-{% if docs %}
-<div class="card mb-3">
-    <div class="card-header">Applicant Documents</div>
-    <div class="card-body">
-        <ul class="mb-0">
-            {% for doc in docs %}
-                <li><a href="{{ doc.file.url }}" target="_blank" rel="noopener">{{ doc.file.name }}</a></li>
-            {% endfor %}
-        </ul>
-    </div>
-</div>
-{% endif %}
-{% endwith %}
-
-{% if dispute.response %}
-<div class="card mb-3">
-    <div class="card-header">Respondent Response</div>
-    <div class="card-body">
-        <p class="mb-1"><strong>Consent:</strong> {{ dispute.response.consent_to_mediate|yesno:"Yes,No" }}</p>
-        <p class="mb-1"><strong>Agreed to rules:</strong> {{ dispute.response.agreed_to_rules|yesno:"Yes,No" }}</p>
-        <p class="mb-1"><strong>Defence:</strong></p>
-        <div class="border p-3 bg-light mb-2">{{ dispute.response.defence_explanation|linebreaks }}</div>
-        {% with resp_docs=dispute.response.documents.all %}
-        {% if resp_docs %}
-        <p class="mb-1"><strong>Supporting docs:</strong></p>
-        <ul class="mb-0">
-            {% for doc in resp_docs %}
-                <li><a href="{{ doc.file.url }}" target="_blank" rel="noopener">{{ doc.file.name }}</a></li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-        {% endwith %}
-    </div>
-</div>
-{% endif %}
-
-{% if dispute.mediation %}
-<div class="card mb-3">
-    <div class="card-header">Mediation Session</div>
-    <div class="card-body">
-        {% if dispute.mediation.mediator %}
-        <p class="mb-1"><strong>Mediator:</strong> {{ dispute.mediation.mediator.user.get_full_name|default:dispute.mediation.mediator.user.username }}</p>
-        {% endif %}
-        <p class="mb-1"><strong>Scheduled:</strong> {{ dispute.mediation.scheduled_at }}</p>
-        <p class="mb-1"><strong>Zoom link:</strong> <a href="{{ dispute.mediation.zoom_link }}" target="_blank" rel="noopener">{{ dispute.mediation.zoom_link }}</a></p>
-        {% if dispute.mediation.outcome %}
-        <p class="mb-1"><strong>Outcome:</strong></p>
-        <div class="border p-3 bg-light mb-2">{{ dispute.mediation.outcome|linebreaks }}</div>
-        {% endif %}
-        {% if dispute.mediation.outcome_file %}
-        <p class="mb-0"><a href="{{ dispute.mediation.outcome_file.url }}" target="_blank" rel="noopener">Outcome Document</a></p>
-        {% endif %}
-    </div>
-</div>
-{% endif %}
-
-{% if dispute.mediation and dispute.status == 'arbitration' and dispute.mediation.arbitration_agreement %}
-<div class="card mb-3">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <span>Arbitration Documents</span>
-        <a href="{% url 'dashboard:download_case_file' dispute.id %}" class="btn btn-sm btn-primary">
-            Download Case File (ZIP)
+        <a href="{% url 'dashboard:dispute_list' %}" class="btn btn-outline-light">
+            <i class="bi bi-arrow-left me-1"></i> Back
         </a>
     </div>
-    <div class="card-body">
-        <p class="mb-1"><a href="{{ dispute.mediation.arbitration_agreement.url }}" target="_blank" rel="noopener">Arbitration Agreement</a></p>
-        {% if dispute.mediation.pre_arbitration_minute %}
-        <p class="mb-0"><a href="{{ dispute.mediation.pre_arbitration_minute.url }}" target="_blank" rel="noopener">Pre‑Arbitration Minute</a></p>
+</div>
+
+<div class="row g-3 mb-4">
+    <!-- Applicant Info -->
+    <div class="col-md-6">
+        <div class="info-card">
+            <div class="info-card-header">
+                <i class="bi bi-person"></i> Applicant
+            </div>
+            <div class="info-card-body">
+                <div class="info-item">
+                    <div class="info-label">Full Name</div>
+                    <div class="info-value">{{ dispute.applicant_name }} {{ dispute.applicant_surname }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Cell Phone</div>
+                    <div class="info-value">
+                        <a href="tel:{{ dispute.applicant_cell }}" class="text-decoration-none">
+                            <i class="bi bi-telephone me-1"></i> {{ dispute.applicant_cell }}
+                        </a>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">
+                        {% if dispute.applicant_email %}
+                        <a href="mailto:{{ dispute.applicant_email }}" class="text-decoration-none">
+                            <i class="bi bi-envelope me-1"></i> {{ dispute.applicant_email }}
+                        </a>
+                        {% else %}—{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Respondent Info -->
+    <div class="col-md-6">
+        <div class="info-card">
+            <div class="info-card-header">
+                <i class="bi bi-person-badge"></i> Respondent
+            </div>
+            <div class="info-card-body">
+                {% if dispute.respondent_type == 'ind' %}
+                <div class="info-item">
+                    <div class="info-label">Full Name</div>
+                    <div class="info-value">{{ dispute.respondent_name }} {{ dispute.respondent_surname }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Cell Phone</div>
+                    <div class="info-value">
+                        {% if dispute.respondent_cell %}
+                        <a href="tel:{{ dispute.respondent_cell }}" class="text-decoration-none">
+                            <i class="bi bi-telephone me-1"></i> {{ dispute.respondent_cell }}
+                        </a>
+                        {% else %}—{% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="info-item">
+                    <div class="info-label">Business Name</div>
+                    <div class="info-value">{{ dispute.business_name }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Owner</div>
+                    <div class="info-value">{{ dispute.owner_name }} {{ dispute.owner_surname }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Business Cell</div>
+                    <div class="info-value">
+                        {% if dispute.business_cell %}
+                        <a href="tel:{{ dispute.business_cell }}" class="text-decoration-none">
+                            <i class="bi bi-telephone me-1"></i> {{ dispute.business_cell }}
+                        </a>
+                        {% else %}—{% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">
+                        {% if dispute.respondent_email %}
+                        <a href="mailto:{{ dispute.respondent_email }}" class="text-decoration-none">
+                            <i class="bi bi-envelope me-1"></i> {{ dispute.respondent_email }}
+                        </a>
+                        {% else %}—{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dispute Details -->
+<div class="info-card mb-4">
+    <div class="info-card-header">
+        <i class="bi bi-file-text"></i> Dispute Details
+    </div>
+    <div class="info-card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="info-item">
+                    <div class="info-label">Type</div>
+                    <div class="info-value">
+                        <span class="badge bg-primary">{{ dispute.get_dispute_type_display }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="info-item">
+                    <div class="info-label">Created</div>
+                    <div class="info-value">{{ dispute.created_at|date:"M d, Y H:i" }}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="info-item">
+                    <div class="info-label">Status</div>
+                    <div class="info-value">{{ dispute.get_status_display }}</div>
+                </div>
+            </div>
+        </div>
+        {% if dispute.description %}
+        <div class="info-item mt-3">
+            <div class="info-label">Description</div>
+            <div class="description-box">{{ dispute.description|linebreaks }}</div>
+        </div>
+        {% endif %}
+        {% if dispute.screened_at %}
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <div class="info-item">
+                    <div class="info-label">Screened By</div>
+                    <div class="info-value">{{ dispute.screened_by.get_full_name|default:dispute.screened_by.username }}</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="info-item">
+                    <div class="info-label">Screened At</div>
+                    <div class="info-value">{{ dispute.screened_at|date:"M d, Y H:i" }}</div>
+                </div>
+            </div>
+        </div>
+        {% if dispute.screening_notes %}
+        <div class="info-item mt-3">
+            <div class="info-label">Screening Notes</div>
+            <div class="description-box">{{ dispute.screening_notes|linebreaks }}</div>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <!-- Documents -->
+    {% with docs=dispute.documents.all %}
+    {% if docs %}
+    <div class="col-md-6">
+        <div class="info-card">
+            <div class="info-card-header">
+                <i class="bi bi-paperclip"></i> Applicant Documents
+            </div>
+            <div class="info-card-body">
+                {% for doc in docs %}
+                <a href="{{ doc.file.url }}" target="_blank" class="doc-item">
+                    <i class="bi bi-file-earmark"></i>
+                    {{ doc.file.name|truncatechars:40 }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endwith %}
+    
+    <!-- Respondent Response -->
+    {% if dispute.response %}
+    <div class="col-md-6">
+        <div class="info-card">
+            <div class="info-card-header">
+                <i class="bi bi-reply"></i> Respondent Response
+            </div>
+            <div class="info-card-body">
+                <div class="info-item">
+                    <div class="info-label">Consent to Mediate</div>
+                    <div class="info-value">{{ dispute.response.consent_to_mediate|yesno:"Yes,No" }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Agreed to Rules</div>
+                    <div class="info-value">{{ dispute.response.agreed_to_rules|yesno:"Yes,No" }}</div>
+                </div>
+                {% if dispute.response.defence_explanation %}
+                <div class="info-item mt-2">
+                    <div class="info-label">Defence</div>
+                    <div class="description-box">{{ dispute.response.defence_explanation|linebreaks }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Mediation Session -->
+{% if dispute.mediation %}
+<div class="info-card mb-4">
+    <div class="info-card-header">
+        <i class="bi bi-calendar-check"></i> Mediation Session
+    </div>
+    <div class="info-card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="info-item">
+                    <div class="info-label">Mediator</div>
+                    <div class="info-value">{{ dispute.mediation.mediator.user.get_full_name|default:dispute.mediation.mediator.user.username }}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="info-item">
+                    <div class="info-label">Scheduled</div>
+                    <div class="info-value">{{ dispute.mediation.scheduled_at|date:"M d, Y H:i" }}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="info-item">
+                    <div class="info-label">Zoom Link</div>
+                    <div class="info-value">
+                        <a href="{{ dispute.mediation.zoom_link }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-camera-video me-1"></i> Join
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if dispute.mediation.outcome %}
+        <div class="info-item mt-3">
+            <div class="info-label">Outcome</div>
+            <div class="description-box">{{ dispute.mediation.outcome|linebreaks }}</div>
+        </div>
         {% endif %}
     </div>
 </div>
 {% endif %}
 
+<!-- Audit Log -->
 {% if dispute.audit_logs.all %}
-<div class="card mb-3">
-    <div class="card-header">Audit Log</div>
-    <div class="card-body">
-        <table class="table table-sm mb-0">
-            <thead>
-                <tr>
-                    <th>When</th>
-                    <th>Who</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for entry in dispute.audit_logs.all %}
-                <tr>
-                    <td>{{ entry.timestamp }}</td>
-                    <td>
-                        {% if entry.user %}
-                            {{ entry.user.get_full_name|default:entry.user.username }}
-                        {% else %}
-                            System
-                        {% endif %}
-                    </td>
-                    <td>{{ entry.action }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="3" class="text-muted">No audit entries yet.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="audit-card mb-4">
+    <div class="info-card-header">
+        <i class="bi bi-clock-history"></i> Activity Log
     </div>
+    {% for entry in dispute.audit_logs.all %}
+    <div class="audit-entry">
+        <div class="audit-icon">
+            <i class="bi bi-check"></i>
+        </div>
+        <div class="audit-content">
+            <div class="audit-action">{{ entry.action }}</div>
+            <div class="audit-meta">
+                {% if entry.user %}{{ entry.user.get_full_name|default:entry.user.username }}{% else %}System{% endif %}
+                &middot; {{ entry.timestamp|date:"M d, Y H:i" }}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
 </div>
 {% endif %}
 
 <!-- Assign Mediator Modal -->
-<div class="modal fade" id="assignMediatorModal" tabindex="-1" aria-labelledby="assignMediatorModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade" id="assignMediatorModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="assignMediatorModalLabel">
-                    <i class="bi bi-person-check"></i> Assign Mediator to Dispute #{{ dispute.id }}
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>Assign Mediator</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="post" action="{% url 'dashboard:assign_mediator_to_dispute' dispute.id %}">
                 {% csrf_token %}
                 <div class="modal-body">
-                    <!-- Client Info Summary -->
-                    <div class="alert alert-info mb-4">
-                        <strong><i class="bi bi-person"></i> Applicant:</strong> {{ dispute.applicant_name }} {{ dispute.applicant_surname }} ({{ dispute.applicant_cell }})<br>
-                        <strong><i class="bi bi-person-badge"></i> Respondent:</strong>
-                        {% if dispute.respondent_type == 'ind' %}
-                            {{ dispute.respondent_name }} {{ dispute.respondent_surname }}
-                        {% else %}
-                            {{ dispute.business_name }}
-                        {% endif %}
-                        <br>
-                        <strong><i class="bi bi-tag"></i> Type:</strong> {{ dispute.get_dispute_type_display }}
-                    </div>
-                    
-                    <!-- Mediator Selection -->
                     <div class="mb-3">
-                        <label for="mediator_id" class="form-label fw-bold">
-                            <i class="bi bi-people"></i> Select Mediator
-                        </label>
-                        <select name="mediator_id" id="mediator_id" class="form-select form-select-lg" required>
-                            <option value="">-- Choose a mediator from the database --</option>
+                        <label for="mediator_id" class="form-label">Select Mediator</label>
+                        <select name="mediator_id" id="mediator_id" class="form-select" required>
+                            <option value="">Choose a mediator...</option>
                             {% for mediator in mediators %}
                             <option value="{{ mediator.id }}">
-                                {{ mediator.user.get_full_name|default:mediator.user.username }}
-                                | {{ mediator.user.email|default:"No email" }}
-                                | {{ mediator.cell }}
+                                {{ mediator.user.get_full_name|default:mediator.user.username }} | {{ mediator.cell }}
                             </option>
                             {% endfor %}
                         </select>
-                        <small class="text-muted">{{ mediators|length }} mediators available in the database</small>
                     </div>
-                    
-                    <!-- Session Date/Time -->
                     <div class="mb-3">
-                        <label for="scheduled_at" class="form-label fw-bold">
-                            <i class="bi bi-calendar-event"></i> Session Date & Time
-                        </label>
-                        <input type="datetime-local" class="form-control form-control-lg" id="scheduled_at" name="scheduled_at" required>
+                        <label for="scheduled_at" class="form-label">Session Date & Time</label>
+                        <input type="datetime-local" class="form-control" id="scheduled_at" name="scheduled_at" required>
                     </div>
-                    
-                    <!-- Zoom Link -->
                     <div class="mb-3">
-                        <label for="zoom_link" class="form-label fw-bold">
-                            <i class="bi bi-camera-video"></i> Zoom Link
-                        </label>
-                        <input type="url" class="form-control" id="zoom_link" name="zoom_link" placeholder="https://zoom.us/j/..." value="https://zoom.us/j/pending">
-                        <small class="text-muted">Enter the Zoom meeting link for the session</small>
+                        <label for="zoom_link" class="form-label">Zoom Link</label>
+                        <input type="url" class="form-control" id="zoom_link" name="zoom_link" value="https://zoom.us/j/pending">
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success btn-lg">
-                        <i class="bi bi-check-circle"></i> Assign Mediator & Notify
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i> Assign & Notify
                     </button>
                 </div>
             </form>
@@ -248,13 +485,11 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Set minimum date to now
     const scheduledInput = document.getElementById('scheduled_at');
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
     scheduledInput.min = now.toISOString().slice(0, 16);
     
-    // Set default to tomorrow at 9am
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(9, 0, 0, 0);

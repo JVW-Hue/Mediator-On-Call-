@@ -3,8 +3,29 @@
 
 {% block title %}Submit a Dispute – Pro Bono Community Mediation{% endblock %}
 
-{% block content %}
+{% block extra_css %}
+{{ block.super }}
 <style>
+    .apply-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .apply-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        text-align: center;
+    }
+    .apply-header h2 {
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    .apply-header p {
+        opacity: 0.9;
+        margin-bottom: 0;
+    }
     .required-badge {
         background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
         color: white;
@@ -33,11 +54,26 @@
     }
     .form-section {
         background: white;
-        border-radius: 10px;
-        padding: 25px;
-        margin-bottom: 20px;
-        border-left: 4px solid #667eea;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+    .form-section:hover {
+        border-color: #f0f2ff;
+    }
+    .form-section h5 {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #f0f2ff;
+    }
+    .form-section h5 i {
+        color: #667eea;
+        margin-right: 0.5rem;
     }
     .hidden {
         display: none !important;
@@ -67,24 +103,27 @@
         margin-bottom: 30px;
     }
     .step-dot {
-        width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
         border-radius: 50%;
-        background: #ddd;
+        background: #e9ecef;
         display: flex;
         align-items: center;
         justify-content: center;
         margin: 0 10px;
         font-weight: bold;
-        color: white;
+        color: #666;
+        transition: all 0.3s ease;
     }
     .step-dot.active {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
     }
     .step-dot.completed {
         background: #28a745;
+        color: white;
     }
-    /* Form field error styling */
     .is-invalid {
         border-color: #dc3545 !important;
         box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
@@ -95,17 +134,31 @@
         font-size: 0.85rem;
         margin-top: 5px;
     }
+    .card.cursor-pointer {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid #e9ecef;
+        border-radius: 16px;
+    }
+    .card.cursor-pointer:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        border-color: #667eea;
+    }
+    .card.cursor-pointer.selected {
+        border-color: #667eea;
+        background: linear-gradient(135deg, #f0f2ff 0%, #e8eaff 100%);
+    }
 </style>
+{% endblock %}
 
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-        <h2 class="mb-4 text-center">Submit a Dispute for Mediation</h2>
-        
-        <!-- Step Indicator -->
-        <div class="step-indicator mb-4">
-            <div class="step-dot active" id="step-dot-1">1</div>
-            <div class="step-dot" id="step-dot-2">2</div>
-            <div class="step-dot" id="step-dot-3">3</div>
+{% block content %}
+<div class="apply-container">
+    <!-- Header -->
+    <div class="apply-header">
+        <h2><i class="bi bi-file-earmark-plus me-2"></i> Submit a Dispute</h2>
+        <p>Complete the form below to submit your dispute for mediation</p>
+    </div>
             <div class="step-dot" id="step-dot-4">4</div>
             <div class="step-dot" id="step-dot-5">5</div>
             <div class="step-dot" id="step-dot-6">6</div>
@@ -349,15 +402,15 @@
             </div>
             
             <!-- Navigation Buttons -->
-            <div class="d-flex justify-content-between mb-5" id="nav-buttons">
-                <button type="button" class="btn btn-secondary hidden" id="btn-back" onclick="previousStep()">
-                    <i class="bi bi-arrow-left"></i> Back
+            <div class="d-flex justify-content-between mb-4" id="nav-buttons">
+                <button type="button" class="btn btn-outline-secondary hidden" id="btn-back" onclick="previousStep()">
+                    <i class="bi bi-arrow-left me-1"></i> Back
                 </button>
                 <button type="button" class="btn btn-primary ms-auto" id="btn-next" onclick="nextStep()">
-                    Continue <i class="bi bi-arrow-right"></i>
+                    Continue <i class="bi bi-arrow-right ms-1"></i>
                 </button>
                 <button type="button" class="btn btn-success ms-auto hidden" id="btn-submit" onclick="document.getElementById('disputeForm').submit();">
-                    <i class="bi bi-send"></i> Submit Dispute
+                    <i class="bi bi-send me-1"></i> Submit Dispute
                 </button>
                 <!-- Hidden honeypot for spam protection -->
                 <input type="text" name="honeypot" style="display: none;" tabindex="-1" autocomplete="off">

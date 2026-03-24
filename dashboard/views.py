@@ -337,7 +337,7 @@ def assign_mediator_to_dispute(request, pk):
     try:
         send_message_8_mediator_assigned_parties.delay(
             applicant_email=dispute.applicant_email,
-            respondent_email=dispute.respondent_email or dispute.business_email,
+            respondent_email=dispute.respondent_email,
             mediator_name=mediator_name,
             case_id=dispute.id,
         )
@@ -354,55 +354,13 @@ def assign_mediator_to_dispute(request, pk):
         except Exception:
             pass
     
-        AuditLog.objects.create(
-            dispute=dispute,
-            user=request.user,
-            action=f"Dispute accepted and forwarded to respondent",
-        )
-    else:
-        dispute.is_mediatable = False
-        dispute.status = "rejected"
-        if refer_to:
-            dispute.screening_notes = f"REFERRED TO: {refer_to.upper()}. Notes: {notes}. Referral details: {refer_notes}"
-        else:
-            dispute.screening_notes = notes
+    AuditLog.objects.create(
+        dispute=dispute,
+        user=request.user,
+        action=f"Mediator {mediator_name} assigned, session scheduled for {scheduled_at}",
+    )
 
-        if refer_to or offer_foresolve:
-            referral_type = "foresolve" if offer_foresolve else refer_to
-            ReferredCase.objects.update_or_create(
-                dispute=dispute,
-                defaults={
-                    "referred_to": referral_type,
-                    "referred_by": request.user,
-                    "notes": notes,
-                    "referral_details": refer_notes,
-                },
-            )
-        
-        # Send Message 2: Dispute rejected notification
-        if dispute.applicant_email:
-            send_message_2_dispute_rejected.delay(
-                to_email=dispute.applicant_email,
-                applicant_name=dispute.applicant_name,
-                case_id=dispute.id,
-            )
-
-        # Send SMS notification
-        if dispute.applicant_cell:
-            sms_body = (
-                "After reviewing your request we have found that the dispute cannot be mediated. "
-                "Your file has been closed. You are welcome to lodge an enquiry to complaints@probonomediation.co.za"
-            )
-            _send_notification(notify_recipient, to=dispute.applicant_cell, body=sms_body)
-
-        AuditLog.objects.create(
-            dispute=dispute,
-            user=request.user,
-            action=f"Dispute rejected - referred to {refer_to}" if refer_to else "Dispute rejected - not mediatable",
-        )
-
-        messages.warning(request, f"Dispute #{dispute_id} rejected and applicant notified.")
-
+    messages.success(request, f"Mediator {mediator_name} assigned to Dispute #{pk}!")
     return redirect("dashboard:dispute_list")
 
 
@@ -935,7 +893,6 @@ def submit_mediation_outcome(request, pk):
     return render(request, 'dashboard/submit_outcome.html', context)
 
 
-@staff_member_required
 def mediators_list(request):
     """List all mediators in the database."""
     # Only allow GET requests to prevent form resubmission issues
@@ -1106,7 +1063,7 @@ def assign_mediator_page(request, pk):
         # Send Message 8: Notify parties
         send_message_8_mediator_assigned_parties.delay(
             applicant_email=dispute.applicant_email,
-            respondent_email=dispute.respondent_email or dispute.business_email,
+            respondent_email=dispute.respondent_email,
             mediator_name=mediator_name,
             case_id=dispute.id,
         )

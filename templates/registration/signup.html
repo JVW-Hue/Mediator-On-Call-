@@ -1,15 +1,137 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
 
+{% block title %}Sign Up – Pro Bono Community Mediation{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .signup-container {
+        max-width: 500px;
+        margin: 2rem auto;
+    }
+    .signup-card {
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        overflow: hidden;
+    }
+    .signup-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        text-align: center;
+        color: white;
+    }
+    .signup-header i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        display: block;
+    }
+    .signup-header h4 {
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    .signup-header p {
+        opacity: 0.9;
+        margin-bottom: 0;
+        font-size: 0.9rem;
+    }
+    .signup-body {
+        padding: 2rem;
+    }
+    .signup-body .form-control, .signup-body .form-select {
+        border-radius: 12px;
+        padding: 0.8rem 1rem;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+    .signup-body .form-control:focus, .signup-body .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+    }
+    .signup-body label {
+        font-weight: 500;
+        color: #333;
+    }
+    .signup-body .btn-primary {
+        width: 100%;
+        padding: 0.8rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        margin-top: 0.5rem;
+    }
+    .signup-body .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+    .signup-footer {
+        text-align: center;
+        padding: 1.5rem 2rem;
+        background: #f8f9ff;
+        border-top: 1px solid #f0f2ff;
+    }
+    .signup-footer a {
+        color: #667eea;
+        font-weight: 500;
+        text-decoration: none;
+    }
+    .signup-footer a:hover {
+        text-decoration: underline;
+    }
+    .user-type-cards {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .user-type-card {
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 1.2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .user-type-card:hover {
+        border-color: #667eea;
+        background: #f8f9ff;
+    }
+    .user-type-card.selected {
+        border-color: #667eea;
+        background: linear-gradient(135deg, #f0f2ff 0%, #e8eaff 100%);
+    }
+    .user-type-card i {
+        font-size: 2rem;
+        color: #667eea;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    .user-type-card strong {
+        display: block;
+        color: #333;
+    }
+    .user-type-card small {
+        color: #666;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-5" style="max-width: 500px;">
-    <div class="card">
-        <div class="card-header">
-            <h4 class="mb-0">Sign Up - Pro Bono Community Mediation</h4>
+<div class="signup-container">
+    <div class="signup-card">
+        <div class="signup-header">
+            <i class="bi bi-person-plus"></i>
+            <h4>Create Account</h4>
+            <p>Join Pro Bono Community Mediation</p>
         </div>
-        <div class="card-body">
+        <div class="signup-body">
             {% if form.errors %}
-                <div class="alert alert-danger">
+                <div class="alert alert-danger" style="border-radius: 12px;">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
                     Please correct the errors below.
                 </div>
             {% endif %}
@@ -18,73 +140,94 @@
                 {% csrf_token %}
                 
                 <div class="mb-3">
-                    <label for="id_username" class="form-label">Username</label>
-                    <input type="text" name="username" class="form-control" id="id_username" required>
+                    <label for="id_username" class="form-label">
+                        <i class="bi bi-person me-1"></i> Username
+                    </label>
+                    <input type="text" name="username" class="form-control" id="id_username" required placeholder="Choose a username">
                     {% if form.username.errors %}
-                        <div class="text-danger">{{ form.username.errors }}</div>
+                        <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
                     {% endif %}
                 </div>
                 
                 <div class="mb-3">
-                    <label for="id_email" class="form-label">Email</label>
-                    <input type="email" name="email" class="form-control" id="id_email" required>
+                    <label for="id_email" class="form-label">
+                        <i class="bi bi-envelope me-1"></i> Email
+                    </label>
+                    <input type="email" name="email" class="form-control" id="id_email" required placeholder="Enter your email">
                     {% if form.email.errors %}
-                        <div class="text-danger">{{ form.email.errors }}</div>
+                        <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
                     {% endif %}
                 </div>
                 
-                <div class="mb-3">
-                    <label for="id_password1" class="form-label">Password</label>
-                    <input type="password" name="password1" class="form-control" id="id_password1" required>
-                    {% if form.password1.errors %}
-                        <div class="text-danger">{{ form.password1.errors }}</div>
-                    {% endif %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="id_password1" class="form-label">
+                            <i class="bi bi-lock me-1"></i> Password
+                        </label>
+                        <input type="password" name="password1" class="form-control" id="id_password1" required placeholder="Create password">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="id_password2" class="form-label">
+                            <i class="bi bi-lock-fill me-1"></i> Confirm
+                        </label>
+                        <input type="password" name="password2" class="form-control" id="id_password2" required placeholder="Confirm password">
+                    </div>
                 </div>
+                {% if form.password1.errors %}
+                    <div class="text-danger small mb-3">{{ form.password1.errors.0 }}</div>
+                {% endif %}
                 
                 <div class="mb-3">
-                    <label for="id_password2" class="form-label">Confirm Password</label>
-                    <input type="password" name="password2" class="form-control" id="id_password2" required>
-                    {% if form.password2.errors %}
-                        <div class="text-danger">{{ form.password2.errors }}</div>
-                    {% endif %}
+                    <label class="form-label">
+                        <i class="bi bi-person-badge me-1"></i> I am a:
+                    </label>
+                    <div class="user-type-cards">
+                        <div class="user-type-card selected" onclick="selectUserType('mediator')">
+                            <i class="bi bi-person-check"></i>
+                            <strong>Mediator</strong>
+                            <small>Resolve disputes</small>
+                        </div>
+                        <div class="user-type-card" onclick="selectUserType('staff')">
+                            <i class="bi bi-person-gear"></i>
+                            <strong>Staff</strong>
+                            <small>Manage system</small>
+                        </div>
+                    </div>
+                    <input type="hidden" name="user_type" id="id_user_type" value="mediator">
                 </div>
                 
-                <div class="mb-3">
-                    <label for="id_user_type" class="form-label">I am a:</label>
-                    <select name="user_type" class="form-select" id="id_user_type" required>
-                        <option value="">Select account type</option>
-                        <option value="mediator">Mediator</option>
-                        <option value="staff">Staff</option>
-                    </select>
-                </div>
-                
-                <div id="mediator-fields" style="display: none;">
+                <div id="mediator-fields">
                     <div class="mb-3">
-                        <label for="id_cell" class="form-label">Cell Phone Number</label>
-                        <input type="text" name="cell" class="form-control" id="id_cell" placeholder="+1234567890">
+                        <label for="id_cell" class="form-label">
+                            <i class="bi bi-telephone me-1"></i> Cell Phone Number
+                        </label>
+                        <input type="tel" name="cell" class="form-control" id="id_cell" placeholder="+1234567890">
                     </div>
                 </div>
                 
-                <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-person-plus me-2"></i> Create Account
+                </button>
             </form>
-            
-            <div class="mt-3 text-center">
-                <p>Already have an account? <a href="{% url 'login' %}">Log in</a></p>
-            </div>
+        </div>
+        <div class="signup-footer">
+            <p class="mb-0">Already have an account? <a href="{% url 'login' %}">Sign in here</a></p>
         </div>
     </div>
 </div>
 
 <script>
-document.getElementById('id_user_type').addEventListener('change', function() {
+function selectUserType(type) {
+    document.getElementById('id_user_type').value = type;
+    document.querySelectorAll('.user-type-card').forEach(card => card.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+    
     var mediatorFields = document.getElementById('mediator-fields');
-    if (this.value === 'mediator') {
+    if (type === 'mediator') {
         mediatorFields.style.display = 'block';
-        document.getElementById('id_cell').setAttribute('required', 'required');
     } else {
         mediatorFields.style.display = 'none';
-        document.getElementById('id_cell').removeAttribute('required');
     }
-});
+}
 </script>
 {% endblock %}
