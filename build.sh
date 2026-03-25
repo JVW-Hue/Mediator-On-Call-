@@ -7,6 +7,10 @@ python manage.py migrate --run-syncdb
 echo "Collecting static files..."
 python manage.py collectstatic --noinput --clear
 
+echo "Creating media directories..."
+mkdir -p media/temp_photos
+mkdir -p media/documents
+
 echo "Creating superuser..."
 python -c "
 import os

@@ -45,24 +45,31 @@ def upload_photo_ajax(request):
     try:
         from PIL import Image
     except ImportError:
-        return JsonResponse({'success': False, 'error': 'Image upload is temporarily unavailable. Please try again later or contact support.'}, status=503)
+        return JsonResponse({'success': False, 'error': 'Image upload is temporarily unavailable.'}, status=503)
     
     uploaded_photos = []
     
     for photo in files:
-        # Validate file type
-        if not photo.content_type.startswith('image/'):
-            return JsonResponse({'success': False, 'error': f'File {photo.name} is not an image. Only image files are allowed.'}, status=400)
+        # Validate file type - check both content_type and file extension
+        is_image = False
+        if photo.content_type and photo.content_type.startswith('image/'):
+            is_image = True
+        elif photo.name:
+            ext = photo.name.lower().split('.')[-1] if '.' in photo.name else ''
+            if ext in ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']:
+                is_image = True
+        
+        if not is_image:
+            return JsonResponse({'success': False, 'error': f'File {photo.name} is not an image.'}, status=400)
         
         # Validate file size (max 10MB)
         if photo.size > 10 * 1024 * 1024:
-            return JsonResponse({'success': False, 'error': f'File {photo.name} is too large. File size must be less than 10MB.'}, status=400)
+            return JsonResponse({'success': False, 'error': f'File {photo.name} is too large. Max 10MB.'}, status=400)
         
         # Get session key for temporary storage
-        session_key = request.session.session_key
-        if not session_key:
+        if not request.session.session_key:
             request.session.create()
-            session_key = request.session.session_key
+        session_key = request.session.session_key
         
         # Save temporary photo
         try:
@@ -77,7 +84,7 @@ def upload_photo_ajax(request):
             })
         except Exception as e:
             logger.error(f"Error saving photo: {e}")
-            return JsonResponse({'success': False, 'error': 'Failed to save image. Please try again.'}, status=500)
+            return JsonResponse({'success': False, 'error': f'Failed to save image: {str(e)}'}, status=500)
     
     # Get updated count for this session
     session_key = request.session.session_key
