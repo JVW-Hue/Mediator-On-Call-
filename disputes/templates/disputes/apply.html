@@ -249,51 +249,35 @@
         <!-- Step 2: Dispute Details -->
         <div class="form-section hidden" id="step2">
             <h5><i class="bi bi-file-text"></i> Step 2: Dispute Details</h5>
-            <div class="row mt-3">
-                <div class="col-md-6 mb-3">
-                    <label>Dispute Type <span class="required-badge">REQUIRED</span></label>
-                    <select name="dispute_type" class="form-select {% if form.dispute_type.errors %}is-invalid{% endif %}" required>
-                        <option value="">Select dispute type...</option>
-                        <option value="civil">Civil</option>
-                        <option value="commercial">Commercial</option>
-                        <option value="community">Community</option>
-                        <option value="construction">Construction</option>
-                        <option value="contractual">Contractual</option>
-                        <option value="criminal">Criminal</option>
-                        <option value="customary">Customary</option>
-                        <option value="damages">Damages</option>
-                        <option value="debts">Debts</option>
-                        <option value="divorce">Divorce</option>
-                        <option value="family">Family</option>
-                        <option value="labour">Labour</option>
-                        <option value="lease">Lease</option>
-                        <option value="loans">Loans</option>
-                        <option value="property">Property</option>
-                        <option value="religion">Religion</option>
-                        <option value="sales">Sales</option>
-                    </select>
-                    {% if form.dispute_type.errors %}
-                    <div class="invalid-feedback">{{ form.dispute_type.errors.0 }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label>Preferred Location <span class="optional-badge">OPTIONAL</span></label>
-                    <input type="text" name="mediation_location" class="form-control" placeholder="e.g. Johannesburg, Cape Town">
-                </div>
+            <div class="mb-3">
+                <label>Dispute Type <span class="required-badge">REQUIRED</span></label>
+                <select name="dispute_type" class="form-select {% if form.dispute_type.errors %}is-invalid{% endif %}" required>
+                    <option value="">Select dispute type...</option>
+                    <option value="civil">Civil</option>
+                    <option value="commercial">Commercial</option>
+                    <option value="community">Community</option>
+                    <option value="construction">Construction</option>
+                    <option value="contractual">Contractual</option>
+                    <option value="criminal">Criminal</option>
+                    <option value="customary">Customary</option>
+                    <option value="damages">Damages</option>
+                    <option value="debts">Debts</option>
+                    <option value="divorce">Divorce</option>
+                    <option value="family">Family</option>
+                    <option value="labour">Labour</option>
+                    <option value="lease">Lease</option>
+                    <option value="loans">Loans</option>
+                    <option value="property">Property</option>
+                    <option value="religion">Religion</option>
+                    <option value="sales">Sales</option>
+                </select>
+                {% if form.dispute_type.errors %}
+                <div class="invalid-feedback">{{ form.dispute_type.errors.0 }}</div>
+                {% endif %}
             </div>
             <div class="mb-3">
                 <label>Describe Your Dispute <span class="required-badge">REQUIRED</span></label>
-                <textarea name="description" class="form-control" rows="4" placeholder="Please describe your dispute in detail..." required></textarea>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label>Preferred Date/Time <span class="optional-badge">OPTIONAL</span></label>
-                    <input type="datetime-local" name="preferred_date" class="form-control">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label>Brief Summary <span class="optional-badge">OPTIONAL</span></label>
-                    <textarea name="summary" class="form-control" rows="2" placeholder="Brief summary for mediator..."></textarea>
-                </div>
+                <textarea name="description" class="form-control" rows="6" placeholder="Please describe your dispute in detail..." required></textarea>
             </div>
         </div>
         
