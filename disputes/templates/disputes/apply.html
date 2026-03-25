@@ -601,28 +601,6 @@ function uploadPhotos(files) {
         alert('Error uploading photos. Please try again.');
     });
 }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok: ' + response.status);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            data.photos.forEach(function(photo) {
-                uploadedPhotos.push(photo);
-                addPhotoToPreview(photo);
-            });
-        } else {
-            alert(data.error || 'Error uploading photos.');
-        }
-    })
-    .catch(function(error) {
-        console.error('Upload error:', error);
-        alert('Error uploading photos. Please try again.');
-    });
-}
 
 function addPhotoToPreview(photo) {
     var preview = document.getElementById('photo-preview');
