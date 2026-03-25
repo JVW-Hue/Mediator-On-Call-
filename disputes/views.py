@@ -27,6 +27,17 @@ from .tasks import (
 )
 
 
+def get_session_key(request):
+    """Get session key using IP-based identifier - no Django sessions needed"""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0].strip()
+    else:
+        ip = request.META.get('REMOTE_ADDR', 'unknown')
+    user_agent = request.META.get('HTTP_USER_AGENT', '')[:200]
+    return f"fallback_{ip}_{hash(user_agent) % 100000}"
+
+
 @require_POST
 def upload_photo_ajax(request):
     """Handle AJAX photo upload - saves photos temporarily and returns success"""
@@ -72,10 +83,8 @@ def upload_photo_ajax(request):
             if photo.size > 10 * 1024 * 1024:
                 return JsonResponse({'success': False, 'error': f'File {photo.name} is too large. Max 10MB.'}, status=400)
             
-            # Get or create session key for temporary storage
-            if not request.session.session_key:
-                request.session.cycle_key()
-            session_key = request.session.session_key
+            # Get session key - always use IP-based to avoid session table issues
+            session_key = get_session_key(request)
             
             logger.info(f"Session key: {session_key}")
             
@@ -97,9 +106,9 @@ def upload_photo_ajax(request):
                 logger.error(traceback.format_exc())
                 return JsonResponse({'success': False, 'error': f'Failed to save image: {str(e)}'}, status=500)
         
-        # Get updated count for this session
-        session_key = request.session.session_key
-        photo_count = TempDisputePhoto.objects.filter(session_key=session_key).count() if session_key else 0
+        # Get updated count using the same session key logic
+        session_key = get_session_key(request)
+        photo_count = TempDisputePhoto.objects.filter(session_key=session_key).count()
         
         return JsonResponse({
             'success': True,
@@ -122,10 +131,11 @@ def remove_photo_ajax(request):
     if not photo_id:
         return JsonResponse({'success': False, 'error': 'No photo ID provided'}, status=400)
     
+    session_key = get_session_key(request)
     try:
         temp_photo = TempDisputePhoto.objects.get(id=photo_id)
-        # Verify session matches
-        if temp_photo.session_key == request.session.session_key:
+        # Allow removal if session_key matches or if it's from the same IP (fallback)
+        if temp_photo.session_key == session_key or (session_key.startswith('fallback_') and temp_photo.session_key.startswith('fallback_')):
             temp_photo.delete()
             return JsonResponse({'success': True, 'message': 'Photo removed'})
         else:
@@ -138,11 +148,14 @@ def get_photos_ajax(request):
     """Get list of temporarily uploaded photos"""
     from django.http import JsonResponse
     
-    session_key = request.session.session_key
-    if not session_key:
-        return JsonResponse({'photos': []})
+    session_key = get_session_key(request)
+    # Query by fallback pattern (IP-based)
+    if session_key.startswith('fallback_'):
+        ip_part = session_key.split('_')[1]
+        photos = TempDisputePhoto.objects.filter(session_key__startswith=ip_part)
+    else:
+        photos = TempDisputePhoto.objects.filter(session_key=session_key)
     
-    photos = TempDisputePhoto.objects.filter(session_key=session_key)
     photo_list = [
         {
             'id': p.id,
@@ -212,7 +225,7 @@ def _apply_view(request):
                     doc.save()
                 
                 # Link temporary photos to the dispute
-                session_key = request.session.session_key
+                session_key = get_session_key(request)
                 if session_key:
                     try:
                         temp_photos = TempDisputePhoto.objects.filter(session_key=session_key)

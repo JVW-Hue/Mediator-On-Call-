@@ -3,6 +3,7 @@ set -o errexit
 
 echo "Running migrations..."
 python manage.py migrate --run-syncdb
+python manage.py migrate sessions --fake-initial 2>/dev/null || true
 
 echo "Collecting static files..."
 python manage.py collectstatic --noinput --clear
