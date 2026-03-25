@@ -573,14 +573,22 @@ function uploadPhotos(files) {
         formData.append('photo[]', file);
     });
     
+    // Get CSRF token from form or cookie
+    var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]') ? document.querySelector('[name=csrfmiddlewaretoken]').value : getCookie('csrftoken');
+    
     fetch('/apply/upload-photo/', {
         method: 'POST',
         body: formData,
         headers: {
-            'X-CSRFToken': getCookie('csrftoken')
+            'X-CSRFToken': csrfToken
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.status);
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             data.photos.forEach(function(photo) {
@@ -592,7 +600,7 @@ function uploadPhotos(files) {
         }
     })
     .catch(function(error) {
-        console.error('Error:', error);
+        console.error('Upload error:', error);
         alert('Error uploading photos. Please try again.');
     });
 }
@@ -607,11 +615,14 @@ function addPhotoToPreview(photo) {
 }
 
 function removePhoto(photoId) {
+    var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]') ? document.querySelector('[name=csrfmiddlewaretoken]').value : getCookie('csrftoken');
+    
     fetch('/apply/remove-photo/', {
         method: 'POST',
         body: new URLSearchParams({photo_id: photoId}),
         headers: {
-            'X-CSRFToken': getCookie('csrftoken')
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/x-www-form-urlencoded'
         }
     })
     .then(response => response.json())
