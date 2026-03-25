@@ -670,8 +670,18 @@ document.getElementById('id_documents').addEventListener('change', function(e) {
     var files = e.target.files;
     if (files.length === 0) return;
     
-    selectedDocuments = Array.from(files);
+    // Append new files to existing selection
+    Array.from(files).forEach(function(file) {
+        // Check for duplicates by name and size
+        var isDuplicate = selectedDocuments.some(function(existing) {
+            return existing.name === file.name && existing.size === file.size;
+        });
+        if (!isDuplicate) {
+            selectedDocuments.push(file);
+        }
+    });
     showDocumentPreview();
+    e.target.value = '';
 });
 
 function showDocumentPreview() {
