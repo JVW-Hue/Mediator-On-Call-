@@ -286,36 +286,26 @@
             <h5><i class="bi bi-upload"></i> Upload Documents</h5>
             <p class="text-muted">Add photos and documents to support your dispute. You can skip this step.</p>
             
-            <!-- Two Upload Boxes -->
-            <div class="row mb-4">
-                <div class="col-md-6 mb-3">
-                    <div class="text-center p-4" style="border: 2px dashed #667eea; border-radius: 16px; background: #f8f9ff;">
-                        <i class="bi bi-camera-fill" style="font-size: 3rem; color: #667eea;"></i>
-                        <h5 class="mt-3">Photos</h5>
-                        <p class="small text-muted mb-3">Take new photos or upload from gallery</p>
-                        <label for="id_photo" class="btn btn-primary">
-                            <i class="bi bi-plus-circle me-1"></i> Add Photos
-                        </label>
-                        <input type="file" id="id_photo" name="photo" accept="image/*" capture="environment" class="d-none" multiple>
-                    </div>
-                    <!-- Photo Preview List -->
-                    <div id="photo-preview" class="d-flex gap-2 flex-wrap mt-3" style="max-width: 100%; overflow: hidden;"></div>
-                    <div id="photo-count" class="mt-2 text-success fw-bold"></div>
+            <!-- Photos Section -->
+            <div class="mb-4 p-4" style="border: 2px dashed #667eea; border-radius: 16px; background: #f8f9ff;">
+                <div class="text-center">
+                    <i class="bi bi-camera-fill" style="font-size: 2.5rem; color: #667eea;"></i>
+                    <h5 class="mt-2">Photos</h5>
+                    <p class="small text-muted mb-3">Take new photos or upload from gallery</p>
+                    <input type="file" id="id_photo" name="photo" accept="image/*" class="form-control" multiple style="max-width: 300px; margin: 0 auto;">
                 </div>
-                <div class="col-md-6 mb-3">
-                    <div class="text-center p-4" style="border: 2px dashed #28a745; border-radius: 16px; background: #f0fff4;">
-                        <i class="bi bi-file-earmark-arrow-up" style="font-size: 3rem; color: #28a745;"></i>
-                        <h5 class="mt-3">Documents</h5>
-                        <p class="small text-muted mb-3">Upload PDF, Word, or image files</p>
-                        <label for="id_documents" class="btn btn-success">
-                            <i class="bi bi-plus-circle me-1"></i> Add Files
-                        </label>
-                        <input type="file" id="id_documents" name="documents" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="d-none" multiple>
-                    </div>
-                    <!-- Document Preview List -->
-                    <div id="document-preview" class="mt-3"></div>
-                    <div id="document-count" class="mt-2 text-success fw-bold"></div>
+                <div id="photo-preview" class="d-flex flex-wrap gap-2 mt-3 justify-content-center"></div>
+            </div>
+            
+            <!-- Documents Section -->
+            <div class="mb-4 p-4" style="border: 2px dashed #28a745; border-radius: 16px; background: #f0fff4;">
+                <div class="text-center">
+                    <i class="bi bi-file-earmark-arrow-up" style="font-size: 2.5rem; color: #28a745;"></i>
+                    <h5 class="mt-2">Documents</h5>
+                    <p class="small text-muted mb-3">Upload PDF, Word, or image files</p>
+                    <input type="file" id="id_documents" name="documents" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="form-control" multiple style="max-width: 300px; margin: 0 auto;">
                 </div>
+                <div id="document-preview" class="mt-3"></div>
             </div>
         </div>
         
@@ -530,71 +520,77 @@ let selectedPhotos = [];
 let selectedDocuments = [];
 
 document.getElementById('id_photo').addEventListener('change', function(e) {
-    var files = e.target.files;
-    if (files.length === 0) return;
-    
-    selectedPhotos = Array.from(files);
-    updatePhotoPreview();
+    showPhotoPreview(this.files);
 });
 
-function updatePhotoPreview() {
+function showPhotoPreview(files) {
     var preview = document.getElementById('photo-preview');
     preview.innerHTML = '';
+    selectedPhotos = Array.from(files);
     
     selectedPhotos.forEach(function(file, index) {
+        var div = document.createElement('div');
+        div.className = 'text-center p-2 bg-white rounded shadow-sm';
+        div.style.cssText = 'width: 120px; position: relative;';
+        
         var reader = new FileReader();
         reader.onload = function(e) {
-            var div = document.createElement('div');
-            div.className = 'position-relative d-inline-block m-1';
-            div.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover; border-radius: 10px;"><button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0" style="border-radius: 50%; width: 22px; height: 22px; padding: 0; font-size: 0.7rem;" onclick="removePhoto(' + index + ')"><i class="bi bi-x"></i></button>';
-            preview.appendChild(div);
+            div.innerHTML = '<img src="' + e.target.result + '" style="width: 100px; height: 80px; object-fit: cover; border-radius: 8px;"><div class="small text-truncate mt-1" style="max-width: 100px;" title="' + file.name + '">' + file.name + '</div><button type="button" class="btn btn-sm btn-danger position-absolute" style="top: 0; right: 0; border-radius: 50%; width: 20px; height: 20px; padding: 0; font-size: 0.6rem;" onclick="removePhoto(' + index + ')"><i class="bi bi-x"></i></button>';
         };
         reader.readAsDataURL(file);
+        preview.appendChild(div);
     });
-    
-    var countDiv = document.getElementById('photo-count');
-    countDiv.innerHTML = selectedPhotos.length > 0 ? '<i class="bi bi-check-circle"></i> ' + selectedPhotos.length + ' photo(s) selected' : '';
 }
 
 function removePhoto(index) {
     selectedPhotos.splice(index, 1);
-    updatePhotoPreview();
-    // Update the file input
     var dt = new DataTransfer();
-    selectedPhotos.forEach(f => dt.items.add(f));
+    selectedPhotos.forEach(function(f) { dt.items.add(f); });
     document.getElementById('id_photo').files = dt.files;
+    showPhotoPreview(document.getElementById('id_photo').files);
 }
 
 document.getElementById('id_documents').addEventListener('change', function(e) {
-    var files = e.target.files;
-    if (files.length === 0) return;
-    
-    selectedDocuments = Array.from(files);
-    updateDocumentPreview();
+    showDocumentPreview(this.files);
 });
 
-function updateDocumentPreview() {
+function showDocumentPreview(files) {
     var preview = document.getElementById('document-preview');
     preview.innerHTML = '';
+    selectedDocuments = Array.from(files);
     
     selectedDocuments.forEach(function(file, index) {
         var div = document.createElement('div');
-        div.className = 'd-flex align-items-center p-2 mb-2 bg-light rounded';
-        div.innerHTML = '<i class="bi bi-file-earmark me-2 text-success"></i><span class="flex-grow-1">' + file.name + '</span><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeDocument(' + index + ')"><i class="bi bi-x"></i></button>';
+        div.className = 'd-flex align-items-center p-2 mb-2 bg-white rounded shadow-sm';
+        
+        var nameSpan = document.createElement('span');
+        nameSpan.className = 'flex-grow-1 text-truncate me-2';
+        nameSpan.style.maxWidth = '400px';
+        nameSpan.title = file.name;
+        nameSpan.textContent = file.name;
+        
+        var removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'btn btn-sm btn-outline-danger flex-shrink-0';
+        removeBtn.innerHTML = '<i class="bi bi-x"></i>';
+        removeBtn.onclick = function() { removeDocument(index); };
+        
+        var icon = document.createElement('i');
+        icon.className = 'bi bi-file-earmark text-success me-2 flex-shrink-0';
+        
+        div.appendChild(icon);
+        div.appendChild(nameSpan);
+        div.appendChild(removeBtn);
         preview.appendChild(div);
     });
-    
-    var countDiv = document.getElementById('document-count');
-    countDiv.innerHTML = selectedDocuments.length > 0 ? '<i class="bi bi-check-circle"></i> ' + selectedDocuments.length + ' document(s) selected' : '';
 }
 
 function removeDocument(index) {
     selectedDocuments.splice(index, 1);
-    updateDocumentPreview();
-    // Update the file input
     var dt = new DataTransfer();
-    selectedDocuments.forEach(f => dt.items.add(f));
+    selectedDocuments.forEach(function(f) { dt.items.add(f); });
     document.getElementById('id_documents').files = dt.files;
+    showDocumentPreview(document.getElementById('id_documents').files);
 }
 
 // Number-only validation for phone fields
