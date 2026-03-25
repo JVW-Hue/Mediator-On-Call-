@@ -35,67 +35,71 @@ def upload_photo_ajax(request):
     
     logger = logging.getLogger(__name__)
     
-    # Handle both single file (legacy) and multiple files
-    files = request.FILES.getlist('photo') if 'photo' in request.FILES else request.FILES.getlist('photo[]')
-    
-    if not files:
-        return JsonResponse({'success': False, 'error': 'No photos provided'}, status=400)
-    
-    # Check if Pillow is available
     try:
-        from PIL import Image
-    except ImportError:
-        return JsonResponse({'success': False, 'error': 'Image upload is temporarily unavailable.'}, status=503)
-    
-    uploaded_photos = []
-    
-    for photo in files:
-        # Validate file type - check both content_type and file extension
-        is_image = False
-        if photo.content_type and photo.content_type.startswith('image/'):
-            is_image = True
-        elif photo.name:
-            ext = photo.name.lower().split('.')[-1] if '.' in photo.name else ''
-            if ext in ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']:
-                is_image = True
+        # Handle both single file and multiple files
+        files = request.FILES.getlist('photo')
         
-        if not is_image:
-            return JsonResponse({'success': False, 'error': f'File {photo.name} is not an image.'}, status=400)
+        if not files:
+            return JsonResponse({'success': False, 'error': 'No photos provided'}, status=400)
         
-        # Validate file size (max 10MB)
-        if photo.size > 10 * 1024 * 1024:
-            return JsonResponse({'success': False, 'error': f'File {photo.name} is too large. Max 10MB.'}, status=400)
-        
-        # Get session key for temporary storage
-        if not request.session.session_key:
-            request.session.create()
-        session_key = request.session.session_key
-        
-        # Save temporary photo
+        # Check if Pillow is available
         try:
-            temp_photo = TempDisputePhoto.objects.create(
-                session_key=session_key,
-                image=photo
-            )
+            from PIL import Image
+        except ImportError:
+            return JsonResponse({'success': False, 'error': 'Image upload is temporarily unavailable.'}, status=503)
+        
+        uploaded_photos = []
+        
+        for photo in files:
+            # Validate file type - check both content_type and file extension
+            is_image = False
+            if photo.content_type and photo.content_type.startswith('image/'):
+                is_image = True
+            elif photo.name:
+                ext = photo.name.lower().split('.')[-1] if '.' in photo.name else ''
+                if ext in ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']:
+                    is_image = True
             
-            uploaded_photos.append({
-                'id': temp_photo.id,
-                'photo_url': temp_photo.image.url
-            })
-        except Exception as e:
-            logger.error(f"Error saving photo: {e}")
-            return JsonResponse({'success': False, 'error': f'Failed to save image: {str(e)}'}, status=500)
-    
-    # Get updated count for this session
-    session_key = request.session.session_key
-    photo_count = TempDisputePhoto.objects.filter(session_key=session_key).count() if session_key else 0
-    
-    return JsonResponse({
-        'success': True,
-        'photos': uploaded_photos,
-        'total_count': photo_count,
-        'message': f'{len(uploaded_photos)} photo(s) uploaded successfully'
-    })
+            if not is_image:
+                return JsonResponse({'success': False, 'error': f'File {photo.name} is not an image.'}, status=400)
+            
+            # Validate file size (max 10MB)
+            if photo.size > 10 * 1024 * 1024:
+                return JsonResponse({'success': False, 'error': f'File {photo.name} is too large. Max 10MB.'}, status=400)
+            
+            # Get or create session key for temporary storage
+            if not request.session.session_key:
+                request.session.cycle_key()
+            session_key = request.session.session_key
+            
+            # Save temporary photo
+            try:
+                temp_photo = TempDisputePhoto.objects.create(
+                    session_key=session_key,
+                    image=photo
+                )
+                
+                uploaded_photos.append({
+                    'id': temp_photo.id,
+                    'photo_url': temp_photo.image.url
+                })
+            except Exception as e:
+                logger.error(f"Error saving photo {photo.name}: {e}", exc_info=True)
+                return JsonResponse({'success': False, 'error': f'Failed to save image {photo.name}: {str(e)}'}, status=500)
+        
+        # Get updated count for this session
+        session_key = request.session.session_key
+        photo_count = TempDisputePhoto.objects.filter(session_key=session_key).count() if session_key else 0
+        
+        return JsonResponse({
+            'success': True,
+            'photos': uploaded_photos,
+            'total_count': photo_count,
+            'message': f'{len(uploaded_photos)} photo(s) uploaded successfully'
+        })
+    except Exception as e:
+        logger.error(f"Unexpected error in upload_photo_ajax: {e}", exc_info=True)
+        return JsonResponse({'success': False, 'error': 'An unexpected error occurred. Please try again.'}, status=500)
 
 
 @require_POST
