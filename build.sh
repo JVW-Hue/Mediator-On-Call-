@@ -10,6 +10,8 @@ python manage.py collectstatic --noinput --clear
 echo "Creating media directories..."
 mkdir -p media/temp_photos
 mkdir -p media/documents
+chmod -R 755 media
+echo "Media directories created"
 
 echo "Creating superuser..."
 python -c "
