@@ -576,7 +576,7 @@ function uploadPhotos(files) {
     // Get CSRF token from form or cookie
     var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]') ? document.querySelector('[name=csrfmiddlewaretoken]').value : getCookie('csrftoken');
     
-    fetch('/apply/upload-photo/', {
+    fetch('{% url "disputes:upload_photo" %}', {
         method: 'POST',
         body: formData,
         headers: {
@@ -614,7 +614,7 @@ function addPhotoToPreview(photo) {
 function removePhoto(photoId) {
     var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]') ? document.querySelector('[name=csrfmiddlewaretoken]').value : getCookie('csrftoken');
     
-    fetch('/apply/remove-photo/', {
+    fetch('{% url "disputes:remove_photo" %}', {
         method: 'POST',
         body: new URLSearchParams({photo_id: photoId}),
         headers: {
@@ -634,7 +634,7 @@ function removePhoto(photoId) {
 }
 
 function loadExistingPhotos() {
-    fetch('/apply/get-photos/')
+    fetch('{% url "disputes:get_photos" %}')
     .then(response => response.json())
     .then(data => {
         data.photos.forEach(function(photo) {
