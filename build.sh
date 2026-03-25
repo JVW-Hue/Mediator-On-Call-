@@ -4,8 +4,8 @@ set -o errexit
 echo "Running migrations..."
 python manage.py migrate --run-syncdb
 
-# Ensure all disputes tables exist
-python manage.py migrate disputes --fake-initial 2>/dev/null || true
+# Explicitly apply disputes migrations to ensure all tables exist
+python manage.py migrate disputes --noinput 2>/dev/null || python manage.py migrate disputes 0010_tempdisputephoto_disputephoto --fake 2>/dev/null || true
 
 echo "Collecting static files..."
 python manage.py collectstatic --noinput --clear
