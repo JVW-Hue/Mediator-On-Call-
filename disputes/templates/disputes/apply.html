@@ -525,151 +525,76 @@ function submitForm() {
     document.getElementById('disputeForm').submit();
 }
 
-// Photo upload
-let photoCount = 0;
+// Photo and Document preview - no AJAX, files upload when form submits
+let selectedPhotos = [];
+let selectedDocuments = [];
 
 document.getElementById('id_photo').addEventListener('change', function(e) {
     var files = e.target.files;
     if (files.length === 0) return;
     
-    uploadPhotos(Array.from(files));
-    e.target.value = '';
+    selectedPhotos = Array.from(files);
+    updatePhotoPreview();
 });
 
-function uploadPhotos(files) {
-    var formData = new FormData();
-    for (var i = 0; i < files.length; i++) {
-        formData.append('photo[]', files[i]);
-    }
-    
-    fetch('/apply/upload-photo/', {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken')
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            data.photos.forEach(photo => {
-                addPhotoToPreview(photo.id, photo.photo_url);
-            });
-            photoCount = data.total_count;
-            updatePhotoCount();
-        } else {
-            alert(data.error || 'Error uploading photos.');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error uploading photos.');
-    });
-}
-
-function addPhotoToPreview(photoId, photoUrl) {
+function updatePhotoPreview() {
     var preview = document.getElementById('photo-preview');
-    var photoDiv = document.createElement('div');
-    photoDiv.className = 'position-relative';
-    photoDiv.style.display = 'inline-block';
-    photoDiv.style.margin = '5px';
-    photoDiv.innerHTML = '<img src="' + photoUrl + '" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover; border-radius: 10px;"><button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0" style="border-radius: 50%; width: 22px; height: 22px; padding: 0; font-size: 0.7rem;" onclick="removePhoto(' + photoId + ', this)"><i class="bi bi-x"></i></button>';
-    preview.appendChild(photoDiv);
-}
-
-function removePhoto(photoId, btn) {
-    fetch('/apply/remove-photo/', {
-        method: 'POST',
-        body: new URLSearchParams({ photo_id: photoId }),
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken')
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            btn.closest('div').remove();
-            photoCount--;
-            updatePhotoCount();
-        }
-    })
-    .catch(error => console.error('Error:', error));
-}
-
-function updatePhotoCount() {
+    preview.innerHTML = '';
+    
+    selectedPhotos.forEach(function(file, index) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var div = document.createElement('div');
+            div.className = 'position-relative d-inline-block m-1';
+            div.innerHTML = '<img src="' + e.target.result + '" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover; border-radius: 10px;"><button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0" style="border-radius: 50%; width: 22px; height: 22px; padding: 0; font-size: 0.7rem;" onclick="removePhoto(' + index + ')"><i class="bi bi-x"></i></button>';
+            preview.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+    });
+    
     var countDiv = document.getElementById('photo-count');
-    if (photoCount > 0) {
-        countDiv.innerHTML = '<i class="bi bi-check-circle"></i> ' + photoCount + ' photo(s) saved';
-    } else {
-        countDiv.innerHTML = '';
-    }
+    countDiv.innerHTML = selectedPhotos.length > 0 ? '<i class="bi bi-check-circle"></i> ' + selectedPhotos.length + ' photo(s) selected' : '';
 }
 
-function loadExistingPhotos() {
-    fetch('/apply/get-photos/')
-        .then(response => response.json())
-        .then(data => {
-            data.photos.forEach(photo => {
-                addPhotoToPreview(photo.id, photo.photo_url);
-                photoCount++;
-            });
-            updatePhotoCount();
-        })
-        .catch(error => console.error('Error:', error));
+function removePhoto(index) {
+    selectedPhotos.splice(index, 1);
+    updatePhotoPreview();
+    // Update the file input
+    var dt = new DataTransfer();
+    selectedPhotos.forEach(f => dt.items.add(f));
+    document.getElementById('id_photo').files = dt.files;
 }
-
-function getCookie(name) {
-    var cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        var cookies = document.cookie.split(';');
-        for (var i = 0; i < cookies.length; i++) {
-            var cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
-// Document upload
-let documentCount = 0;
-let uploadedDocuments = [];
 
 document.getElementById('id_documents').addEventListener('change', function(e) {
     var files = e.target.files;
     if (files.length === 0) return;
     
-    for (var i = 0; i < files.length; i++) {
-        uploadedDocuments.push(files[i]);
-        addDocumentToPreview(files[i].name, uploadedDocuments.length - 1);
-    }
-    updateDocumentCount();
-    e.target.value = '';
+    selectedDocuments = Array.from(files);
+    updateDocumentPreview();
 });
 
-function addDocumentToPreview(fileName, index) {
+function updateDocumentPreview() {
     var preview = document.getElementById('document-preview');
-    var docDiv = document.createElement('div');
-    docDiv.className = 'd-flex align-items-center p-2 mb-2 bg-light rounded';
-    docDiv.innerHTML = '<i class="bi bi-file-earmark me-2 text-success"></i><span class="flex-grow-1">' + fileName + '</span><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeDocument(' + index + ', this)"><i class="bi bi-x"></i></button>';
-    preview.appendChild(docDiv);
-}
-
-function removeDocument(index, btn) {
-    uploadedDocuments.splice(index, 1);
-    btn.closest('div').remove();
-    updateDocumentCount();
-}
-
-function updateDocumentCount() {
+    preview.innerHTML = '';
+    
+    selectedDocuments.forEach(function(file, index) {
+        var div = document.createElement('div');
+        div.className = 'd-flex align-items-center p-2 mb-2 bg-light rounded';
+        div.innerHTML = '<i class="bi bi-file-earmark me-2 text-success"></i><span class="flex-grow-1">' + file.name + '</span><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeDocument(' + index + ')"><i class="bi bi-x"></i></button>';
+        preview.appendChild(div);
+    });
+    
     var countDiv = document.getElementById('document-count');
-    if (uploadedDocuments.length > 0) {
-        countDiv.innerHTML = '<i class="bi bi-check-circle"></i> ' + uploadedDocuments.length + ' document(s) selected';
-    } else {
-        countDiv.innerHTML = '';
-    }
+    countDiv.innerHTML = selectedDocuments.length > 0 ? '<i class="bi bi-check-circle"></i> ' + selectedDocuments.length + ' document(s) selected' : '';
+}
+
+function removeDocument(index) {
+    selectedDocuments.splice(index, 1);
+    updateDocumentPreview();
+    // Update the file input
+    var dt = new DataTransfer();
+    selectedDocuments.forEach(f => dt.items.add(f));
+    document.getElementById('id_documents').files = dt.files;
 }
 
 // Number-only validation for phone fields
@@ -682,6 +607,5 @@ document.addEventListener('input', function(e) {
 // Initialize
 selectIndividual();
 updateStepDisplay();
-loadExistingPhotos();
 </script>
 {% endblock %}
