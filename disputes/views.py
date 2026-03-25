@@ -32,12 +32,15 @@ def upload_photo_ajax(request):
     """Handle AJAX photo upload - saves photos temporarily and returns success"""
     from django.http import JsonResponse
     import logging
+    import traceback
     
     logger = logging.getLogger(__name__)
     
     try:
         # Handle both single file and multiple files
         files = request.FILES.getlist('photo')
+        
+        logger.info(f"Upload photo request: {len(files) if files else 0} files")
         
         if not files:
             return JsonResponse({'success': False, 'error': 'No photos provided'}, status=400)
@@ -51,6 +54,8 @@ def upload_photo_ajax(request):
         uploaded_photos = []
         
         for photo in files:
+            logger.info(f"Processing file: {photo.name}, size: {photo.size}, type: {photo.content_type}")
+            
             # Validate file type - check both content_type and file extension
             is_image = False
             if photo.content_type and photo.content_type.startswith('image/'):
@@ -72,6 +77,8 @@ def upload_photo_ajax(request):
                 request.session.cycle_key()
             session_key = request.session.session_key
             
+            logger.info(f"Session key: {session_key}")
+            
             # Save temporary photo
             try:
                 temp_photo = TempDisputePhoto.objects.create(
@@ -79,13 +86,16 @@ def upload_photo_ajax(request):
                     image=photo
                 )
                 
+                logger.info(f"Saved photo: {temp_photo.id}, url: {temp_photo.image.url}")
+                
                 uploaded_photos.append({
                     'id': temp_photo.id,
                     'photo_url': temp_photo.image.url
                 })
             except Exception as e:
-                logger.error(f"Error saving photo {photo.name}: {e}", exc_info=True)
-                return JsonResponse({'success': False, 'error': f'Failed to save image {photo.name}: {str(e)}'}, status=500)
+                logger.error(f"Error saving photo {photo.name}: {e}")
+                logger.error(traceback.format_exc())
+                return JsonResponse({'success': False, 'error': f'Failed to save image: {str(e)}'}, status=500)
         
         # Get updated count for this session
         session_key = request.session.session_key
@@ -98,8 +108,9 @@ def upload_photo_ajax(request):
             'message': f'{len(uploaded_photos)} photo(s) uploaded successfully'
         })
     except Exception as e:
-        logger.error(f"Unexpected error in upload_photo_ajax: {e}", exc_info=True)
-        return JsonResponse({'success': False, 'error': 'An unexpected error occurred. Please try again.'}, status=500)
+        logger.error(f"Unexpected error in upload_photo_ajax: {e}")
+        logger.error(traceback.format_exc())
+        return JsonResponse({'success': False, 'error': f'An unexpected error occurred: {str(e)}'}, status=500)
 
 
 @require_POST
