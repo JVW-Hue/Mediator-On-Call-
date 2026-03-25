@@ -281,36 +281,40 @@
             </div>
         </div>
         
-        <!-- Step 3: Photos & Documents (Optional) -->
+        <!-- Step 3: Upload Documents -->
         <div class="form-section hidden" id="step3">
-            <h5><i class="bi bi-camera"></i> Step 3: Photos & Documents <span class="optional-badge">OPTIONAL</span></h5>
+            <h5><i class="bi bi-upload"></i> Upload Documents</h5>
             <p class="text-muted">Add photos and documents to support your dispute. You can skip this step.</p>
             
-            <div class="upload-section">
-                <div class="upload-box">
-                    <i class="bi bi-camera-fill d-block"></i>
-                    <strong>Photos</strong>
-                    <p class="small text-muted mb-2">Take or upload photos</p>
-                    <label for="id_photo" class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-plus"></i> Add Photos
-                    </label>
-                    <input type="file" id="id_photo" name="photo" accept="image/*" capture="environment" class="d-none" multiple>
+            <!-- Two Upload Boxes -->
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3">
+                    <div class="upload-box text-center p-4" style="border: 2px dashed #667eea; border-radius: 16px; background: #f8f9ff;">
+                        <i class="bi bi-camera-fill" style="font-size: 3rem; color: #667eea;"></i>
+                        <h5 class="mt-3">Photos</h5>
+                        <p class="small text-muted mb-3">Take new photos or upload from gallery</p>
+                        <label for="id_photo" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-1"></i> Add Photos
+                        </label>
+                        <input type="file" id="id_photo" name="photo" accept="image/*" capture="environment" class="d-none" multiple>
+                    </div>
+                    <!-- Photo Preview List -->
+                    <div id="photo-preview" class="d-flex gap-2 flex-wrap mt-3" style="max-width: 100%; overflow: hidden;"></div>
+                    <div id="photo-count" class="mt-2 text-success fw-bold"></div>
                 </div>
-                <div class="upload-box">
-                    <i class="bi bi-file-earmark-arrow-up d-block"></i>
-                    <strong>Documents</strong>
-                    <p class="small text-muted mb-2">Upload PDF, Word, images</p>
-                    <label for="doc-0" class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-plus"></i> Add Files
-                    </label>
+                <div class="col-md-6 mb-3">
+                    <div class="upload-box text-center p-4" style="border: 2px dashed #28a745; border-radius: 16px; background: #f0fff4;">
+                        <i class="bi bi-file-earmark-arrow-up" style="font-size: 3rem; color: #28a745;"></i>
+                        <h5 class="mt-3">Documents</h5>
+                        <p class="small text-muted mb-3">Upload PDF, Word, or image files</p>
+                        <label for="doc-0" class="btn btn-success">
+                            <i class="bi bi-plus-circle me-1"></i> Add Files
+                        </label>
+                    </div>
                 </div>
             </div>
             
-            <!-- Photo Preview -->
-            <div id="photo-preview" class="d-flex gap-2 flex-wrap mb-3" style="max-width: 100%; overflow: hidden;"></div>
-            <div id="photo-count" class="mb-3 text-success fw-bold"></div>
-            
-            <!-- Documents -->
+            <!-- Document Upload Fields -->
             <div class="mb-3" id="documents-container">
                 <div class="input-group mb-2" id="doc-0">
                     <input type="file" name="document_set-0-file" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
@@ -320,7 +324,9 @@
                 </div>
             </div>
             <input type="hidden" id="document-count" value="1">
-            <small class="text-muted d-block">Click + to add more documents. Leave empty to skip.</small>
+            <small class="text-muted d-block"><i class="bi bi-info-circle me-1"></i>Click + to add more documents. Leave empty to skip.</small>
+            
+            <!-- Hidden Form Management -->
             <div style="display: none;">
                 <input type="hidden" name="document_set-TOTAL_FORMS" id="id_document_set-TOTAL_FORMS" value="1">
                 <input type="hidden" name="document_set-INITIAL_FORMS" id="id_document_set-INITIAL_FORMS" value="0">
