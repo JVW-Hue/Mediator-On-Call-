@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -o errexit
 
-pip install -r requirements.txt
-
 echo "Running migrations..."
 python manage.py migrate --run-syncdb
 
@@ -17,11 +15,17 @@ import django
 django.setup()
 from django.contrib.auth import get_user_model
 User = get_user_model()
-if not User.objects.filter(username='admin').exists():
-    User.objects.create_superuser('admin', 'admin@example.com', 'admin123')
-    print('Superuser created: admin / admin123')
+username = 'mediatoradmin'
+email = 'mediator@probonomediation.co.za'
+password = 'Mediator@2026'
+if not User.objects.filter(username=username).exists():
+    User.objects.create_superuser(username, email, password)
+    print(f'Superuser created: {username} / {password}')
 else:
-    print('Admin user already exists')
+    user = User.objects.get(username=username)
+    user.set_password(password)
+    user.save()
+    print(f'Superuser password updated: {username} / {password}')
 "
 
 echo "Loading fixture data..."
