@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 echo "Running migrations..."
-python manage.py migrate --run-syncdb || echo "Migration error (continuing)"
+python manage.py migrate --run-syncdb
+python manage.py migrate sessions
 
 echo "Collecting static files..."
 python manage.py collectstatic --noinput --clear || echo "Static files error (continuing)"

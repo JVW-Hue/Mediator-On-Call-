@@ -65,12 +65,7 @@ class CustomLoginView(auth_views.LoginView):
     template_name = 'registration/login.html'
     
     def post(self, request, *args, **kwargs):
-        try:
-            return super().post(request, *args, **kwargs)
-        except OperationalError as e:
-            logging.error(f"Database error during login: {e}")
-            messages.error(request, "The system is temporarily unavailable. Please try again in a few minutes.")
-            return self.render_to_response(self.get_context_data(form=AuthenticationForm()))
+        return super().post(request, *args, **kwargs)
     
     def form_valid(self, form):
         try:
