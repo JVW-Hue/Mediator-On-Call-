@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 echo "=== Starting build ==="
 
@@ -13,7 +14,7 @@ mkdir -p media/temp_photos
 mkdir -p media/documents
 chmod -R 755 media
 
-echo "Creating JVW mediator user..."
+echo "Creating users..."
 python manage.py shell << 'EOF'
 import os
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mediators_on_call.settings')
@@ -50,3 +51,4 @@ else:
 EOF
 
 echo "=== Build complete ==="
+
