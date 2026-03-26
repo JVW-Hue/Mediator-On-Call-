@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: mediator-on-call
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn mediators_on_call.wsgi:application --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: mediators_on_call.settings
+      - key: PYTHON_VERSION
+        value: "3.11.0"
