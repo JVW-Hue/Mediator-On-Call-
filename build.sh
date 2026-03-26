@@ -2,7 +2,18 @@
 set -e
 
 echo "=== Running migrations ==="
-python manage.py migrate
+python manage.py migrate --verbosity 2
+
+echo "=== Checking for auth_user table ==="
+TABLE_CHECK=$(python manage.py shell -c "from django.db import connection; cursor = connection.cursor(); cursor.execute(\"SELECT name FROM sqlite_master WHERE type='table' AND name='auth_user';\"); result = cursor.fetchone(); print('FOUND' if result else 'NOT FOUND')")
+echo "Auth user table check: $TABLE_CHECK"
+
+if [ "$TABLE_CHECK" != "FOUND" ]; then
+    echo "ERROR: auth_user table not found after migrations!"
+    echo "Listing tables:"
+    python manage.py shell -c "from django.db import connection; cursor = connection.cursor(); cursor.execute(\"SELECT name FROM sqlite_master WHERE type='table';\"); tables = cursor.fetchall(); print('\\n'.join([t[0] for t in tables]))"
+    exit 1
+fi
 
 echo "=== Collecting static files ==="
 python manage.py collectstatic --noinput --clear
