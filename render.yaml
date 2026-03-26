@@ -2,17 +2,5 @@ services:
   - type: web
     name: mediator-on-call
     runtime: python
-    plan: free
-    buildCommand: |
-      pip install --upgrade pip
-      python manage.py migrate
-      python manage.py collectstatic --noinput
-      ./build.sh
-    startCommand: gunicorn mediators_on_call.wsgi:application --bind 0.0.0.0:$PORT --config gunicorn.conf.py
-    envVars:
-      - key: DJANGO_SETTINGS_MODULE
-        value: mediators_on_call.settings
-      - key: DJANGO_DEBUG
-        value: "False"
-      - key: PYTHON_VERSION
-        value: "3.11.0"
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn mediators_on_call.wsgi:application --bind 0.0.0.0:$PORT --config gunicorn.conf.py"
