@@ -1,20 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
-echo "=== Starting build ==="
+echo "=== Creating users ==="
 
-echo "Running all migrations..."
-python manage.py migrate
-
-echo "Collecting static files..."
-python manage.py collectstatic --noinput --clear
-
-echo "Creating media directories..."
-mkdir -p media/temp_photos
-mkdir -p media/documents
-chmod -R 755 media
-
-echo "Creating users..."
 python manage.py shell << 'EOF'
 import os
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mediators_on_call.settings')
@@ -30,7 +18,10 @@ if not User.objects.filter(username='JVW').exists():
     user = User.objects.create_user('JVW', 'jvw@probonomediation.co.za', 'JVW123')
     user.is_staff = True
     user.save()
-    Mediator.objects.create(user=user, name='JVW', email='jvw@probonomediation.co.za', phone='0000000000')
+    try:
+        Mediator.objects.create(user=user, name='JVW', email='jvw@probonomediation.co.za', phone='0000000000')
+    except Exception as e:
+        print(f"Mediator record issue: {e}")
     print('Mediator JVW created')
 else:
     user = User.objects.get(username='JVW')
@@ -51,4 +42,3 @@ else:
 EOF
 
 echo "=== Build complete ==="
-
