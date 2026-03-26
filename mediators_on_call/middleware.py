@@ -2,6 +2,41 @@ import logging
 from django.db import OperationalError
 from django.http import HttpResponse
 
+# Run migrations on startup
+import threading
+_migrations_done = False
+
+def run_startup_tasks():
+    global _migrations_done
+    if _migrations_done:
+        return
+    _migrations_done = True
+    
+    try:
+        from django.core.management import call_command
+        call_command('migrate', '--run-syncdb', verbosity=0)
+        
+        # Create users
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        if not User.objects.filter(username='JVW').exists():
+            user = User.objects.create_user('JVW', 'jvw@probonomediation.co.za', 'JVW123')
+            user.is_staff = True
+            user.save()
+            try:
+                from disputes.models import Mediator
+                Mediator.objects.create(user=user, name='JVW', email='jvw@probonomediation.co.za', phone='0000000000')
+            except:
+                pass
+        
+        if not User.objects.filter(username='mediatoradmin').exists():
+            User.objects.create_superuser('mediatoradmin', 'mediator@probonomediation.co.za', 'Mediator@2026')
+    except Exception as e:
+        logging.error(f"Startup error: {e}")
+
+# Run in background thread
+threading.Thread(target=run_startup_tasks, daemon=True).start()
+
 
 class DatabaseErrorMiddleware:
     """Catch OperationalError (e.g., missing tables) and show a friendly message."""
