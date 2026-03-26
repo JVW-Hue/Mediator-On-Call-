@@ -20,13 +20,12 @@ from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 
-from dashboard.views import CustomLoginView, no_access, signup
+from dashboard.views import CustomLoginView, no_access
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("login/", CustomLoginView.as_view(), name="login"),
     path("logout/", auth_views.LogoutView.as_view(next_page="login"), name="logout"),
-    path("signup/", signup, name="signup"),
     path("no-access/", no_access, name="no_access"),
     path("dashboard/", include("dashboard.urls")),
     path("", include("disputes.urls")),

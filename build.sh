@@ -16,6 +16,34 @@ mkdir -p media/documents
 chmod -R 755 media
 echo "Media directories created"
 
+echo "Creating JVW mediator user..."
+python -c "
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mediators_on_call.settings')
+import django
+django.setup()
+from django.contrib.auth import get_user_model
+from disputes.models import Mediator
+User = get_user_model()
+username = 'JVW'
+email = 'jvw@probonomediation.co.za'
+password = 'JVW123'
+if not User.objects.filter(username=username).exists():
+    user = User.objects.create_user(username, email, password)
+    user.is_staff = True
+    user.save()
+    Mediator.objects.create(user=user, name='JVW', email=email, phone='0000000000')
+    print(f'Mediator created: {username} / {password}')
+else:
+    user = User.objects.get(username=username)
+    user.set_password(password)
+    user.is_staff = True
+    user.save()
+    if not Mediator.objects.filter(user=user).exists():
+        Mediator.objects.create(user=user, name='JVW', email=email, phone='0000000000')
+    print(f'Mediator password updated: {username} / {password}')
+"
+
 echo "Creating superuser..."
 python -c "
 import os
