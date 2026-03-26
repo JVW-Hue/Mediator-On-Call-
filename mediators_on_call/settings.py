@@ -128,18 +128,6 @@ if os.environ.get('DATABASE_URL'):
     DATABASES = {
         'default': dj_database_url.parse(os.environ.get('DATABASE_URL'))
     }
-elif os.environ.get('RENDER'):
-    # On Render, use PostgreSQL from environment variables
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('POSTGRES_DB', 'mediators'),
-            'USER': os.environ.get('POSTGRES_USER', 'mediators'),
-            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
-            'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
-            'PORT': os.environ.get('POSTGRES_PORT', '5432'),
-        }
-    }
 else:
     DATABASES = {
         'default': {
