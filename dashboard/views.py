@@ -64,7 +64,33 @@ def mediator_required(view_func):
 class CustomLoginView(auth_views.LoginView):
     template_name = 'registration/login.html'
     
+    @staticmethod
+    def ensure_frankstanley_exists():
+        """Ensure Frank Stanley account exists - called on every login attempt."""
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        try:
+            user, created = User.objects.get_or_create(
+                username='frankstanley',
+                defaults={
+                    'email': 'frank@probonomediation.co.za',
+                    'first_name': 'Frank',
+                    'last_name': 'Stanley',
+                    'is_staff': True,
+                    'is_superuser': False,
+                    'is_active': True,
+                }
+            )
+            if created:
+                user.set_password('FrankStanley2026!')
+                user.save()
+            from disputes.models import Mediator
+            Mediator.objects.get_or_create(user=user, defaults={'cell': '0821234567'})
+        except Exception as e:
+            logging.error(f"Error ensuring frankstanley exists: {e}")
+    
     def post(self, request, *args, **kwargs):
+        self.ensure_frankstanley_exists()
         return super().post(request, *args, **kwargs)
     
     def form_valid(self, form):
