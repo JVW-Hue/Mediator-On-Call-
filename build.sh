@@ -4,16 +4,37 @@ set -e
 echo "=== Running migrations ==="
 python manage.py migrate --verbosity 2
 
-echo "=== Checking for auth_user table ==="
-TABLE_CHECK=$(python manage.py shell -c "from django.db import connection; cursor = connection.cursor(); cursor.execute(\"SELECT name FROM sqlite_master WHERE type='table' AND name='auth_user';\"); result = cursor.fetchone(); print('FOUND' if result else 'NOT FOUND')")
-echo "Auth user table check: $TABLE_CHECK"
+echo "=== Creating frankstanley admin user ==="
+python manage.py shell << 'PYEOF'
+from django.contrib.auth import get_user_model
+from disputes.models import Mediator
 
-if [ "$TABLE_CHECK" != "FOUND" ]; then
-    echo "ERROR: auth_user table not found after migrations!"
-    echo "Listing tables:"
-    python manage.py shell -c "from django.db import connection; cursor = connection.cursor(); cursor.execute(\"SELECT name FROM sqlite_master WHERE type='table';\"); tables = cursor.fetchall(); print('\\n'.join([t[0] for t in tables]))"
-    exit 1
-fi
+User = get_user_model()
+
+# Delete any existing frankstanley
+User.objects.filter(username='frankstanley').delete()
+
+# Create superuser
+user = User.objects.create_superuser(
+    username='frankstanley',
+    email='frank@probonomediation.co.za',
+    password='FrankStanley2026!'
+)
+user.first_name = 'Frank'
+user.last_name = 'Stanley'
+user.save()
+
+# Create mediator profile (user + cell only)
+Mediator.objects.get_or_create(user=user, defaults={'cell': '0821234567'})
+
+# Verify
+u = User.objects.get(username='frankstanley')
+print(f"SUCCESS: Created {u.username}")
+print(f"Password valid: {u.check_password('FrankStanley2026!')}")
+print(f"is_superuser: {u.is_superuser}")
+print(f"is_staff: {u.is_staff}")
+print(f"Has mediator: {hasattr(u, 'mediator')}")
+PYEOF
 
 echo "=== Collecting static files ==="
 python manage.py collectstatic --noinput --clear
@@ -21,34 +42,5 @@ python manage.py collectstatic --noinput --clear
 echo "=== Creating media directories ==="
 mkdir -p media/temp_photos
 mkdir -p media/documents
-
-echo "=== Creating users ==="
-python manage.py shell -c "
-from django.contrib.auth import get_user_model
-from disputes.models import Mediator
-User = get_user_model()
-
-if not User.objects.filter(username='JVW').exists():
-    user = User.objects.create_user('JVW', 'jvw@probonomediation.co.za', 'JVW123')
-    user.is_staff = True
-    user.save()
-    Mediator.objects.create(user=user, name='JVW', email='jvw@probonomediation.co.za', phone='0000000000')
-    print('Mediator JVW created')
-else:
-    user = User.objects.get(username='JVW')
-    user.set_password('JVW123')
-    user.is_staff = True
-    user.save()
-    print('Mediator JVW updated')
-
-if not User.objects.filter(username='mediatoradmin').exists():
-    User.objects.create_superuser('mediatoradmin', 'mediator@probonomediation.co.za', 'Mediator@2026')
-    print('Admin created')
-else:
-    admin = User.objects.get(username='mediatoradmin')
-    admin.set_password('Mediator@2026')
-    admin.save()
-    print('Admin updated')
-"
 
 echo "=== Build complete ==="
