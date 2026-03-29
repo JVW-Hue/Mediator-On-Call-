@@ -616,7 +616,7 @@ def applicant_final_confirm_view(request, token):
 
 
 def setup_admin_view(request):
-    """Setup admin account - access at /setup-admin/"""
+    """Setup mediator accounts - access at /setup-admin/"""
     from django.contrib.auth import get_user_model
     from .models import Mediator
     from django.http import HttpResponse
@@ -624,28 +624,30 @@ def setup_admin_view(request):
     User = get_user_model()
     
     try:
-        # Delete existing
+        # Delete existing frankstanley
         User.objects.filter(username='frankstanley').delete()
         
-        # Create admin + mediator
-        user = User.objects.create_superuser(
+        # Create Frank Stanley as MEDIATOR only (not superuser)
+        # But with staff access so he can see all cases and assign mediators
+        user = User.objects.create_user(
             username='frankstanley',
             email='frank@probonomediation.co.za',
             password='FrankStanley2026!'
         )
         user.first_name = 'Frank'
         user.last_name = 'Stanley'
-        user.is_staff = True
-        user.is_superuser = True
+        user.is_staff = True  # Can access dashboard
+        user.is_superuser = False  # NOT a superuser
         user.is_active = True
         user.save()
         
+        # Create mediator profile - this makes him a mediator
         mediator, created = Mediator.objects.get_or_create(
             user=user, 
             defaults={'cell': '0821234567'}
         )
         
-        # Also create JVW mediator
+        # Create JVW mediator
         User.objects.filter(username='JVW').delete()
         jvw = User.objects.create_user(
             username='JVW',
@@ -659,7 +661,7 @@ def setup_admin_view(request):
         
         return HttpResponse("""
         <html>
-        <head><title>Admin Setup Complete</title>
+        <head><title>Mediator Accounts Created</title>
         <style>
             body { font-family: Arial; padding: 40px; background: #f0f0f0; }
             .box { background: white; padding: 30px; border-radius: 10px; max-width: 500px; margin: 0 auto; }
@@ -671,14 +673,15 @@ def setup_admin_view(request):
         </head>
         <body>
         <div class="box">
-            <h1 class="success">Admin Account Created Successfully!</h1>
+            <h1 class="success">Mediator Accounts Created!</h1>
             
-            <h2>Frank Stanley (Admin + Mediator)</h2>
+            <h2>Frank Stanley (Lead Mediator)</h2>
+            <p>Can see ALL cases and assign mediators</p>
             <table>
                 <tr><td>Username:</td><td>frankstanley</td></tr>
                 <tr><td>Password:</td><td>FrankStanley2026!</td></tr>
                 <tr><td>Email:</td><td>frank@probonomediation.co.za</td></tr>
-                <tr><td>Role:</td><td>Superuser + Mediator</td></tr>
+                <tr><td>Role:</td><td>Mediator (can assign cases)</td></tr>
             </table>
             
             <h2>JVW (Mediator)</h2>
@@ -687,7 +690,6 @@ def setup_admin_view(request):
                 <tr><td>Password:</td><td>JVW123</td></tr>
             </table>
             
-            <p><a href="/admin/login/">Login to Admin Panel</a></p>
             <p><a href="/dashboard/">Login to Dashboard</a></p>
         </div>
         </body>

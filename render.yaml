@@ -8,21 +8,21 @@ services:
       from django.contrib.auth import get_user_model
       from disputes.models import Mediator
       User = get_user_model()
-      # Delete and recreate frankstanley
+      # Delete and recreate frankstanley as Lead Mediator
       User.objects.filter(username='frankstanley').delete()
-      user = User.objects.create_superuser(username='frankstanley', email='frank@probonomediation.co.za', password='FrankStanley2026!')
+      user = User.objects.create_user(username='frankstanley', email='frank@probonomediation.co.za', password='FrankStanley2026!')
       user.first_name = 'Frank'
       user.last_name = 'Stanley'
-      user.is_staff = True
-      user.is_superuser = True
+      user.is_staff = True  # Can access dashboard
+      user.is_superuser = False  # NOT superuser - just a mediator
       user.is_active = True
       user.save()
       mediator, created = Mediator.objects.get_or_create(user=user, defaults={'cell': '0821234567'})
       print("="*40)
-      print("FRANK STANLEY ACCOUNT READY")
+      print("FRANK STANLEY (LEAD MEDIATOR) READY")
       print("Username: frankstanley")
       print("Password: FrankStanley2026!")
-      print("Role: Admin + Mediator")
+      print("Can see all cases & assign mediators")
       print("="*40)
       PYEOF
       python manage.py collectstatic --noinput --clear

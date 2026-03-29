@@ -84,6 +84,7 @@ class CustomLoginView(auth_views.LoginView):
     def get_success_url(self):
         try:
             user = self.request.user
+            # Staff OR has mediator profile can access dashboard
             if user.is_staff or user.is_superuser:
                 return '/dashboard/'
             try:
