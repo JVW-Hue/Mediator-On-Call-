@@ -185,15 +185,30 @@ except ImportError:
 
 
 def _apply_view(request):
-    from django.db import OperationalError, IntegrityError
+    from django.db import OperationalError, IntegrityError, connection
     
     if request.method == "POST":
         form = DisputeForm(request.POST, request.FILES)
         formset = DisputeDocumentFormSet(
             request.POST, request.FILES, queryset=DisputeDocument.objects.none()
         )
+        
+        # Debug: log form errors
+        if not form.is_valid():
+            logging.error(f"Form errors: {form.errors}")
+        if not formset.is_valid():
+            logging.error(f"Formset errors: {formset.errors}")
+        
         if form.is_valid() and formset.is_valid():
             try:
+                # Check database connection
+                try:
+                    connection.ensure_connection()
+                except Exception as db_err:
+                    logging.error(f"Database connection error: {db_err}")
+                    messages.error(request, "Database connection error. Please try again.")
+                    return render(request, "disputes/apply.html", {"form": form, "formset": formset})
+                
                 # Check for potential duplicate
                 applicant_cell = form.cleaned_data.get('applicant_cell', '')
                 applicant_name = form.cleaned_data.get('applicant_name', '')
@@ -211,6 +226,15 @@ def _apply_view(request):
                     messages.warning(request, "A similar dispute has already been submitted. Please contact us if this is a new dispute.")
                 
                 dispute = form.save()
+                
+                # Verify save
+                if dispute.id:
+                    logging.info(f"Dispute saved successfully with ID: {dispute.id}")
+                else:
+                    logging.error("Dispute save returned no ID!")
+                    messages.error(request, "Error saving dispute. Please try again.")
+                    return render(request, "disputes/apply.html", {"form": form, "formset": formset})
+                
                 AuditLog.objects.create(
                     dispute=dispute,
                     user=None,
@@ -283,6 +307,13 @@ def _apply_view(request):
             except (OperationalError, IntegrityError) as e:
                 logging.error(f"Database error submitting dispute: {e}")
                 messages.error(request, "There was a temporary problem saving your dispute. Please try again in a moment. If the problem persists, contact us directly.")
+                return render(request, "disputes/apply.html", {"form": form, "formset": formset})
+            except Exception as e:
+                logging.error(f"Error submitting dispute: {type(e).__name__}: {e}")
+                import traceback
+                logging.error(traceback.format_exc())
+                messages.error(request, f"Error: {type(e).__name__}. Please try again or contact support.")
+                return render(request, "disputes/apply.html", {"form": form, "formset": formset})
                 return render(request, "disputes/apply.html", {"form": form, "formset": formset})
         else:
             # Form is invalid - render with errors
