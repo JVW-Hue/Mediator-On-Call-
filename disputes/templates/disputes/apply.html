@@ -1,143 +1,120 @@
-// Validate current step before moving forward
-function validateStep(step) {
-    // Clear any existing validation errors for this step
-    clearValidationErrors();
-    
-    if (step === 1) {
+function nextStep() {
+    // Validate current step before moving forward
+    if (currentStep === 1) {
         // Validate Step 1: Applicant Information
-        var applicantName = document.getElementById('id_applicant_name');
-        var applicantSurname = document.getElementById('id_applicant_surname');
-        var applicantCell = document.getElementById('id_applicant_cell');
+        var applicantName = document.getElementById('id_applicant_name').value.trim();
+        var applicantSurname = document.getElementById('id_applicant_surname').value.trim();
+        var applicantCell = document.getElementById('id_applicant_cell').value.trim();
         
-        if (!applicantName.value.trim()) {
+        if (!applicantName) {
             showError('id_applicant_name', 'Please enter your first name');
-            return false;
+            return;
         }
-        if (!applicantSurname.value.trim()) {
+        if (!applicantSurname) {
             showError('id_applicant_surname', 'Please enter your last name');
-            return false;
+            return;
         }
-        if (!applicantCell.value.trim()) {
+        if (!applicantCell) {
             showError('id_applicant_cell', 'Please enter your cell phone number');
-            return false;
+            return;
         }
-        if (!/^\d+$/.test(applicantCell.value.trim())) {
+        if (!/^\d+$/.test(applicantCell)) {
             showError('id_applicant_cell', 'Please enter numbers only for cell phone');
-            return false;
+            return;
         }
-    } else if (step === 2) {
+    } else if (currentStep === 2) {
         // Validate Step 2: Dispute Details
         var disputeType = document.querySelector('input[name="dispute_type"]:checked');
         if (!disputeType) {
-            showError('id_dispute_type', 'Please select a dispute type');
-            return false;
+            showError('dispute_type', 'Please select a dispute type');
+            return;
         }
-        var description = document.getElementById('id_description');
-        if (!description || !description.value.trim()) {
+        var description = document.getElementById('id_description').value.trim();
+        if (!description) {
             showError('id_description', 'Please describe your dispute in detail');
-            return false;
+            return;
         }
-    } else if (step === 3) {
-        // Step 3: Documents (optional, no validation needed)
-        return true;
-    } else if (step === 4) {
-        // Step 4: Respondent Type (radio buttons, always selected)
-        return true;
-    } else if (step === 5) {
+    } else if (currentStep === 3) {
+        // Validate Step 3: Documents (optional, so always allow)
+        // No validation needed for documents section
+    } else if (currentStep === 4) {
+        // Validate Step 4: Respondent Type (handled by radio buttons, always selected)
+        // No additional validation needed
+    } else if (currentStep === 5) {
         // Validate Step 5: Respondent Information
-        var respondentType = document.querySelector('input[name="respondent_type"]:checked');
-        if (!respondentType) {
-            showError('respondent_type', 'Please select respondent type');
-            return false;
-        }
-        if (respondentType.value === 'ind') {
+        var respondentType = document.querySelector('input[name="respondent_type"]:checked').value;
+        if (respondentType === 'ind') {
             // Individual respondent validation
-            var respondentName = document.getElementById('ind_respondent_name');
-            var respondentSurname = document.getElementById('id_respondent_surname');
-            var respondentCell = document.getElementById('id_respondent_cell');
+            var respondentName = document.getElementById('ind_respondent_name').value.trim();
+            var respondentSurname = document.getElementById('id_respondent_surname').value.trim();
+            var respondentCell = document.getElementById('id_respondent_cell').value.trim();
             
-            if (!respondentName || !respondentName.value.trim()) {
+            if (!respondentName) {
                 showError('ind_respondent_name', 'Please enter respondent\'s first name');
-                return false;
+                return;
             }
-            if (!respondentSurname || !respondentSurname.value.trim()) {
+            if (!respondentSurname) {
                 showError('id_respondent_surname', 'Please enter respondent\'s last name');
-                return false;
+                return;
             }
-            if (!respondentCell || !respondentCell.value.trim()) {
+            if (!respondentCell) {
                 showError('id_respondent_cell', 'Please enter respondent\'s cell phone number');
-                return false;
+                return;
             }
-            if (!/^\d+$/.test(respondentCell.value.trim())) {
+            if (!/^\d+$/.test(respondentCell)) {
                 showError('id_respondent_cell', 'Please enter numbers only for cell phone');
-                return false;
+                return;
             }
-        } else if (respondentType.value === 'bus') {
+        } else if (respondentType === 'bus') {
             // Business respondent validation
-            var businessName = document.getElementById('bus_business_name');
-            var ownerName = document.getElementById('id_owner_name');
+            var businessName = document.getElementById('bus_business_name').value.trim();
+            var ownerName = document.getElementById('id_owner_name').value.trim();
             
-            if (!businessName || !businessName.value.trim()) {
+            if (!businessName) {
                 showError('bus_business_name', 'Please enter business name');
-                return false;
+                return;
             }
-            if (!ownerName || !ownerName.value.trim()) {
+            if (!ownerName) {
                 showError('id_owner_name', 'Please enter owner/representative first name');
-                return false;
+                return;
             }
         }
     }
     
-    return true;
-}
-
-function nextStep() {
-    // Only proceed if current step is valid
-    if (validateStep(currentStep)) {
-        if (currentStep < totalSteps) {
-            currentStep++;
-            updateStepDisplay();
-            window.scrollTo({top: 0, behavior: 'smooth'});
-        }
+    // If validation passes, proceed to next step
+    if (currentStep < totalSteps) {
+        currentStep++;
+        updateStepDisplay();
+        window.scrollTo({top: 0, behavior: 'smooth'});
     }
 }
 
 function showError(fieldId, message) {
-    // Remove existing error messages
-    clearValidationErrors();
-    
     // Focus on the field with error
     var field = document.getElementById(fieldId);
     if (field) {
         field.focus();
         field.classList.add('is-invalid');
         
-        // Create error message
+        // Create or update error message
         var errorDiv = document.createElement('div');
         errorDiv.className = 'invalid-feedback';
         errorDiv.style.display = 'block';
         errorDiv.textContent = message;
         
-        // Add error message after the field
-        if (field.parentElement) {
-            field.parentElement.appendChild(errorDiv);
+        // Remove any existing error message
+        var existingError = field.parentElement.querySelector('.invalid-feedback');
+        if (existingError) {
+            existingError.remove();
         }
         
-        // Scroll to the error field
-        field.scrollIntoView({behavior: 'smooth', block: 'center'});
+        // Add error message after the field
+        field.parentElement.appendChild(errorDiv);
+        
+        // Add Bootstrap invalid class to the field
+        field.classList.add('is-invalid');
     }
-}
-
-function clearValidationErrors() {
-    // Remove all error messages
-    var invalidFeedbacks = document.querySelectorAll('.invalid-feedback');
-    invalidFeedbacks.forEach(function(el) {
-        el.remove();
-    });
     
-    // Remove invalid classes from form controls
-    var invalidFields = document.querySelectorAll('.is-invalid');
-    invalidFields.forEach(function(el) {
-        el.classList.remove('is-invalid');
-    });
+    // Scroll to the error field
+    field.scrollIntoView({behavior: 'smooth', block: 'center'});
 }
