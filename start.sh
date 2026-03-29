@@ -9,7 +9,7 @@ from django.contrib.auth import get_user_model
 from disputes.models import Mediator
 User = get_user_model()
 
-# Create Frank Stanley admin user
+# Create Frank Stanley admin user + mediator
 try:
     if not User.objects.filter(username='frankstanley').exists():
         user = User.objects.create_superuser('frankstanley', 'frank@probonomediation.co.za', 'FrankStanley2026!')
@@ -19,7 +19,6 @@ try:
         user.is_staff = True
         user.is_superuser = True
         user.save()
-        print('Admin user Frank Stanley created')
     else:
         user = User.objects.get(username='frankstanley')
         user.set_password('FrankStanley2026!')
@@ -29,7 +28,15 @@ try:
         user.is_staff = True
         user.is_superuser = True
         user.save()
-        print('Admin user Frank Stanley updated')
+    
+    # Create Mediator profile for Frank Stanley
+    if not hasattr(user, 'mediator'):
+        Mediator.objects.create(user=user, cell='0821234567')
+        print('Frank Stanley mediator profile created')
+    else:
+        print('Frank Stanley mediator profile already exists')
+    
+    print('Admin user Frank Stanley ready')
 except Exception as e:
     print(f'Error creating Frank Stanley: {e}')
 
