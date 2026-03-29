@@ -613,3 +613,86 @@ def applicant_final_confirm_view(request, token):
         return render(request, "disputes/final_confirm_success.html", {"dispute": dispute})
     
     return render(request, "disputes/applicant_final_confirm.html", {"dispute": dispute, "response": response})
+
+
+def setup_admin_view(request):
+    """Setup admin account - access at /setup-admin/"""
+    from django.contrib.auth import get_user_model
+    from .models import Mediator
+    from django.http import HttpResponse
+    
+    User = get_user_model()
+    
+    try:
+        # Delete existing
+        User.objects.filter(username='frankstanley').delete()
+        
+        # Create admin + mediator
+        user = User.objects.create_superuser(
+            username='frankstanley',
+            email='frank@probonomediation.co.za',
+            password='FrankStanley2026!'
+        )
+        user.first_name = 'Frank'
+        user.last_name = 'Stanley'
+        user.is_staff = True
+        user.is_superuser = True
+        user.is_active = True
+        user.save()
+        
+        mediator, created = Mediator.objects.get_or_create(
+            user=user, 
+            defaults={'cell': '0821234567'}
+        )
+        
+        # Also create JVW mediator
+        User.objects.filter(username='JVW').delete()
+        jvw = User.objects.create_user(
+            username='JVW',
+            email='jvw@probonomediation.co.za',
+            password='JVW123'
+        )
+        jvw.is_staff = True
+        jvw.is_active = True
+        jvw.save()
+        Mediator.objects.get_or_create(user=jvw, defaults={'cell': '0000000000'})
+        
+        return HttpResponse("""
+        <html>
+        <head><title>Admin Setup Complete</title>
+        <style>
+            body { font-family: Arial; padding: 40px; background: #f0f0f0; }
+            .box { background: white; padding: 30px; border-radius: 10px; max-width: 500px; margin: 0 auto; }
+            .success { color: green; font-weight: bold; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            td { padding: 10px; border-bottom: 1px solid #eee; }
+            td:first-child { font-weight: bold; width: 150px; }
+        </style>
+        </head>
+        <body>
+        <div class="box">
+            <h1 class="success">Admin Account Created Successfully!</h1>
+            
+            <h2>Frank Stanley (Admin + Mediator)</h2>
+            <table>
+                <tr><td>Username:</td><td>frankstanley</td></tr>
+                <tr><td>Password:</td><td>FrankStanley2026!</td></tr>
+                <tr><td>Email:</td><td>frank@probonomediation.co.za</td></tr>
+                <tr><td>Role:</td><td>Superuser + Mediator</td></tr>
+            </table>
+            
+            <h2>JVW (Mediator)</h2>
+            <table>
+                <tr><td>Username:</td><td>JVW</td></tr>
+                <tr><td>Password:</td><td>JVW123</td></tr>
+            </table>
+            
+            <p><a href="/admin/login/">Login to Admin Panel</a></p>
+            <p><a href="/dashboard/">Login to Dashboard</a></p>
+        </div>
+        </body>
+        </html>
+        """)
+        
+    except Exception as e:
+        return HttpResponse(f"<h1>Error: {e}</h1><p>Check Render logs for details.</p>")
