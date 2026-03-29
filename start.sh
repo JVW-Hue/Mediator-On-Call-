@@ -12,10 +12,10 @@ from disputes.models import Mediator
 
 User = get_user_model()
 
-# Delete existing frankstanley if any issues
+# Delete existing
 User.objects.filter(username='frankstanley').delete()
 
-# Create fresh admin user
+# Create user
 user = User.objects.create_superuser(
     username='frankstanley',
     email='frank@probonomediation.co.za',
@@ -25,12 +25,18 @@ user.first_name = 'Frank'
 user.last_name = 'Stanley'
 user.save()
 
-# Create mediator profile
+# Create mediator
 Mediator.objects.get_or_create(user=user, defaults={'cell': '0821234567'})
 
-print(f"SUCCESS: Created frankstanley with password FrankStanley2026!")
-print(f"User is_superuser: {user.is_superuser}")
-print(f"User is_staff: {user.is_staff}")
+# Verify and print
+user = User.objects.get(username='frankstanley')
+print(f"=== USER CREATED ===")
+print(f"Username: {user.username}")
+print(f"Password set: {user.check_password('FrankStanley2026!')}")
+print(f"is_superuser: {user.is_superuser}")
+print(f"is_staff: {user.is_staff}")
+print(f"is_active: {user.is_active}")
+print(f"===================")
 PYEOF
 
 echo "=== Collecting static files ==="

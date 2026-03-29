@@ -82,6 +82,23 @@
     .login-footer a:hover {
         text-decoration: underline;
     }
+    .password-toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #6c757d;
+        background: none;
+        border: none;
+        padding: 0;
+    }
+    .password-toggle:hover {
+        color: #667eea;
+    }
+    .password-wrapper {
+        position: relative;
+    }
 </style>
 {% endblock %}
 
@@ -123,7 +140,12 @@
                     <label for="id_password" class="form-label">
                         <i class="bi bi-lock me-1"></i> Password
                     </label>
-                    <input type="password" name="password" class="form-control" id="id_password" required placeholder="Enter your password">
+                    <div class="password-wrapper">
+                        <input type="password" name="password" class="form-control" id="id_password" required placeholder="Enter your password">
+                        <button type="button" class="password-toggle" onclick="togglePassword()">
+                            <i class="bi bi-eye" id="eye-icon"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="mb-3 form-check">
                     <input type="checkbox" class="form-check-input" id="remember_me" name="remember_me">
@@ -136,4 +158,18 @@
         </div>
     </div>
 </div>
+
+<script>
+function togglePassword() {
+    var passwordInput = document.getElementById('id_password');
+    var eyeIcon = document.getElementById('eye-icon');
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        eyeIcon.className = 'bi bi-eye-slash';
+    } else {
+        passwordInput.type = 'password';
+        eyeIcon.className = 'bi bi-eye';
+    }
+}
+</script>
 {% endblock %}
