@@ -8,25 +8,52 @@ services:
       from django.contrib.auth import get_user_model
       from disputes.models import Mediator
       User = get_user_model()
-      # Delete and recreate frankstanley as Lead Mediator
-      User.objects.filter(username='frankstanley').delete()
-      user = User.objects.create_user(username='frankstanley', email='frank@probonomediation.co.za', password='FrankStanley2026!')
-      user.first_name = 'Frank'
-      user.last_name = 'Stanley'
-      user.is_staff = True  # Can access dashboard
-      user.is_superuser = False  # NOT superuser - just a mediator
-      user.is_active = True
-      user.save()
-      mediator, created = Mediator.objects.get_or_create(user=user, defaults={'cell': '0821234567'})
-      print("="*40)
-      print("FRANK STANLEY (LEAD MEDIATOR) READY")
-      print("Username: frankstanley")
-      print("Password: FrankStanley2026!")
-      print("Can see all cases & assign mediators")
-      print("="*40)
+      # Create Frank Stanley if doesn't exist
+      user, created = User.objects.get_or_create(
+          username='frankstanley',
+          defaults={
+              'email': 'frank@probonomediation.co.za',
+              'first_name': 'Frank',
+              'last_name': 'Stanley',
+              'is_staff': True,
+              'is_superuser': False,
+              'is_active': True,
+          }
+      )
+      if created:
+          user.set_password('FrankStanley2026!')
+          user.save()
+      Mediator.objects.get_or_create(user=user, defaults={'cell': '0821234567'})
+      
+      # Also ensure JVW exists
+      jvw, jvw_created = User.objects.get_or_create(
+          username='JVW',
+          defaults={
+              'email': 'jvw@probonomediation.co.za',
+              'is_staff': True,
+              'is_active': True,
+          }
+      )
+      if jvw_created:
+          jvw.set_password('JVW123')
+          jvw.save()
+      Mediator.objects.get_or_create(user=jvw, defaults={'cell': '0000000000'})
+      print("Users ready")
       PYEOF
       python manage.py collectstatic --noinput --clear
     startCommand: gunicorn mediators_on_call.wsgi --bind 0.0.0.0:10000 --config gunicorn.conf.py
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.0"
+      - key: DJANGO_SETTINGS_MODULE
+        value: "mediators_on_call.settings"
+    # PostgreSQL database for persistent data
+    database:
+      name: mediator-db
+      user: mediator_user
+
+databases:
+  - name: mediator-db
+    databaseName: mediator_on_call
+    user: mediator_user
+    plan: free
