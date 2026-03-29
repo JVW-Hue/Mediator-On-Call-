@@ -41,7 +41,7 @@ def send_email_notification(self, to_email: str, subject: str, body: str):
 
 
 @shared_task(bind=True, max_retries=3)
-def send_message_1_dispute_registered(self, to_email: str, applicant_name: str, case_id: int):
+def send_message_1_dispute_registered(self, to_email: str, applicant_name: str, case_id: int, to_phone: str = None):
     """MESSAGE 1: After registering your dispute - Confirmation to applicant"""
     subject = f"Thank You for Submitting Your Dispute - Case #{case_id}"
     body = f"""Dear {applicant_name},
@@ -53,6 +53,11 @@ We will review your case and contact you shortly with further instructions.
 Regards,
 Admin Team"""
     send_email_notification.delay(to_email, subject, body)
+    
+    # Also send SMS notification
+    if to_phone:
+        sms_body = f"Hi {applicant_name}, thank you for submitting your dispute (Case #{case_id}). Your info is being processed. The mediator assigned to you will contact you shortly. - Pro Bono Mediation"
+        send_sms_notification.delay(to=to_phone, body=sms_body)
 
 
 @shared_task(bind=True, max_retries=3)

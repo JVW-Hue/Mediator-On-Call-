@@ -275,16 +275,16 @@ def _apply_view(request):
                     except Exception as e:
                         logging.warning(f"Error linking photos: {e}")
                 
-                # Send Message 1: Thank you for submitting dispute confirmation
-                if dispute.applicant_email:
-                    try:
-                        send_message_1_dispute_registered.delay(
-                            to_email=dispute.applicant_email,
-                            applicant_name=dispute.applicant_name,
-                            case_id=dispute.id,
-                        )
-                    except Exception:
-                        pass
+                # Send Message 1: Thank you for submitting dispute confirmation (Email + SMS)
+                try:
+                    send_message_1_dispute_registered.delay(
+                        to_email=dispute.applicant_email or '',
+                        applicant_name=dispute.applicant_name,
+                        case_id=dispute.id,
+                        to_phone=dispute.applicant_cell or None,
+                    )
+                except Exception as e:
+                    logging.warning(f"Could not send confirmation: {e}")
                 
                 # Automatically reject family, labour, or property disputes
                 INELIGIBLE_TYPES = ['family', 'labour', 'property']
