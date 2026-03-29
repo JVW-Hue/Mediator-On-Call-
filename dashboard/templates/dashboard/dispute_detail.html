@@ -159,6 +159,15 @@
 {% endblock %}
 
 {% block dashboard_content %}
+
+<!-- Debug - Remove after testing -->
+<div class="alert alert-info">
+    <strong>Debug:</strong> 
+    Dispute ID: {{ dispute.id|default:"NONE" }} | 
+    Applicant: {{ dispute.applicant_name|default:"NO NAME" }} |
+    Status: {{ dispute.status|default:"NO STATUS" }}
+</div>
+
 <!-- Page Header -->
 <div class="page-header">
     <div class="d-flex align-items-center">
