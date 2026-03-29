@@ -47,17 +47,18 @@ class DisputeForm(forms.ModelForm):
         error_messages={'required': 'Please select a respondent type'},
     )
     respondent_name = forms.CharField(
-        required=False,
+        required=True,
         widget=forms.TextInput(attrs={"placeholder": "Enter respondent's first name"}),
     )
     respondent_surname = forms.CharField(
-        required=False,
-        widget=forms.TextInput(attrs={"placeholder": "Enter respondent's last name (optional)"}),
+        required=True,
+        widget=forms.TextInput(attrs={"placeholder": "Enter respondent's last name"}),
     )
     respondent_cell = forms.CharField(
-        required=False,
+        required=True,
         validators=[phone_validator],
-        widget=forms.TextInput(attrs={"placeholder": "Enter respondent's cell (optional)"}),
+        error_messages={'required': 'Please enter respondent\'s cell phone number'},
+        widget=forms.TextInput(attrs={"placeholder": "Enter respondent's cell"}),
     )
     respondent_email = forms.EmailField(
         required=False,
@@ -104,8 +105,8 @@ class DisputeForm(forms.ModelForm):
         error_messages={'required': 'Please select a dispute type'},
     )
     description = forms.CharField(
-        required=False,
-        widget=forms.Textarea(attrs={"rows": 4, "placeholder": "Describe your dispute in detail..."}),
+        required=True,
+        widget=forms.Textarea(attrs={"rows": 6, "placeholder": "Please describe your dispute in detail..."}),
     )
     mediation_location = forms.CharField(
         required=False,
@@ -131,11 +132,11 @@ class DisputeForm(forms.ModelForm):
             "respondent_name",
             "respondent_surname",
             "respondent_cell",
+            "respondent_email",
             "business_name",
             "owner_name",
             "owner_surname",
             "business_cell",
-            "respondent_email",
             "dispute_type",
             "description",
             "mediation_location",
@@ -154,6 +155,10 @@ class DisputeForm(forms.ModelForm):
         else:
             if not cleaned.get("respondent_name"):
                 self.add_error("respondent_name", "Please enter the respondent's first name")
+            if not cleaned.get("respondent_surname"):
+                self.add_error("respondent_surname", "Please enter the respondent's last name")
+            if not cleaned.get("respondent_cell"):
+                self.add_error("respondent_cell", "Please enter respondent's cell phone number")
         return cleaned
 
 
