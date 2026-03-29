@@ -42,7 +42,12 @@ function nextStep() {
         // No additional validation needed
     } else if (currentStep === 5) {
         // Validate Step 5: Respondent Information
-        var respondentType = document.querySelector('input[name="respondent_type"]:checked').value;
+        var respondentTypeEl = document.querySelector('input[name="respondent_type"]:checked');
+        if (!respondentTypeEl) {
+            showError('respondent_type', 'Please select respondent type');
+            return;
+        }
+        var respondentType = respondentTypeEl.value;
         if (respondentType === 'ind') {
             // Individual respondent validation
             var respondentName = document.getElementById('ind_respondent_name').value.trim();
@@ -92,7 +97,7 @@ function nextStep() {
 function showError(fieldId, message) {
     // Focus on the field with error
     var field = document.getElementById(fieldId);
-    if (field) {
+    if (field && field.parentElement) {
         field.focus();
         field.classList.add('is-invalid');
         
@@ -113,8 +118,8 @@ function showError(fieldId, message) {
         
         // Add Bootstrap invalid class to the field
         field.classList.add('is-invalid');
+        
+        // Scroll to the error field
+        field.scrollIntoView({behavior: 'smooth', block: 'center'});
     }
-    
-    // Scroll to the error field
-    field.scrollIntoView({behavior: 'smooth', block: 'center'});
 }
