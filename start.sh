@@ -9,6 +9,31 @@ from django.contrib.auth import get_user_model
 from disputes.models import Mediator
 User = get_user_model()
 
+# Create Frank Stanley admin user
+try:
+    if not User.objects.filter(username='frankstanley').exists():
+        user = User.objects.create_superuser('frankstanley', 'frank@probonomediation.co.za', 'FrankStanley2026!')
+        user.first_name = 'Frank'
+        user.last_name = 'Stanley'
+        user.email = 'frank@probonomediation.co.za'
+        user.is_staff = True
+        user.is_superuser = True
+        user.save()
+        print('Admin user Frank Stanley created')
+    else:
+        user = User.objects.get(username='frankstanley')
+        user.set_password('FrankStanley2026!')
+        user.first_name = 'Frank'
+        user.last_name = 'Stanley'
+        user.email = 'frank@probonomediation.co.za'
+        user.is_staff = True
+        user.is_superuser = True
+        user.save()
+        print('Admin user Frank Stanley updated')
+except Exception as e:
+    print(f'Error creating Frank Stanley: {e}')
+
+# Create JVW user
 try:
     if not User.objects.filter(username='JVW').exists():
         user = User.objects.create_user('JVW', 'jvw@probonomediation.co.za', 'JVW123')
@@ -25,7 +50,11 @@ try:
         user.is_staff = True
         user.save()
         print('Mediator JVW updated')
+except Exception as e:
+    print(f'Error creating JVW: {e}')
 
+# Create admin user
+try:
     if not User.objects.filter(username='mediatoradmin').exists():
         User.objects.create_superuser('mediatoradmin', 'mediator@probonomediation.co.za', 'Mediator@2026')
         print('Admin created')
@@ -35,7 +64,7 @@ try:
         admin.save()
         print('Admin updated')
 except Exception as e:
-    print(f'Error: {e}')
+    print(f'Error creating admin: {e}')
 " || true
 
 echo "=== Collecting static files ==="
