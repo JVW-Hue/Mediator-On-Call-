@@ -3,6 +3,7 @@ services:
     name: mediator-on-call
     runtime: python
     buildCommand: |
+      python manage.py makemigrations --noinput
       python manage.py migrate --noinput
       python manage.py shell << 'PYEOF'
       from django.contrib.auth import get_user_model
