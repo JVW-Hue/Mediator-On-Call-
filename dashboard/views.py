@@ -1087,7 +1087,6 @@ def save_calendar_note(request):
     """Save a calendar note (AJAX endpoint)."""
     import json
     from django.http import JsonResponse
-    from disputes.models import CalendarNote
     from datetime import datetime
     
     try:
@@ -1100,6 +1099,7 @@ def save_calendar_note(request):
         
         date = datetime.strptime(date_str, '%Y-%m-%d').date()
         
+        from disputes.models import CalendarNote
         CalendarNote.objects.create(
             user=request.user,
             date=date,
@@ -1108,15 +1108,10 @@ def save_calendar_note(request):
         
         return JsonResponse({'success': True})
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
-        
-        if timezone.is_naive(scheduled_at):
-            scheduled_at = timezone.make_aware(scheduled_at, timezone.utc)
-
-        respondent_name = (
-            f"{dispute.respondent_name or ''} {dispute.respondent_surname or ''}".strip()
-            or dispute.business_name
-            or "Respondent"
+        error_msg = str(e)
+        if 'no such table' in error_msg.lower():
+            return JsonResponse({'success': False, 'error': 'Calendar notes not ready yet. Please refresh and try again.'})
+        return JsonResponse({'success': False, 'error': error_msg})
         )
 
         session = MediationSession.objects.create(
