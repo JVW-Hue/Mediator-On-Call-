@@ -42,12 +42,16 @@ services:
       print("Users ready")
       PYEOF
       python manage.py collectstatic --noinput --clear
-    startCommand: gunicorn mediators_on_call.wsgi --bind 0.0.0.0:10000 --config gunicorn.conf.py
+    startCommand: gunicorn mediators_on_call.wsgi --bind 0.0.0.0:10000 --timeout 120 --workers 1
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.0"
       - key: DJANGO_SETTINGS_MODULE
         value: "mediators_on_call.settings"
+      - key: PORT
+        value: "10000"
+      - key: DEBUG
+        value: "False"
     # PostgreSQL database for persistent data
     database:
       name: mediator-db
