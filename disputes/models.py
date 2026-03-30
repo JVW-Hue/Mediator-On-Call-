@@ -330,3 +330,17 @@ class RespondentToken(models.Model):
     def is_valid(self):
         return not self.used and self.expires_at > timezone.now()
 
+
+class CalendarNote(models.Model):
+    """Notes added to the calendar by staff/mediators."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='calendar_notes')
+    date = models.DateField()
+    note = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-date', '-created_at']
+    
+    def __str__(self):
+        return f"Note for {self.date}: {self.note[:50]}"
+

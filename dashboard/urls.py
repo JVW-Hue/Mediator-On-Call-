@@ -22,4 +22,5 @@ urlpatterns = [
     path("mediator/sessions/", views.mediator_sessions, name="mediator_sessions"),
     path("mediator/accept/<int:dispute_id>/", views.mediator_accept_case, name="mediator_accept_case"),
     path("mediator/session/<int:pk>/outcome/", views.submit_mediation_outcome, name="submit_mediation_outcome"),
+    path("calendar/note/", views.save_calendar_note, name="save_calendar_note"),
 ]

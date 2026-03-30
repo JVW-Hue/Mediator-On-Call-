@@ -241,7 +241,8 @@ class AdminDashboardView(TemplateView):
         sessions = MediationSession.objects.filter(
             scheduled_at__gte=timezone.now() - timedelta(days=30)
         ).select_related("dispute", "mediator__user")
-        context["calendar_events"] = [
+        
+        calendar_events = [
             {
                 "title": f"Dispute #{s.dispute.id} - {s.mediator.user.get_full_name() or s.mediator.user.username}",
                 "start": s.scheduled_at.isoformat(),
@@ -250,6 +251,21 @@ class AdminDashboardView(TemplateView):
             }
             for s in sessions
         ]
+        
+        # Add calendar notes
+        from disputes.models import CalendarNote
+        notes = CalendarNote.objects.filter(
+            date__gte=timezone.now().date() - timedelta(days=365)
+        ).select_related("user")
+        for note in notes:
+            calendar_events.append({
+                "title": f"Note: {note.note[:40]}{'...' if len(note.note) > 40 else ''}",
+                "start": note.date.isoformat(),
+                "backgroundColor": "#6c757d",
+                "borderColor": "#6c757d",
+            })
+        
+        context["calendar_events"] = calendar_events
         return context
 
 
@@ -1059,7 +1075,37 @@ def assign_mediator_page(request, pk):
             scheduled_at = datetime.fromisoformat(scheduled_at_str)
         except (ValueError, AttributeError):
             messages.error(request, "Invalid date/time format.")
-            return render(request, "dashboard/assign_mediator.html", {"dispute": dispute, "mediators": mediators})
+    return render(request, "dashboard/assign_mediator.html", {"dispute": dispute, "mediators": mediators})
+
+
+@staff_required
+@require_POST
+def save_calendar_note(request):
+    """Save a calendar note (AJAX endpoint)."""
+    import json
+    from django.http import JsonResponse
+    from disputes.models import CalendarNote
+    from datetime import datetime
+    
+    try:
+        data = json.loads(request.body)
+        date_str = data.get('date')
+        note_text = data.get('note')
+        
+        if not date_str or not note_text:
+            return JsonResponse({'success': False, 'error': 'Missing date or note'})
+        
+        date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        
+        CalendarNote.objects.create(
+            user=request.user,
+            date=date,
+            note=note_text
+        )
+        
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
         
         if timezone.is_naive(scheduled_at):
             scheduled_at = timezone.make_aware(scheduled_at, timezone.utc)

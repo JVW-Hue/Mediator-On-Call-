@@ -469,10 +469,79 @@
                     info.preventDefault();
                 }
             },
+            dateClick: function(info) {
+                document.getElementById('noteDate').value = info.dateStr;
+                document.getElementById('noteDateDisplay').textContent = info.dateStr;
+                document.getElementById('calendarNoteModal').classList.add('show');
+                document.getElementById('calendarNoteModal').style.display = 'block';
+                document.getElementById('noteText').value = '';
+            },
             height: 'auto',
             themeSystem: 'bootstrap5'
         });
         calendar.render();
+        
+        // Save note function
+        window.saveNote = function() {
+            const date = document.getElementById('noteDate').value;
+            const note = document.getElementById('noteText').value;
+            
+            if (!note.trim()) {
+                alert('Please enter a note');
+                return;
+            }
+            
+            fetch('/dashboard/calendar/note/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({ date: date, note: note })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Add event to calendar
+                    calendar.addEvent({
+                        title: 'Note: ' + note.substring(0, 30) + (note.length > 30 ? '...' : ''),
+                        start: date,
+                        backgroundColor: '#28a745',
+                        borderColor: '#28a745'
+                    });
+                    closeModal();
+                    alert('Note saved!');
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(err => alert('Error saving note'));
+        };
+        
+        window.closeModal = function() {
+            document.getElementById('calendarNoteModal').classList.remove('show');
+            document.getElementById('calendarNoteModal').style.display = 'none';
+        };
     });
 </script>
+
+<!-- Calendar Note Modal -->
+<div id="calendarNoteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 500px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h4 style="margin: 0;"><i class="bi bi-journal-plus me-2"></i>Add Note</h4>
+            <button type="button" onclick="closeModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
+        <p><strong>Date:</strong> <span id="noteDateDisplay"></span></p>
+        <input type="hidden" id="noteDate">
+        <div class="mb-3">
+            <label class="form-label">Note:</label>
+            <textarea id="noteText" class="form-control" rows="4" placeholder="Enter your note..."></textarea>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="saveNote()">
+            <i class="bi bi-check-circle me-1"></i> Save Note
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    </div>
+</div>
 {% endblock %}
