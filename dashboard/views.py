@@ -252,18 +252,21 @@ class AdminDashboardView(TemplateView):
             for s in sessions
         ]
         
-        # Add calendar notes
-        from disputes.models import CalendarNote
-        notes = CalendarNote.objects.filter(
-            date__gte=timezone.now().date() - timedelta(days=365)
-        ).select_related("user")
-        for note in notes:
-            calendar_events.append({
-                "title": f"Note: {note.note[:40]}{'...' if len(note.note) > 40 else ''}",
-                "start": note.date.isoformat(),
-                "backgroundColor": "#6c757d",
-                "borderColor": "#6c757d",
-            })
+        # Add calendar notes (with error handling for missing table)
+        try:
+            from disputes.models import CalendarNote
+            notes = CalendarNote.objects.filter(
+                date__gte=timezone.now().date() - timedelta(days=365)
+            ).select_related("user")
+            for note in notes:
+                calendar_events.append({
+                    "title": f"Note: {note.note[:40]}{'...' if len(note.note) > 40 else ''}",
+                    "start": note.date.isoformat(),
+                    "backgroundColor": "#6c757d",
+                    "borderColor": "#6c757d",
+                })
+        except Exception:
+            pass  # Table may not exist yet
         
         context["calendar_events"] = calendar_events
         return context
