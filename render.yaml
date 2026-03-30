@@ -3,11 +3,44 @@ services:
     name: mediator-on-call
     runtime: python
     buildCommand: |
+      echo "Installing dependencies..."
       pip install -r requirements.txt
+      echo "Running migrations..."
       python manage.py makemigrations --noinput
       python manage.py migrate --noinput
+      echo "Creating users..."
+      python manage.py shell -c "
+from django.contrib.auth import get_user_model
+from disputes.models import Mediator
+User = get_user_model()
+# Create Frank Stanley
+if not User.objects.filter(username='frankstanley').exists():
+    user = User.objects.create_user(username='frankstanley', email='frank@probonomediation.co.za', password='FrankStanley2026!')
+    user.first_name = 'Frank'
+    user.last_name = 'Stanley'
+    user.is_staff = True
+    user.is_active = True
+    user.save()
+    Mediator.objects.get_or_create(user=user, defaults={'cell': '0821234567'})
+    print('Created frankstanley')
+else:
+    print('frankstanley already exists')
+# Create JVW
+if not User.objects.filter(username='JVW').exists():
+    jvw = User.objects.create_user(username='JVW', email='jvw@probonomediation.co.za', password='JVW123')
+    jvw.is_staff = True
+    jvw.is_active = True
+    jvw.save()
+    Mediator.objects.get_or_create(user=jvw, defaults={'cell': '0000000000'})
+    print('Created JVW')
+else:
+    print('JVW already exists')
+print('All users ready!')
+      "
+      echo "Collecting static files..."
       python manage.py collectstatic --noinput --clear
-    startCommand: ./start.sh
+      echo "Build complete!"
+    startCommand: gunicorn mediators_on_call.wsgi --bind 0.0.0.0:10000 --timeout 120
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.0"
