@@ -122,16 +122,12 @@ WSGI_APPLICATION = 'mediators_on_call.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Hardcode PostgreSQL connection - DIRECT CONNECTION
+# Use SQLite with persistent disk on Render
 import os
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('PGDATABASE', 'mediations'),
-        'USER': os.environ.get('PGUSER', 'mediations'),
-        'PASSWORD': os.environ.get('PGPASSWORD', 'mediations'),
-        'HOST': os.environ.get('PGHOST', '10.60.164.2'),
-        'PORT': os.environ.get('PGPORT', '5432'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': '/opt/render/project/src/db.sqlite3',
     }
 }
 

@@ -4,7 +4,7 @@ services:
     runtime: python
     buildCommand: |
       pip install -r requirements.txt
-      python manage.py migrate --noinput --verbosity 2
+      python manage.py migrate --noinput
       python manage.py shell -c "
 from django.contrib.auth import get_user_model
 from disputes.models import Mediator
@@ -18,30 +18,18 @@ jvw.set_password('JVW123')
 jvw.save()
 Mediator.objects.get_or_create(user=jvw, defaults={'cell':'0000000000'})
 print('Users ready')
-       "
+      "
       python manage.py collectstatic --noinput --clear
-    startCommand: gunicorn mediators_on_call.wsgi --bind 0.0.0.0:10000 --workers 1 --timeout 120
+    startCommand: gunicorn mediators_on_call.wsgi --bind 0.0.0.0:10000 --workers 1
     healthCheckPath: /health/
+    disk:
+      name: data
+      mountPath: /opt/render/project/src
+      sizeGB: 1
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.0"
       - key: DJANGO_SETTINGS_MODULE
         value: "mediators_on_call.settings"
-      - key: PORT
-        value: "10000"
       - key: DEBUG
         value: "True"
-      - key: PGHOST
-        value: "10.60.164.2"
-      - key: PGPASSWORD
-        value: "mediations"
-      - key: PGUSER
-        value: "mediations"
-      - key: PGDATABASE
-        value: "mediations"
-      - key: PGPORT
-        value: "5432"
-    databases:
-      - name: mediations
-        databaseName: mediations
-        user: mediations
