@@ -4,11 +4,18 @@ from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.http import JsonResponse
+from django.db import connection
 
 from dashboard.views import CustomLoginView, no_access
 
 def health_check(request):
-    return JsonResponse({"status": "ok"})
+    try:
+        # Test database connection
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        return JsonResponse({"status": "ok", "database": "connected"})
+    except Exception as e:
+        return JsonResponse({"status": "error", "database": str(e)}, status=500)
 
 urlpatterns = [
     path("health/", health_check, name="health_check"),
