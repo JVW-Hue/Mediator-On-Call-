@@ -122,17 +122,24 @@ WSGI_APPLICATION = 'mediators_on_call.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Hardcode PostgreSQL for Render deployment
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mediations',
-        'USER': 'mediations',
-        'PASSWORD': 'mediations',
-        'HOST': '10.60.164.2',
-        'PORT': '5432',
+# Use DATABASE_URL from Render (auto-provided by PostgreSQL service)
+# Falls back to SQLite for local development
+import os
+
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
+
+if DATABASE_URL:
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
 
 
 # Password validation

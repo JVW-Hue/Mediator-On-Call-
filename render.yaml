@@ -31,7 +31,9 @@ print('Users ready')
         value: "10000"
       - key: DEBUG
         value: "True"
-      - key: DATABASE_URL
-        value: "postgres://mediations:mediations@10.60.164.2:5432/mediations"
       - key: DJANGO_ALLOWED_HOSTS
         value: "mediator-on-call.onrender.com"
+    databases:
+      - name: mediations
+        databaseName: mediations
+        user: mediations
