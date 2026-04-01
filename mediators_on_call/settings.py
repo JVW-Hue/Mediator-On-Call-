@@ -122,12 +122,11 @@ WSGI_APPLICATION = 'mediators_on_call.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Use DATABASE_URL from Render (auto-provided by PostgreSQL service)
-# Falls back to SQLite for local development
+# Use DATABASE_URL from environment if available (Render PostgreSQL)
+# Otherwise use SQLite for local development
 import os
 
-DATABASE_URL = os.environ.get('DATABASE_URL', '')
-
+DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
     import dj_database_url
     DATABASES = {
