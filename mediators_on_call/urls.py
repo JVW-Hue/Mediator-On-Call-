@@ -23,9 +23,14 @@ def health_check(request):
             table_exists = cursor.fetchone() is not None
         
         from django.conf import settings
+        db_name = connection.settings_dict.get("NAME", "unknown")
+        # Convert PosixPath to string if needed
+        if hasattr(db_name, '__fspath__'):
+            db_name = str(db_name)
+        
         db_info = {
             "vendor": connection.vendor,
-            "name": connection.settings_dict.get("NAME", "unknown"),
+            "name": db_name,
             "user": connection.settings_dict.get("USER", "unknown"),
             "auth_user_exists": table_exists,
         }
