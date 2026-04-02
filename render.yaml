@@ -30,10 +30,6 @@ print('Users created')
         value: "mediators_on_call.settings"
       - key: DEBUG
         value: "False"
-      - key: DATABASE_URL
-        fromDatabase:
-          name: mediator-on-call-db
-          property: connectionString
       - key: DJANGO_SECRET_KEY
         generateValue: true
     databases:
