@@ -34,6 +34,8 @@ print('Users created')
         fromDatabase:
           name: mediator-on-call-db
           property: connectionString
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
     databases:
       - name: mediator-on-call-db
         databaseName: mediators_on_call
