@@ -13,7 +13,13 @@ def health_check(request):
         # Test database connection
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
-        return JsonResponse({"status": "ok", "database": "connected"})
+        from django.conf import settings
+        db_info = {
+            "vendor": connection.vendor,
+            "name": connection.settings_dict.get("NAME", "unknown"),
+            "user": connection.settings_dict.get("USER", "unknown"),
+        }
+        return JsonResponse({"status": "ok", "database": "connected", "db_info": db_info})
     except Exception as e:
         return JsonResponse({"status": "error", "database": str(e)}, status=500)
 
