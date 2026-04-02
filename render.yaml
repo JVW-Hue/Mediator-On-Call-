@@ -22,10 +22,10 @@ print('Users ready')
       python manage.py collectstatic --noinput --clear
     startCommand: gunicorn mediators_on_call.wsgi --bind 0.0.0.0:10000 --workers 1
     healthCheckPath: /health/
-    databases:
-      - name: mediations
-        databaseName: mediations
-        user: mediations
+    disk:
+      name: sqlite-data
+      mountPath: /opt/render/project/data
+      sizeGB: 1
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.0"
