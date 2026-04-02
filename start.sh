@@ -4,6 +4,12 @@ set -e
 echo "=== Running migrations ==="
 python manage.py migrate --noinput
 echo "=== Migration completed ==="
+echo "=== Migration output above ==="
+
+echo "=== Checking database tables ==="
+python manage.py dbshell << 'SQL'
+.tables
+SQL
 
 echo "=== Ensuring users exist ==="
 python manage.py shell << 'PYEOF'
