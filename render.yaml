@@ -5,7 +5,8 @@ services:
     buildCommand: |
       pip install -r requirements.txt
       python manage.py collectstatic --noinput --clear
-    startCommand: bash start.sh
+    startCommand: |
+      python manage.py migrate --noinput && bash start.sh
     healthCheckPath: /health/
     envVars:
       - key: PYTHON_VERSION
@@ -18,8 +19,6 @@ services:
         fromDatabase:
           name: mediator-on-call-db
           property: connectionString
-      - key: REDEPLOY_TRIGGER
-        value: "2026-04-02T19:45:00Z"
 
 databases:
   - name: mediator-on-call-db

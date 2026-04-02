@@ -2,17 +2,27 @@
 set -e
 
 echo "=== Environment ==="
-env | grep -E "(DATABASE|DEBUG|PORT)" || echo "No DB env vars found"
+env | grep -E "(DATABASE|DEBUG|PORT|DJANGO)" || echo "No relevant env vars found"
+echo "DATABASE_URL is set: [[[ ${DATABASE_URL:-EMPTY} ]]]"
 
 echo "=== Running migrations ==="
 python manage.py migrate --noinput --verbosity=2
-echo "=== Migration completed ==="
+MIGRATE_EXIT_CODE=$?
+echo "=== Migration completed with exit code: $MIGRATE_EXIT_CODE ==="
+
+if [ $MIGRATE_EXIT_CODE -ne 0 ]; then
+    echo "Migration failed! Exit code: $MIGRATE_EXIT_CODE"
+    exit $MIGRATE_EXIT_CODE
+fi
 
 echo "=== Checking database connection ==="
 python manage.py shell -c "
+import os
+print('DATABASE_URL from env:', os.environ.get('DATABASE_URL', 'NOT SET')[:50] + '...' if os.environ.get('DATABASE_URL') and len(os.environ.get('DATABASE_URL', '')) > 50 else os.environ.get('DATABASE_URL', 'NOT SET'))
 from django.db import connection
 print('Database vendor:', connection.vendor)
 print('Database name:', connection.settings_dict.get('NAME', 'unknown'))
+print('Database user:', connection.settings_dict.get('USER', 'unknown'))
 "
 
 echo "=== Checking if auth_user table exists ==="
