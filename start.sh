@@ -2,7 +2,8 @@
 set -e
 
 echo "=== Running migrations ==="
-python manage.py migrate --noinput || { echo "Migration failed!"; exit 1; }
+python manage.py migrate --noinput
+echo "=== Migration completed ==="
 
 echo "=== Ensuring users exist ==="
 python manage.py shell << 'PYEOF'
