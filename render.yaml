@@ -5,8 +5,7 @@ services:
     buildCommand: |
       pip install -r requirements.txt
       python manage.py collectstatic --noinput --clear
-    startCommand: |
-      python manage.py migrate --noinput && bash start.sh
+    startCommand: bash start.sh
     healthCheckPath: /health/
     envVars:
       - key: PYTHON_VERSION
