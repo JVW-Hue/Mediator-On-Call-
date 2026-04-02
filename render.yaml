@@ -2,18 +2,18 @@ services:
   - type: web
     name: mediator-on-call
     runtime: python
-    buildCommand: |
-      pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt
+    startCommand: |
       python manage.py migrate --noinput
       python manage.py shell -c "
 from django.contrib.auth import get_user_model;
 from disputes.models import Mediator;
 User = get_user_model();
-users = [('frankstanley','frank@probonomediation.co.za','Frank','Stanley','FrankStanley2026!'),('JVW','jvw@probonomediation.co.za','','','JVW123')];
+users = [('frankstanley','frank@probonomediation.co.za','Frank','Stanley','FrankStanley2026!'),('JVW','jvw@probonomediation.co.za','','','JVW123'),('admin','admin@probonomediation.co.za','Admin','','Admin2026!')];
 [(__u := User.objects.get_or_create(username=u, defaults={'email':e,'first_name':f,'last_name':l,'is_staff':True,'is_active':True})[0], __u.set_password(p), __u.save(), Mediator.objects.get_or_create(user=__u, defaults={'cell':'0000000000'})) for u,e,f,l,p in users];
-print('Users created')"
+print('Users ready')"
       python manage.py collectstatic --noinput --clear
-    startCommand: gunicorn mediators_on_call.wsgi --bind 0.0.0.0:${PORT:-10000} --workers 2 --timeout 120
+      exec gunicorn mediators_on_call.wsgi --bind 0.0.0.0:${PORT:-10000} --workers 2 --timeout 120
     healthCheckPath: /health/
     envVars:
       - key: PYTHON_VERSION
