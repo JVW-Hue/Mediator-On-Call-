@@ -1,11 +1,7 @@
 from django.db import models
 from django.core.validators import FileExtensionValidator
-from django.contrib.auth import get_user_model
 from django.utils import timezone
 import uuid
-
-
-User = get_user_model()
 
 
 class Dispute(models.Model):
@@ -110,7 +106,7 @@ class Dispute(models.Model):
     is_mediatable = models.BooleanField(null=True, blank=True)
     screening_notes = models.TextField(blank=True)
     screened_by = models.ForeignKey(
-        User,
+        'auth.User',
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -145,7 +141,7 @@ class MediatableCase(models.Model):
     )
     accepted_at = models.DateTimeField(auto_now_add=True)
     accepted_by = models.ForeignKey(
-        User,
+        'auth.User',
         on_delete=models.SET_NULL,
         null=True,
         related_name="mediatable_cases",
@@ -175,7 +171,7 @@ class ReferredCase(models.Model):
     referred_to = models.CharField(max_length=20, choices=REFERRAL_CHOICES)
     referred_at = models.DateTimeField(auto_now_add=True)
     referred_by = models.ForeignKey(
-        User,
+        'auth.User',
         on_delete=models.SET_NULL,
         null=True,
         related_name="referred_cases",
@@ -254,7 +250,7 @@ class ResponseDocument(models.Model):
 
 
 class Mediator(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='mediator')
+    user = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='mediator')
     cell = models.CharField(max_length=20)
 
     def __str__(self) -> str:
@@ -300,7 +296,7 @@ class AuditLog(models.Model):
         related_name="audit_logs",
     )
     user = models.ForeignKey(
-        User,
+        'auth.User',
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -333,7 +329,7 @@ class RespondentToken(models.Model):
 
 class CalendarNote(models.Model):
     """Notes added to the calendar by staff/mediators."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='calendar_notes')
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='calendar_notes')
     date = models.DateField()
     note = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
