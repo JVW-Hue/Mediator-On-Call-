@@ -1,27 +1,18 @@
 #!/usr/bin/env bash
 set -e
 
-echo "=== Environment ==="
-env | grep -E "(DATABASE|DEBUG|PORT|DJANGO)" || echo "No relevant env vars found"
+echo "=== Environment Check ==="
 echo "DATABASE_URL is set: [[[ ${DATABASE_URL:-EMPTY} ]]]"
+echo "DEBUG is set: [[[ ${DEBUG:-EMPTY} ]]]"
 
 echo "=== Running migrations ==="
-# Run migrations with maximum verbosity and capture output
-python manage.py migrate --noinput --verbosity=3 2>&1 | tee migration_output.log
-MIGRATE_EXIT_CODE=${PIPESTATUS[0]}
-echo "=== Migration completed with exit code: $MIGRATE_EXIT_CODE ==="
-
-if [ $MIGRATE_EXIT_CODE -ne 0 ]; then
-    echo "Migration failed! Exit code: $MIGRATE_EXIT_CODE"
-    echo "Migration output:"
-    cat migration_output.log
-    exit $MIGRATE_EXIT_CODE
-fi
+python manage.py migrate --noinput --verbosity=2
+echo "=== Migration completed ==="
 
 echo "=== Checking database connection ==="
 python manage.py shell -c "
 import os
-print('DATABASE_URL from env:', os.environ.get('DATABASE_URL', 'NOT SET')[:50] + '...' if os.environ.get('DATABASE_URL') and len(os.environ.get('DATABASE_URL', '')) > 50 else os.environ.get('DATABASE_URL', 'NOT SET'))
+print('DATABASE_URL from env:', os.environ.get('DATABASE_URL', 'NOT SET')[:80] + '...' if os.environ.get('DATABASE_URL') and len(os.environ.get('DATABASE_URL', '')) > 80 else os.environ.get('DATABASE_URL', 'NOT SET'))
 from django.db import connection
 print('Database vendor:', connection.vendor)
 print('Database name:', connection.settings_dict.get('NAME', 'unknown'))
@@ -29,16 +20,32 @@ print('Database user:', connection.settings_dict.get('USER', 'unknown'))
 "
 
 echo "=== Checking if auth_user table exists ==="
-python manage.py dbshell << 'SQL'
-.headers on
-SELECT name FROM sqlite_master WHERE type='table' AND name='auth_user';
-SQL
+python manage.py shell -c "
+from django.db import connection
+cursor = connection.cursor()
+if connection.vendor == 'sqlite':
+    cursor.execute(\"SELECT name FROM sqlite_master WHERE type='table' AND name='auth_user'\")
+else:
+    cursor.execute(\"SELECT tablename FROM pg_catalog.pg_tables WHERE tablename = 'auth_user'\")
+result = cursor.fetchone()
+if result:
+    print('auth_user table EXISTS')
+else:
+    print('auth_user table does NOT exist')
+"
 
-echo "=== Listing all tables ==="
-python manage.py dbshell << 'SQL'
-.headers on
-SELECT name FROM sqlite_master WHERE type='table';
-SQL
+echo "=== Counting tables ==="
+python manage.py shell -c "
+from django.db import connection
+cursor = connection.cursor()
+if connection.vendor == 'sqlite':
+    cursor.execute(\"SELECT name FROM sqlite_master WHERE type='table'\")
+else:
+    cursor.execute(\"SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'\")
+tables = cursor.fetchall()
+print('Number of tables:', len(tables))
+print('Tables:', [t[0] for t in tables[:20]])
+"
 
 echo "=== Ensuring users exist ==="
 python manage.py shell << 'PYEOF'
