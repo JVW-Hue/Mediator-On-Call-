@@ -13,12 +13,26 @@ def health_check(request):
         # Test database connection
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
+        
+        # Check if auth_user table exists
+        with connection.cursor() as cursor:
+            if connection.vendor == 'sqlite':
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='auth_user'")
+            else:
+                cursor.execute("SELECT tablename FROM pg_catalog.pg_tables WHERE tablename = 'auth_user'")
+            table_exists = cursor.fetchone() is not None
+        
         from django.conf import settings
         db_info = {
             "vendor": connection.vendor,
             "name": connection.settings_dict.get("NAME", "unknown"),
             "user": connection.settings_dict.get("USER", "unknown"),
+            "auth_user_exists": table_exists,
         }
+        
+        if not table_exists:
+            return JsonResponse({"status": "error", "database": "auth_user table missing", "db_info": db_info}, status=500)
+        
         return JsonResponse({"status": "ok", "database": "connected", "db_info": db_info})
     except Exception as e:
         return JsonResponse({"status": "error", "database": str(e)}, status=500)
