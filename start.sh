@@ -1,19 +1,30 @@
 #!/usr/bin/env bash
 set -e
 
-echo "=== Running migrations ==="
-python manage.py migrate --noinput
-echo "=== Migration completed ==="
-echo "=== Migration output above ==="
+echo "=== Environment ==="
+env | grep -E "(DATABASE|DEBUG|PORT)" || echo "No DB env vars found"
 
-echo "=== Checking database tables ==="
-python manage.py dbshell << 'SQL'
-.tables
-SQL
+echo "=== Running migrations ==="
+python manage.py migrate --noinput --verbosity=2
+echo "=== Migration completed ==="
+
+echo "=== Checking database connection ==="
+python manage.py shell -c "
+from django.db import connection
+print('Database vendor:', connection.vendor)
+print('Database name:', connection.settings_dict.get('NAME', 'unknown'))
+"
 
 echo "=== Checking if auth_user table exists ==="
 python manage.py dbshell << 'SQL'
+.headers on
 SELECT name FROM sqlite_master WHERE type='table' AND name='auth_user';
+SQL
+
+echo "=== Listing all tables ==="
+python manage.py dbshell << 'SQL'
+.headers on
+SELECT name FROM sqlite_master WHERE type='table';
 SQL
 
 echo "=== Ensuring users exist ==="
