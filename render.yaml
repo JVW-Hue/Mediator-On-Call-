@@ -20,12 +20,12 @@ Mediator.objects.get_or_create(user=jvw, defaults={'cell':'0000000000'})
 print('Users ready')
       "
       python manage.py collectstatic --noinput --clear
-    startCommand: python manage.py migrate --noinput && gunicorn mediators_on_call.wsgi --bind 0.0.0.0:10000 --workers 1
+    startCommand: gunicorn mediators_on_call.wsgi --bind 0.0.0.0:10000 --workers 1
     healthCheckPath: /health/
-    disk:
-      name: data
-      mountPath: /opt/render/project/src
-      sizeGB: 1
+    databases:
+      - name: mediations
+        databaseName: mediations
+        user: mediations
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.0"
