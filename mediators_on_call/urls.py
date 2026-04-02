@@ -43,6 +43,18 @@ def health_check(request):
         import traceback
         return JsonResponse({"status": "error", "database": str(e), "trace": traceback.format_exc()}, status=500)
 
+def run_migrations(request):
+    """Run migrations on demand"""
+    try:
+        from django.core.management import call_command
+        from io import StringIO
+        out = StringIO()
+        call_command('migrate', '--noinput', stdout=out)
+        return JsonResponse({"status": "ok", "output": out.getvalue()})
+    except Exception as e:
+        import traceback
+        return JsonResponse({"status": "error", "error": str(e), "trace": traceback.format_exc()}, status=500)
+
 def debug_env(request):
     """Debug endpoint to check environment variables"""
     import os
@@ -66,6 +78,7 @@ def debug_env(request):
 
 urlpatterns = [
     path("health/", health_check, name="health_check"),
+    path("run-migrations/", run_migrations, name="run_migrations"),
     path("debug-env/", debug_env, name="debug_env"),
     path("admin/", admin.site.urls),
     path("login/", CustomLoginView.as_view(), name="login"),
