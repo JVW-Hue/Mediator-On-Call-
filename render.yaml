@@ -4,6 +4,7 @@ services:
     runtime: python
     buildCommand: |
       pip install -r requirements.txt
+      mkdir -p /opt/render/project/data
       python manage.py migrate --noinput
       python manage.py shell -c "
 from django.contrib.auth import get_user_model
