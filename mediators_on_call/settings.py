@@ -135,13 +135,18 @@ except ImportError:
     HAS_DJ_DATABASE_URL = False
 
 # Get DATABASE_URL from environment (set by Render PostgreSQL)
-DATABASE_URL = os.environ.get('DATABASE_URL', '').strip()
+DATABASE_URL = os.environ.get('DATABASE_URL') or ''
+
+print(f"DEBUG: DATABASE_URL = '{DATABASE_URL}'")
+print(f"DEBUG: HAS_DJ_DATABASE_URL = {HAS_DJ_DATABASE_URL}")
 
 if DATABASE_URL and HAS_DJ_DATABASE_URL:
+    print("Using PostgreSQL database")
     DATABASES = {
         'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     }
 else:
+    print("Using SQLite database")
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
