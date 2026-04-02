@@ -7,7 +7,6 @@ services:
       python manage.py migrate --noinput
       python manage.py shell -c "
 import os
-print('DATABASE_URL:', 'SET' if os.environ.get('DATABASE_URL') else 'NOT SET')
 from django.contrib.auth import get_user_model
 from disputes.models import Mediator
 User = get_user_model()
@@ -29,11 +28,6 @@ print('Users created')
       - key: DJANGO_SETTINGS_MODULE
         value: "mediators_on_call.settings"
       - key: DEBUG
-        value: "False"
+        value: "True"
       - key: DJANGO_SECRET_KEY
-        generateValue: true
-    databases:
-      - name: mediator-on-call-db
-        databaseName: mediators_on_call
-        user: mediators_on_call
-        plan: free
+        value: "render-temp-secret-key-change-later"

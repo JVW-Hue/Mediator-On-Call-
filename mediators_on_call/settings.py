@@ -122,37 +122,13 @@ WSGI_APPLICATION = 'mediators_on_call.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-import os
-from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Import dj_database_url for PostgreSQL support
-try:
-    import dj_database_url
-    HAS_DJ_DATABASE_URL = True
-except ImportError:
-    HAS_DJ_DATABASE_URL = False
-
-# Get DATABASE_URL from environment (set by Render PostgreSQL)
-DATABASE_URL = os.environ.get('DATABASE_URL') or ''
-
-print(f"DEBUG: DATABASE_URL = '{DATABASE_URL}'")
-print(f"DEBUG: HAS_DJ_DATABASE_URL = {HAS_DJ_DATABASE_URL}")
-
-if DATABASE_URL and HAS_DJ_DATABASE_URL:
-    print("Using PostgreSQL database")
-    DATABASES = {
-        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+# Database - SQLite for simplicity
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
-else:
-    print("Using SQLite database")
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+}
 
 
 # Password validation
