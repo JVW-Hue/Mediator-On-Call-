@@ -6,12 +6,15 @@ env | grep -E "(DATABASE|DEBUG|PORT|DJANGO)" || echo "No relevant env vars found
 echo "DATABASE_URL is set: [[[ ${DATABASE_URL:-EMPTY} ]]]"
 
 echo "=== Running migrations ==="
-python manage.py migrate --noinput --verbosity=2
-MIGRATE_EXIT_CODE=$?
+# Run migrations with maximum verbosity and capture output
+python manage.py migrate --noinput --verbosity=3 2>&1 | tee migration_output.log
+MIGRATE_EXIT_CODE=${PIPESTATUS[0]}
 echo "=== Migration completed with exit code: $MIGRATE_EXIT_CODE ==="
 
 if [ $MIGRATE_EXIT_CODE -ne 0 ]; then
     echo "Migration failed! Exit code: $MIGRATE_EXIT_CODE"
+    echo "Migration output:"
+    cat migration_output.log
     exit $MIGRATE_EXIT_CODE
 fi
 
