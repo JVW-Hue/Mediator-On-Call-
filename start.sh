@@ -11,6 +11,11 @@ python manage.py dbshell << 'SQL'
 .tables
 SQL
 
+echo "=== Checking if auth_user table exists ==="
+python manage.py dbshell << 'SQL'
+SELECT name FROM sqlite_master WHERE type='table' AND name='auth_user';
+SQL
+
 echo "=== Ensuring users exist ==="
 python manage.py shell << 'PYEOF'
 from django.contrib.auth import get_user_model
