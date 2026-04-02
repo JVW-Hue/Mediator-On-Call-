@@ -40,10 +40,33 @@ def health_check(request):
         
         return JsonResponse({"status": "ok", "database": "connected", "db_info": db_info})
     except Exception as e:
-        return JsonResponse({"status": "error", "database": str(e)}, status=500)
+        import traceback
+        return JsonResponse({"status": "error", "database": str(e), "trace": traceback.format_exc()}, status=500)
+
+def debug_env(request):
+    """Debug endpoint to check environment variables"""
+    import os
+    from django.conf import settings
+    
+    db_url = os.environ.get('DATABASE_URL', 'NOT SET')
+    # Mask the password
+    if db_url and '@' in db_url:
+        parts = db_url.split('@')
+        user_pass = parts[0].split('://')
+        if len(user_pass) > 1 and ':' in user_pass[1]:
+            user_pass[1] = '****'
+        parts[0] = '://'.join(user_pass)
+        db_url = '@'.join(parts)
+    
+    return JsonResponse({
+        "DATABASE_URL": db_url,
+        "DEBUG": settings.DEBUG,
+        "ALLOWED_HOSTS": settings.ALLOWED_HOSTS,
+    })
 
 urlpatterns = [
     path("health/", health_check, name="health_check"),
+    path("debug-env/", debug_env, name="debug_env"),
     path("admin/", admin.site.urls),
     path("login/", CustomLoginView.as_view(), name="login"),
     path("logout/", auth_views.LogoutView.as_view(next_page="login"), name="logout"),
