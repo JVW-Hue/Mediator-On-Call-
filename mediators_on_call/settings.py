@@ -124,17 +124,29 @@ WSGI_APPLICATION = 'mediators_on_call.wsgi.application'
 
 import os
 from pathlib import Path
-import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Import dj_database_url for PostgreSQL support
+try:
+    import dj_database_url
+    HAS_DJ_DATABASE_URL = True
+except ImportError:
+    HAS_DJ_DATABASE_URL = False
 
 # Get DATABASE_URL from environment (set by Render PostgreSQL)
 DATABASE_URL = os.environ.get('DATABASE_URL', '').strip()
 
-# Force PostgreSQL if DATABASE_URL is set
-if DATABASE_URL:
+if DATABASE_URL and HAS_DJ_DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
 else:
     # Fallback to SQLite for local development ONLY if DATABASE_URL is truly empty
