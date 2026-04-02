@@ -3,7 +3,7 @@ set -e
 
 echo "=== Environment Check ==="
 echo "DATABASE_URL is set: [[[ ${DATABASE_URL:-EMPTY} ]]]"
-echo "DEBUG is set: [[[ ${DEBUG:-EMPTY} ]]]"
+echo "DEBUG is set: [[[ ${DEBUG:-EMPTY} ]]"
 
 echo "=== Running migrations ==="
 python manage.py migrate --noinput --verbosity=2
