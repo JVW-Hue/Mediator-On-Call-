@@ -123,11 +123,14 @@ WSGI_APPLICATION = 'mediators_on_call.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 import os
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': '/opt/render/project/data/db.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
