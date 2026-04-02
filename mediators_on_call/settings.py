@@ -131,34 +131,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Get DATABASE_URL from environment (set by Render PostgreSQL)
 DATABASE_URL = os.environ.get('DATABASE_URL', '').strip()
 
-# Force PostgreSQL if DATABASE_URL is set and looks like a PostgreSQL connection
-if DATABASE_URL and 'postgres' in DATABASE_URL.lower():
+# Force PostgreSQL if DATABASE_URL is set
+if DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     }
 else:
     # Fallback to SQLite for local development ONLY if DATABASE_URL is truly empty
-    if not DATABASE_URL:
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
-            }
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
-    else:
-        # Try to parse anyway - might be a different database format
-        try:
-            DATABASES = {
-                'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
-            }
-        except Exception:
-            # If all else fails, use SQLite
-            DATABASES = {
-                'default': {
-                    'ENGINE': 'django.db.backends.sqlite3',
-                    'NAME': BASE_DIR / 'db.sqlite3',
-                }
-            }
+    }
 
 
 # Password validation
