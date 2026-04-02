@@ -2,10 +2,10 @@
 set -e
 
 echo "=== Running migrations ==="
-python manage.py migrate --noinput
+python manage.py migrate --noinput || { echo "Migration failed!"; exit 1; }
 
 echo "=== Ensuring users exist ==="
-cat > /tmp/create_users.py << 'PYEOF'
+python manage.py shell << 'PYEOF'
 from django.contrib.auth import get_user_model
 from disputes.models import Mediator
 
@@ -27,8 +27,6 @@ for udata in users:
     Mediator.objects.get_or_create(user=obj, defaults={'cell': '0000000000'})
     print(('Created' if created else 'Updated') + ': ' + obj.username)
 PYEOF
-
-python manage.py shell < /tmp/create_users.py
 
 echo "=== Starting gunicorn ==="
 exec gunicorn mediators_on_call.wsgi --bind 0.0.0.0:${PORT:-10000} --workers 1 --timeout 120
