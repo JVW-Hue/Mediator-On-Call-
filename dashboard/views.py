@@ -264,6 +264,7 @@ class AdminDashboardView(TemplateView):
                     "start": note.date.isoformat(),
                     "backgroundColor": "#6c757d",
                     "borderColor": "#6c757d",
+                    "extendedProps": {"noteId": note.id, "isNote": True, "fullNote": note.note},
                 })
         except Exception:
             pass  # Table may not exist yet
@@ -1141,3 +1142,21 @@ def save_calendar_note(request):
         if 'no such table' in error_msg.lower():
             return JsonResponse({'success': False, 'error': 'Calendar notes not ready yet. Please refresh and try again.'})
         return JsonResponse({'success': False, 'error': error_msg})
+
+
+@staff_required
+@require_POST
+def delete_calendar_note(request, note_id):
+    """Delete a calendar note (AJAX endpoint)."""
+    import json
+    from django.http import JsonResponse
+    
+    try:
+        from disputes.models import CalendarNote
+        note = CalendarNote.objects.get(id=note_id, user=request.user)
+        note.delete()
+        return JsonResponse({'success': True})
+    except CalendarNote.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Note not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})

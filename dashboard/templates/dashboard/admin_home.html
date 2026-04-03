@@ -465,7 +465,32 @@
             },
             events: {{ calendar_events|safe }},
             eventClick: function(info) {
-                if (info.event.url) {
+                if (info.event.extendedProps && info.event.extendedProps.isNote) {
+                    // Show note details with delete option
+                    info.preventDefault();
+                    const noteId = info.event.extendedProps.noteId;
+                    const fullNote = info.event.extendedProps.fullNote || info.event.title;
+                    const noteDate = info.event.start ? info.event.start.toLocaleDateString() : '';
+                    
+                    if (confirm('Note for ' + noteDate + ':\n\n' + fullNote + '\n\nDelete this note?')) {
+                        fetch('/dashboard/calendar/note/' + noteId + '/delete/', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                info.event.remove();
+                                alert('Note deleted.');
+                            } else {
+                                alert('Error: ' + data.error);
+                            }
+                        })
+                        .catch(err => alert('Error deleting note'));
+                    }
+                } else if (info.event.url) {
                     window.open(info.event.url, '_blank');
                     info.preventDefault();
                 }
