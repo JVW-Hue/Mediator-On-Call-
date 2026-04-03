@@ -28,35 +28,18 @@ from .tasks import (
 
 
 def get_session_key(request):
-    """Get session key using IP-based identifier - no Django sessions needed"""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0].strip()
-    else:
-        ip = request.META.get('REMOTE_ADDR', 'unknown')
-    user_agent = request.META.get('HTTP_USER_AGENT', '')[:200]
-    return f"{ip}_{hash(user_agent) % 100000}"
-
-
-def get_temp_photo_dir(session_key):
-    """Get directory for temp photos based on session key"""
-    import os
-    from django.conf import settings
-    safe_key = session_key.replace('.', '_').replace(':', '_')
-    photo_dir = os.path.join(settings.MEDIA_ROOT, 'temp_photos', safe_key)
-    os.makedirs(photo_dir, exist_ok=True)
-    return photo_dir
+    """Get a stable session key for temp photo association."""
+    if not request.session.session_key:
+        request.session.create()
+    return request.session.session_key
 
 
 @require_POST
 def upload_photo_ajax(request):
-    """Handle AJAX photo upload - saves photos directly to filesystem"""
+    """Handle AJAX photo upload - saves to TempDisputePhoto model in database."""
     from django.http import JsonResponse
-    from django.conf import settings
     import logging
     import traceback
-    import os
-    import uuid
     
     logger = logging.getLogger(__name__)
     
@@ -67,40 +50,25 @@ def upload_photo_ajax(request):
         if not files:
             return JsonResponse({'success': False, 'error': 'No photos provided'}, status=400)
         
-        uploaded_photos = []
         session_key = get_session_key(request)
-        photo_dir = get_temp_photo_dir(session_key)
+        uploaded_photos = []
         
         for photo in files:
             logger.info(f"Processing file: {photo.name}, size: {photo.size}")
-            
-            # Validate file type
-            ext = photo.name.lower().split('.')[-1] if '.' in photo.name else 'jpg'
-            if ext not in ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']:
-                ext = 'jpg'
             
             # Validate file size (max 10MB)
             if photo.size > 10 * 1024 * 1024:
                 return JsonResponse({'success': False, 'error': f'File {photo.name} is too large. Max 10MB.'}, status=400)
             
-            # Generate unique filename
-            unique_name = f"{uuid.uuid4().hex}.{ext}"
-            file_path = os.path.join(photo_dir, unique_name)
-            
-            # Save file directly
-            with open(file_path, 'wb') as f:
-                for chunk in photo.chunks():
-                    f.write(chunk)
-            
-            # Build URL
-            relative_path = f"temp_photos/{session_key}/{unique_name}"
-            photo_url = f"{settings.MEDIA_URL}{relative_path}"
-            
-            logger.info(f"Saved photo: {file_path}, url: {photo_url}")
+            # Save to TempDisputePhoto model (stored in DB + media storage)
+            temp_photo = TempDisputePhoto.objects.create(
+                session_key=session_key,
+                image=photo,
+            )
             
             uploaded_photos.append({
-                'id': unique_name,
-                'photo_url': photo_url,
+                'id': temp_photo.pk,
+                'photo_url': temp_photo.image.url,
                 'filename': photo.name
             })
         
@@ -120,23 +88,18 @@ def upload_photo_ajax(request):
 def remove_photo_ajax(request):
     """Remove a temporarily uploaded photo"""
     from django.http import JsonResponse
-    from django.conf import settings
-    import os
     
     photo_id = request.POST.get('photo_id')
     if not photo_id:
         return JsonResponse({'success': False, 'error': 'No photo ID provided'}, status=400)
     
-    session_key = get_session_key(request)
-    safe_key = session_key.replace('.', '_').replace(':', '_')
-    file_path = os.path.join(settings.MEDIA_ROOT, 'temp_photos', safe_key, photo_id)
-    
     try:
-        if os.path.exists(file_path):
-            os.remove(file_path)
-            return JsonResponse({'success': True, 'message': 'Photo removed'})
-        else:
-            return JsonResponse({'success': False, 'error': 'Photo not found'}, status=404)
+        temp_photo = TempDisputePhoto.objects.get(id=photo_id, session_key=get_session_key(request))
+        temp_photo.image.delete(save=False)
+        temp_photo.delete()
+        return JsonResponse({'success': True, 'message': 'Photo removed'})
+    except TempDisputePhoto.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Photo not found'}, status=404)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
@@ -144,21 +107,16 @@ def remove_photo_ajax(request):
 def get_photos_ajax(request):
     """Get list of temporarily uploaded photos"""
     from django.http import JsonResponse
-    from django.conf import settings
-    import os
     
     session_key = get_session_key(request)
-    safe_key = session_key.replace('.', '_').replace(':', '_')
-    photo_dir = os.path.join(settings.MEDIA_ROOT, 'temp_photos', safe_key)
+    temp_photos = TempDisputePhoto.objects.filter(session_key=session_key)
     
     photo_list = []
-    if os.path.exists(photo_dir):
-        for filename in os.listdir(photo_dir):
-            if filename.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp')):
-                photo_list.append({
-                    'id': filename,
-                    'photo_url': f"{settings.MEDIA_URL}temp_photos/{safe_key}/{filename}"
-                })
+    for tp in temp_photos:
+        photo_list.append({
+            'id': tp.pk,
+            'photo_url': tp.image.url
+        })
     
     return JsonResponse({'photos': photo_list})
 
@@ -249,29 +207,17 @@ def _apply_view(request):
                 session_key = get_session_key(request)
                 if session_key:
                     try:
-                        import os
-                        from django.conf import settings
-                        safe_key = session_key.replace('.', '_').replace(':', '_')
-                        temp_dir = os.path.join(settings.MEDIA_ROOT, 'temp_photos', safe_key)
-                        
-                        if os.path.exists(temp_dir):
-                            for filename in os.listdir(temp_dir):
-                                if filename.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp')):
-                                    try:
-                                        temp_path = os.path.join(temp_dir, filename)
-                                        # Create DisputePhoto with file
-                                        with open(temp_path, 'rb') as f:
-                                            from django.core.files.base import ContentFile
-                                            photo_content = ContentFile(f.read())
-                                            dispute_photo = DisputePhoto(dispute=dispute)
-                                            dispute_photo.image.save(filename, photo_content)
-                                            dispute_photo.save()
-                                    except Exception as e:
-                                        logging.warning(f"Could not save photo: {e}")
-                            
-                            # Clean up temp directory
-                            import shutil
-                            shutil.rmtree(temp_dir, ignore_errors=True)
+                        temp_photos = TempDisputePhoto.objects.filter(session_key=session_key)
+                        for temp_photo in temp_photos:
+                            try:
+                                dispute_photo = DisputePhoto.objects.create(
+                                    dispute=dispute,
+                                    image=temp_photo.image,
+                                )
+                                # Delete temp photo after linking
+                                temp_photo.delete()
+                            except Exception as e:
+                                logging.warning(f"Could not save photo: {e}")
                     except Exception as e:
                         logging.warning(f"Error linking photos: {e}")
                 
