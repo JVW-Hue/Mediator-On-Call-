@@ -465,34 +465,45 @@
             },
             events: {{ calendar_events|safe }},
             eventClick: function(info) {
-                if (info.event.extendedProps && info.event.extendedProps.isNote) {
-                    // Show note details with delete option
-                    info.preventDefault();
-                    const noteId = info.event.extendedProps.noteId;
-                    const fullNote = info.event.extendedProps.fullNote || info.event.title;
-                    const noteDate = info.event.start ? info.event.start.toLocaleDateString() : '';
-                    
-                    if (confirm('Note for ' + noteDate + ':\n\n' + fullNote + '\n\nDelete this note?')) {
-                        fetch('/dashboard/calendar/note/' + noteId + '/delete/', {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                            }
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                info.event.remove();
-                                alert('Note deleted.');
-                            } else {
-                                alert('Error: ' + data.error);
-                            }
-                        })
-                        .catch(err => alert('Error deleting note'));
-                    }
-                } else if (info.event.url) {
+                if (info.event.url) {
                     window.open(info.event.url, '_blank');
                     info.preventDefault();
+                }
+            },
+            eventDidMount: function(info) {
+                if (info.event.extendedProps && info.event.extendedProps.isNote) {
+                    const noteId = info.event.extendedProps.noteId;
+                    // Add X delete button
+                    const deleteBtn = document.createElement('span');
+                    deleteBtn.innerHTML = '&times;';
+                    deleteBtn.style.cssText = 'position:absolute;top:2px;right:4px;cursor:pointer;color:#fff;font-size:16px;font-weight:bold;line-height:1;z-index:10;opacity:0.8;';
+                    deleteBtn.addEventListener('mouseenter', function() { this.style.opacity = '1'; });
+                    deleteBtn.addEventListener('mouseleave', function() { this.style.opacity = '0.8'; });
+                    deleteBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        if (confirm('Delete this note?')) {
+                            fetch('/dashboard/calendar/note/' + noteId + '/delete/', {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                                }
+                            })
+                            .then(function(r) { return r.json(); })
+                            .then(function(data) {
+                                if (data.success) {
+                                    info.event.remove();
+                                } else {
+                                    alert('Error: ' + data.error);
+                                }
+                            })
+                            .catch(function() { alert('Error deleting note'); });
+                        }
+                    });
+                    // Position the event element relative for the X button
+                    var el = info.el.querySelector('.fc-daygrid-event-dot') || info.el;
+                    el.style.position = 'relative';
+                    info.el.style.position = 'relative';
+                    info.el.appendChild(deleteBtn);
                 }
             },
             dateClick: function(info) {
