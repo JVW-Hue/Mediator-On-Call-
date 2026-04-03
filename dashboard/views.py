@@ -242,15 +242,20 @@ class AdminDashboardView(TemplateView):
             scheduled_at__gte=timezone.now() - timedelta(days=30)
         ).select_related("dispute", "mediator__user")
         
-        calendar_events = [
-            {
-                "title": f"Dispute #{s.dispute.id} - {s.mediator.user.get_full_name() or s.mediator.user.username}",
-                "start": s.scheduled_at.isoformat(),
-                "url": reverse("dashboard:dispute_detail", args=[s.dispute.id]),
-                "backgroundColor": "#198754" if s.dispute.status == "mediation_scheduled" else "#0d6efd",
-            }
-            for s in sessions
-        ]
+        calendar_events = []
+        for s in sessions:
+            try:
+                mediator_name = "Unknown"
+                if s.mediator and s.mediator.user:
+                    mediator_name = s.mediator.user.get_full_name() or s.mediator.user.username
+                calendar_events.append({
+                    "title": f"Dispute #{s.dispute.id} - {mediator_name}",
+                    "start": s.scheduled_at.isoformat(),
+                    "url": reverse("dashboard:dispute_detail", args=[s.dispute.id]),
+                    "backgroundColor": "#198754" if s.dispute.status == "mediation_scheduled" else "#0d6efd",
+                })
+            except Exception:
+                continue
         
         # Add calendar notes (with error handling for missing table)
         try:

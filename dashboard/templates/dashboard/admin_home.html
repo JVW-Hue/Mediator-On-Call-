@@ -418,148 +418,166 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+{{ calendar_events|json_script:"calendar-events-data" }}
 <script>
-    // Chart
-    {% if type_data %}
-    const ctx = document.getElementById('typeChart').getContext('2d');
-    const typeChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: {{ type_labels|safe }},
-            datasets: [{
-                data: {{ type_data|safe }},
-                backgroundColor: ['#667eea', '#764ba2', '#28a745', '#ffc107', '#17a2b8', '#dc3545', '#6c757d'],
-                borderWidth: 0,
-                hoverOffset: 10
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 20,
-                        usePointStyle: true,
-                        font: {
-                            family: 'Inter'
-                        }
-                    }
-                }
-            },
-            cutout: '60%'
-        }
-    });
-    {% endif %}
-
-    // Calendar
     document.addEventListener('DOMContentLoaded', function() {
-        const calendarEl = document.getElementById('calendar');
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,listWeek'
-            },
-            events: {{ calendar_events|safe }},
-            eventClick: function(info) {
-                if (info.event.url) {
-                    window.open(info.event.url, '_blank');
-                    info.preventDefault();
-                }
-            },
-            eventDidMount: function(info) {
-                if (info.event.extendedProps && info.event.extendedProps.isNote) {
-                    try {
-                        const noteId = info.event.extendedProps.noteId;
-                        // Add X delete button
-                        const deleteBtn = document.createElement('span');
-                        deleteBtn.innerHTML = '&times;';
-                        deleteBtn.style.cssText = 'position:absolute;top:2px;right:4px;cursor:pointer;color:#fff;font-size:16px;font-weight:bold;line-height:1;z-index:10;opacity:0.8;';
-                        deleteBtn.addEventListener('mouseenter', function() { this.style.opacity = '1'; });
-                        deleteBtn.addEventListener('mouseleave', function() { this.style.opacity = '0.8'; });
-                        deleteBtn.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            if (confirm('Delete this note?')) {
-                                fetch('/dashboard/calendar/note/' + noteId + '/delete/', {
-                                    method: 'POST',
-                                    headers: {
-                                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                                    }
-                                })
-                                .then(function(r) { return r.json(); })
-                                .then(function(data) {
-                                    if (data.success) {
-                                        info.event.remove();
-                                    } else {
-                                        alert('Error: ' + data.error);
-                                    }
-                                })
-                                .catch(function() { alert('Error deleting note'); });
+        // Chart - isolated so it can't break the calendar
+        try {
+            {% if type_data %}
+            const ctx = document.getElementById('typeChart').getContext('2d');
+            const typeChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: {{ type_labels|safe }},
+                    datasets: [{
+                        data: {{ type_data|safe }},
+                        backgroundColor: ['#667eea', '#764ba2', '#28a745', '#ffc107', '#17a2b8', '#dc3545', '#6c757d'],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                font: {
+                                    family: 'Inter'
+                                }
                             }
-                        });
-                        info.el.style.position = 'relative';
-                        info.el.appendChild(deleteBtn);
-                    } catch(e) {
-                        console.log('Note render error:', e);
-                    }
+                        }
+                    },
+                    cutout: '60%'
                 }
-            },
-            dateClick: function(info) {
-                document.getElementById('noteDate').value = info.dateStr;
-                document.getElementById('noteDateDisplay').textContent = info.dateStr;
-                document.getElementById('calendarNoteModal').classList.add('show');
-                document.getElementById('calendarNoteModal').style.display = 'block';
-                document.getElementById('noteText').value = '';
-            },
-            height: 'auto',
-            themeSystem: 'bootstrap5'
-        });
-        calendar.render();
-        
-        // Save note function
-        window.saveNote = function() {
-            const date = document.getElementById('noteDate').value;
-            const note = document.getElementById('noteText').value;
-            
-            if (!note.trim()) {
-                alert('Please enter a note');
+            });
+            {% endif %}
+        } catch(e) {
+            console.log('Chart error:', e);
+        }
+
+        // Calendar - always render
+        try {
+            const calendarEl = document.getElementById('calendar');
+            if (!calendarEl) {
+                console.log('Calendar element not found');
                 return;
             }
-            
-            fetch('/dashboard/calendar/note/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+
+            var calendarEvents = JSON.parse(document.getElementById('calendar-events-data').textContent);
+            if (!Array.isArray(calendarEvents)) {
+                calendarEvents = [];
+            }
+
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,listWeek'
                 },
-                body: JSON.stringify({ date: date, note: note })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Add event to calendar
-                    calendar.addEvent({
-                        title: 'Note: ' + note.substring(0, 30) + (note.length > 30 ? '...' : ''),
-                        start: date,
-                        backgroundColor: '#28a745',
-                        borderColor: '#28a745'
-                    });
-                    closeModal();
-                    alert('Note saved!');
-                } else {
-                    alert('Error: ' + data.error);
+                events: calendarEvents,
+                eventClick: function(info) {
+                    if (info.event.url) {
+                        window.open(info.event.url, '_blank');
+                        info.preventDefault();
+                    }
+                },
+                eventDidMount: function(info) {
+                    if (info.event.extendedProps && info.event.extendedProps.isNote) {
+                        try {
+                            const noteId = info.event.extendedProps.noteId;
+                            const deleteBtn = document.createElement('span');
+                            deleteBtn.innerHTML = '&times;';
+                            deleteBtn.style.cssText = 'position:absolute;top:2px;right:4px;cursor:pointer;color:#fff;font-size:16px;font-weight:bold;line-height:1;z-index:10;opacity:0.8;';
+                            deleteBtn.addEventListener('mouseenter', function() { this.style.opacity = '1'; });
+                            deleteBtn.addEventListener('mouseleave', function() { this.style.opacity = '0.8'; });
+                            deleteBtn.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                if (confirm('Delete this note?')) {
+                                    fetch('/dashboard/calendar/note/' + noteId + '/delete/', {
+                                        method: 'POST',
+                                        headers: {
+                                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                                        }
+                                    })
+                                    .then(function(r) { return r.json(); })
+                                    .then(function(data) {
+                                        if (data.success) {
+                                            info.event.remove();
+                                        } else {
+                                            alert('Error: ' + data.error);
+                                        }
+                                    })
+                                    .catch(function() { alert('Error deleting note'); });
+                                }
+                            });
+                            info.el.style.position = 'relative';
+                            info.el.appendChild(deleteBtn);
+                        } catch(e) {
+                            console.log('Note render error:', e);
+                        }
+                    }
+                },
+                dateClick: function(info) {
+                    document.getElementById('noteDate').value = info.dateStr;
+                    document.getElementById('noteDateDisplay').textContent = info.dateStr;
+                    document.getElementById('calendarNoteModal').classList.add('show');
+                    document.getElementById('calendarNoteModal').style.display = 'block';
+                    document.getElementById('noteText').value = '';
+                },
+                height: 'auto',
+                themeSystem: 'bootstrap5'
+            });
+            calendar.render();
+
+            // Save note function
+            window.saveNote = function() {
+                const date = document.getElementById('noteDate').value;
+                const note = document.getElementById('noteText').value;
+
+                if (!note.trim()) {
+                    alert('Please enter a note');
+                    return;
                 }
-            })
-            .catch(err => alert('Error saving note'));
-        };
-        
-        window.closeModal = function() {
-            document.getElementById('calendarNoteModal').classList.remove('show');
-            document.getElementById('calendarNoteModal').style.display = 'none';
-        };
+
+                fetch('/dashboard/calendar/note/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: JSON.stringify({ date: date, note: note })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        calendar.addEvent({
+                            title: 'Note: ' + note.substring(0, 30) + (note.length > 30 ? '...' : ''),
+                            start: date,
+                            backgroundColor: '#28a745',
+                            borderColor: '#28a745'
+                        });
+                        closeModal();
+                        alert('Note saved!');
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(function() { alert('Error saving note'); });
+            };
+
+            window.closeModal = function() {
+                document.getElementById('calendarNoteModal').classList.remove('show');
+                document.getElementById('calendarNoteModal').style.display = 'none';
+            };
+        } catch(e) {
+            console.log('Calendar error:', e);
+            document.getElementById('calendar').innerHTML = '<div class="text-center text-muted py-4">Calendar could not load. Please refresh the page.</div>';
+        }
     });
 </script>
 
