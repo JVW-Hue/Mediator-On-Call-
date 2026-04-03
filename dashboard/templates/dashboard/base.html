@@ -5,9 +5,24 @@
 {{ block.super }}
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
 <style>
+    /* Global overflow protection */
+    *, *::before, *::after {
+        box-sizing: border-box;
+    }
+    body {
+        overflow-x: hidden;
+    }
+    table, th, td {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    table {
+        table-layout: fixed;
+    }
     .dashboard-layout {
         display: flex;
         min-height: calc(100vh - 200px);
+        overflow-x: hidden;
     }
     .sidebar {
         background: rgba(255,255,255,0.95);
@@ -16,10 +31,13 @@
         box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         padding: 1.5rem;
         margin-right: 1.5rem;
-        min-width: 250px;
+        width: 250px;
+        min-width: 200px;
+        max-width: 280px;
         height: fit-content;
         position: sticky;
         top: 100px;
+        overflow-wrap: break-word;
     }
     .sidebar-brand {
         font-size: 1.1rem;
@@ -65,15 +83,28 @@
     }
     .main-content {
         flex: 1;
+        min-width: 0;
         background: rgba(255,255,255,0.95);
         backdrop-filter: blur(10px);
         border-radius: 16px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         padding: 2rem;
+        overflow-wrap: break-word;
     }
     .toast-container .toast {
         border-radius: 12px;
         backdrop-filter: blur(10px);
+    }
+    @media (max-width: 991.98px) {
+        .sidebar {
+            display: none !important;
+        }
+        .dashboard-layout {
+            flex-direction: column;
+        }
+        .main-content {
+            margin: 0;
+        }
     }
 </style>
 {% endblock %}

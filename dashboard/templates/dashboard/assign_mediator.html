@@ -78,7 +78,7 @@
                 <h5 class="mb-0"><i class="bi bi-chat-text"></i> Dispute Description</h5>
             </div>
             <div class="card-body">
-                <div class="border rounded p-3 bg-light">
+                <div class="border rounded p-3 bg-light" style="overflow-wrap: break-word; word-break: break-word;">
                     {{ dispute.description|linebreaksbr }}
                 </div>
             </div>
@@ -113,7 +113,7 @@
                 </div>
                 <div class="mb-0">
                     <strong>Defence Explanation:</strong>
-                    <div class="border rounded p-3 bg-light mt-2">
+                    <div class="border rounded p-3 bg-light mt-2" style="overflow-wrap: break-word; word-break: break-word;">
                         {{ dispute.response.defence_explanation|linebreaksbr }}
                     </div>
                 </div>

@@ -11,12 +11,25 @@
     <style>
         * {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            box-sizing: border-box;
         }
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+        table, th, td {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        table {
+            table-layout: fixed;
         }
         .navbar {
             background: rgba(255,255,255,0.95) !important;

@@ -15,9 +15,10 @@
                 <h5 class="mb-0">Your Details</h5>
             </div>
             <div class="card-body">
+                <div class="table-responsive">
                 <table class="table">
                     <tr>
-                        <th>Name:</th>
+                        <th style="width: 150px;">Name:</th>
                         <td>{{ dispute.applicant_name }} {{ dispute.applicant_surname }}</td>
                     </tr>
                     <tr>
@@ -37,6 +38,7 @@
                         <td>{{ dispute.description }}</td>
                     </tr>
                 </table>
+                </div>
             </div>
         </div>
         
@@ -46,9 +48,10 @@
             </div>
             <div class="card-body">
                 {% if response %}
+                <div class="table-responsive">
                 <table class="table">
                     <tr>
-                        <th>Agreed to Mediate:</th>
+                        <th style="width: 150px;">Agreed to Mediate:</th>
                         <td>
                             {% if response.consent_to_mediate %}
                             <span class="badge bg-success">Yes</span>
@@ -62,6 +65,7 @@
                         <td>{{ response.defence_explanation }}</td>
                     </tr>
                 </table>
+                </div>
                 {% else %}
                 <p class="text-muted">No response details available.</p>
                 {% endif %}

@@ -28,7 +28,7 @@
                 <h5 class="card-title">Mediation Session</h5>
                 <p><strong>Date:</strong> {{ session.scheduled_at|date:"F j, Y, g:i a" }}</p>
                 {% if session.zoom_link %}
-                <p><strong>Zoom Link:</strong> <a href="{{ session.zoom_link }}" target="_blank">{{ session.zoom_link }}</a></p>
+                <p><strong>Zoom Link:</strong> <a href="{{ session.zoom_link }}" target="_blank" style="word-break: break-all; overflow-wrap: break-word;">{{ session.zoom_link }}</a></p>
                 {% endif %}
             </div>
         </div>
