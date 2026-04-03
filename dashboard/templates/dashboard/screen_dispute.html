@@ -144,7 +144,7 @@
                 <ul class="list-group list-group-flush">
                     {% for doc in docs %}
                     <li class="list-group-item">
-                        <a href="{{ doc.file.url }}" target="_blank" rel="noopener">
+                        <a href="{{ doc.file.url }}" target="_blank" rel="noopener" style="overflow-wrap: break-word; word-break: break-word;">
                             <i class="bi bi-file-earmark-pdf text-danger"></i> {{ doc.file.name|cut:"dispute_docs/" }}
                         </a>
                         <small class="text-muted float-end">Uploaded {{ doc.uploaded_at|date:"d M Y" }}</small>
@@ -159,7 +159,7 @@
 
     <!-- Right Column: Screening Form -->
     <div class="col-lg-4">
-        <div class="card shadow-sm sticky-top" style="top: 20px;">
+        <div class="card shadow-sm sticky-top" style="top: 20px; max-height: calc(100vh - 40px); overflow-y: auto;">
             <div class="card-header bg-success text-white">
                 <h5 class="mb-0"><i class="bi bi-clipboard-check"></i> Screening Decision</h5>
             </div>

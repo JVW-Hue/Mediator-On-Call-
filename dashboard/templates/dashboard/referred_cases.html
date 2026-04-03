@@ -132,14 +132,14 @@
                             <span class="fw-bold">#{{ referred.dispute.id }}</span>
                         </td>
                         <td>
-                            <div>{{ referred.dispute.applicant_name }} {{ referred.dispute.applicant_surname }}</div>
+                            <div style="overflow-wrap: break-word;">{{ referred.dispute.applicant_name }} {{ referred.dispute.applicant_surname }}</div>
                             <small class="text-muted">{{ referred.dispute.applicant_cell }}</small>
                         </td>
                         <td>
                             {% if referred.dispute.respondent_type == 'bus' %}
-                                <div>{{ referred.dispute.business_name }}</div>
+                                <div style="overflow-wrap: break-word;">{{ referred.dispute.business_name }}</div>
                             {% else %}
-                                <div>{{ referred.dispute.respondent_name }} {{ referred.dispute.respondent_surname }}</div>
+                                <div style="overflow-wrap: break-word;">{{ referred.dispute.respondent_name }} {{ referred.dispute.respondent_surname }}</div>
                             {% endif %}
                         </td>
                         <td>

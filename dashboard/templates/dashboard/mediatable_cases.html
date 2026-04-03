@@ -143,14 +143,14 @@
                             <span class="fw-bold">#{{ case.dispute.id }}</span>
                         </td>
                         <td>
-                            <div>{{ case.dispute.applicant_name }} {{ case.dispute.applicant_surname }}</div>
+                            <div style="overflow-wrap: break-word;">{{ case.dispute.applicant_name }} {{ case.dispute.applicant_surname }}</div>
                             <small class="text-muted">{{ case.dispute.applicant_cell }}</small>
                         </td>
                         <td>
                             {% if case.dispute.respondent_type == 'bus' %}
-                                <div>{{ case.dispute.business_name }}</div>
+                                <div style="overflow-wrap: break-word;">{{ case.dispute.business_name }}</div>
                             {% else %}
-                                <div>{{ case.dispute.respondent_name }} {{ case.dispute.respondent_surname }}</div>
+                                <div style="overflow-wrap: break-word;">{{ case.dispute.respondent_name }} {{ case.dispute.respondent_surname }}</div>
                             {% endif %}
                         </td>
                         <td>

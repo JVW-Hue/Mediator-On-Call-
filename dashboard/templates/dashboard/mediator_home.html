@@ -62,6 +62,7 @@
         box-shadow: 0 2px 10px rgba(0,0,0,0.08);
         border-left: 4px solid #667eea;
         transition: all 0.3s;
+        overflow: hidden;
     }
     .case-card:hover {
         box-shadow: 0 5px 20px rgba(0,0,0,0.12);
@@ -73,10 +74,13 @@
     .case-id {
         font-weight: 700;
         color: #667eea;
+        overflow-wrap: break-word;
     }
     .case-parties {
         color: #555;
         font-size: 0.95rem;
+        overflow-wrap: break-word;
+        word-break: break-word;
     }
     .case-date {
         color: #888;

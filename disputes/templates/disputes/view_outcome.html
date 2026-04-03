@@ -37,7 +37,7 @@
             <div class="card-body">
                 <h5 class="card-title">Outcome</h5>
                 {% if session.outcome %}
-                    <p class="card-text">{{ session.outcome|linebreaks }}</p>
+                    <p class="card-text" style="overflow-wrap: break-word; word-break: break-word;">{{ session.outcome|linebreaks }}</p>
                 {% else %}
                     <p class="text-muted">No outcome details provided.</p>
                 {% endif %}

@@ -97,6 +97,8 @@
         margin-bottom: 1rem;
         padding-bottom: 1rem;
         border-bottom: 1px solid #f0f2ff;
+        flex-wrap: wrap;
+        gap: 0.5rem;
     }
     .mediator-avatar {
         width: 55px;
@@ -111,18 +113,21 @@
         color: white;
         font-weight: bold;
         box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        flex-shrink: 0;
     }
     .mediator-info h3 {
         margin: 0 0 0.25rem 0;
         font-size: 1.1rem;
         color: #333;
         font-weight: 600;
+        overflow-wrap: break-word;
     }
     .mediator-info h4 {
         margin: 0;
         font-size: 0.85rem;
         color: #667eea;
         font-weight: 500;
+        overflow-wrap: break-word;
     }
     .mediator-details {
         display: flex;
@@ -138,22 +143,27 @@
         border-radius: 8px;
         font-size: 0.8rem;
         color: #555;
+        min-width: 0;
+        overflow-wrap: break-word;
     }
     .detail-item i {
         margin-right: 0.4rem;
         color: #667eea;
         font-size: 0.9rem;
+        flex-shrink: 0;
     }
     .mediator-expertise {
         font-size: 0.85rem;
         color: #666;
         margin-bottom: 1rem;
+        overflow-wrap: break-word;
     }
     .mediator-actions {
         margin-top: auto;
         padding-top: 1rem;
         border-top: 1px solid #f0f2ff;
         display: flex;
+        flex-wrap: wrap;
         gap: 0.5rem;
     }
     .btn-action {
