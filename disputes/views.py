@@ -286,6 +286,22 @@ def _apply_view(request):
                 except Exception as e:
                     logging.warning(f"Could not send confirmation: {e}")
                 
+                # Send SMS to respondent notifying them of the dispute
+                try:
+                    respondent_cell = dispute.respondent_cell if dispute.respondent_type == 'ind' else dispute.business_cell
+                    if respondent_cell:
+                        from disputes.tasks import notify_recipient
+                        respondent_name = dispute.respondent_name if dispute.respondent_type == 'ind' else dispute.business_name
+                        sms_body = (
+                            f"Dear {respondent_name}, a dispute has been lodged against you by "
+                            f"{dispute.applicant_name} {dispute.applicant_surname} (Case #{dispute.id}). "
+                            f"Our Registrar will review the matter and contact you shortly. "
+                            f"Enquiries: complaints@probonomediation.co.za"
+                        )
+                        notify_recipient.delay(to=respondent_cell, body=sms_body)
+                except Exception as e:
+                    logging.warning(f"Could not send respondent SMS: {e}")
+                
                 # Automatically reject family, labour, or property disputes
                 INELIGIBLE_TYPES = ['family', 'labour', 'property']
                 if dispute.dispute_type in INELIGIBLE_TYPES:
