@@ -9,6 +9,7 @@ urlpatterns = [
     path("disputes/", views.DisputeListView.as_view(), name="dispute_list"),
     path("dispute/<int:pk>/", views.DisputeDetailView.as_view(), name="dispute_detail"),
     path("dispute/<int:pk>/delete/", views.delete_dispute, name="delete_dispute"),
+    path("dispute/<int:pk>/restore/", views.restore_dispute, name="restore_dispute"),
     path("dispute/<int:pk>/download/", views.download_case_file, name="download_case_file"),
     path("dispute/<int:pk>/assign-mediator/", views.assign_mediator_to_dispute, name="assign_mediator_to_dispute"),
     path("dispute/<int:pk>/screen/", views.screen_dispute_page, name="screen_dispute_page"),

@@ -129,6 +129,13 @@
         
         <h2>Thank You for Filling in the Form</h2>
         
+        {% if dispute %}
+        <div class="alert alert-success mt-3" style="border-radius: 12px;">
+            <strong><i class="bi bi-hash"></i> Your Case Number: #{{ dispute.id }}</strong>
+            <p class="mb-0 mt-1" style="font-size: 0.95rem;">Please save this number for your records. You may need it to follow up on your case.</p>
+        </div>
+        {% endif %}
+        
         <div class="notification-box">
             <p><strong>Your submission has been received.</strong></p>
             <p>Your information is currently being reviewed by our team. You will receive an SMS notification shortly with further details regarding your dispute.</p>
@@ -146,10 +153,13 @@
         </div>
         
         <div class="mt-4">
+            <a href="{% url 'disputes:track_case' %}" class="btn btn-home">
+                <i class="bi bi-search"></i> Track Your Case
+            </a>
             <a href="{% url 'disputes:apply' %}" class="btn btn-outline-home">
                 <i class="bi bi-plus-circle"></i> Submit Another Dispute
             </a>
-            <a href="/" class="btn btn-home">
+            <a href="/" class="btn btn-outline-home">
                 <i class="bi bi-house"></i> Home
             </a>
         </div>

@@ -267,6 +267,9 @@
     <a href="?status=rejected" class="filter-tab {% if current_status == 'rejected' %}active{% endif %}">
         <i class="bi bi-x-circle me-1"></i> Rejected
     </a>
+    <a href="?status=archived" class="filter-tab {% if current_status == 'archived' %}active{% endif %}" style="background: #6c757d; color: white;">
+        <i class="bi bi-archive me-1"></i> Archived
+    </a>
 </div>
 
 <!-- Disputes List -->
@@ -299,6 +302,14 @@
             </div>
             <div class="dispute-date">{{ dispute.created_at|date:"M d, Y" }}</div>
             <div class="dispute-actions">
+                {% if dispute.is_deleted %}
+                <form method="post" action="{% url 'dashboard:restore_dispute' dispute.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-action" style="background: #198754; color: white;">
+                        <i class="bi bi-arrow-counterclockwise"></i> Restore
+                    </button>
+                </form>
+                {% else %}
                 {% if dispute.status == 'submitted' %}
                 <a href="{% url 'dashboard:screen_dispute_page' dispute.pk %}" class="btn-action btn-screen">
                     <i class="bi bi-eye"></i> Screen
@@ -315,6 +326,7 @@
                 <button type="button" class="btn-action btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal{{ dispute.id }}">
                     <i class="bi bi-trash"></i>
                 </button>
+                {% endif %}
             </div>
             
             <!-- Delete Modal -->
@@ -322,19 +334,19 @@
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Confirm Delete</h5>
+                            <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Archive Dispute</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
-                            <p>Are you sure you want to delete Dispute <strong>#{{ dispute.id }}</strong>?</p>
-                            <p class="text-muted small">This action cannot be undone.</p>
+                            <p>Are you sure you want to archive Dispute <strong>#{{ dispute.id }}</strong>?</p>
+                            <p class="text-muted small">This will move it to the Archived tab. It can be restored later.</p>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                             <form method="post" action="{% url 'dashboard:delete_dispute' dispute.id %}" class="d-inline">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-danger">
-                                    <i class="bi bi-trash me-1"></i> Delete
+                                    <i class="bi bi-archive me-1"></i> Archive
                                 </button>
                             </form>
                         </div>

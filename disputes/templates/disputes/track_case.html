@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Track Your Case – Pro Bono Community Mediation{% endblock %}
+
+{% block extra_css %}
+<style>
+    .track-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+    }
+    .track-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        padding: 40px;
+        max-width: 500px;
+        width: 100%;
+    }
+    .track-card h2 {
+        color: #333;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    .track-card p {
+        color: #666;
+        margin-bottom: 25px;
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    .status-submitted { background: #fff3cd; color: #856404; }
+    .status-forwarded { background: #cce5ff; color: #004085; }
+    .status-responded { background: #d4edda; color: #155724; }
+    .status-respondent_agreed { background: #d4edda; color: #155724; }
+    .status-ready_for_assignment { background: #e2d9f3; color: #5a3d8a; }
+    .status-mediator_assigned { background: #d1ecf1; color: #0c5460; }
+    .status-mediation_scheduled { background: #cce5ff; color: #004085; }
+    .status-mediated { background: #d4edda; color: #155724; }
+    .status-closed { background: #e9ecef; color: #495057; }
+    .status-rejected { background: #f8d7da; color: #721c24; }
+    .status-arbitration { background: #f8d7da; color: #721c24; }
+    .status-respondent_no_response { background: #fff3cd; color: #856404; }
+    .status-applicant_confirmed { background: #d4edda; color: #155724; }
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.6rem 0;
+        border-bottom: 1px solid #f0f2ff;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: #888; font-size: 0.9rem; }
+    .detail-value { color: #333; font-weight: 500; font-size: 0.9rem; text-align: right; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="track-container">
+    <div class="track-card">
+        <h2><i class="bi bi-search me-2" style="color: #667eea;"></i>Track Your Case</h2>
+        <p>Enter your case number and cell phone number to check the status of your dispute.</p>
+
+        {% if dispute %}
+        <div class="alert alert-success">
+            <strong>Case #{{ dispute.id }}</strong>
+            <span class="status-badge status-{{ dispute.status }} ms-2">{{ dispute.get_status_display }}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Applicant:</span>
+            <span class="detail-value">{{ dispute.applicant_name }} {{ dispute.applicant_surname }}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Dispute Type:</span>
+            <span class="detail-value">{{ dispute.get_dispute_type_display }}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Submitted:</span>
+            <span class="detail-value">{{ dispute.created_at|date:"d M Y" }}</span>
+        </div>
+        <div class="mt-3">
+            <a href="{% url 'disputes:track_case' %}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Track Another Case
+            </a>
+        </div>
+        {% else %}
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Case Number</label>
+                <input type="number" name="case_id" class="form-control" placeholder="e.g. 1" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Cell Phone Number</label>
+                <input type="text" name="cell" class="form-control" placeholder="e.g. 0821234567" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-search me-1"></i> Track Case
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

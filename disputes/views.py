@@ -318,16 +318,40 @@ def _apply_view(request):
                     return render(request, "disputes/rejected_not_eligible.html", {"dispute": dispute})
                 
                 messages.success(request, "Your dispute has been submitted successfully. You will receive an SMS notification shortly.")
-                return redirect("disputes:application_success")
+                return redirect("disputes:application_success", dispute_id=dispute.id)
                 
             except (OperationalError, IntegrityError) as e:
                 logging.error(f"Database error submitting dispute: {e}")
+                # Dispute was already saved at line 228, so find it and redirect to success
+                try:
+                    saved_dispute = Dispute.objects.filter(
+                        applicant_cell=applicant_cell,
+                        applicant_name__iexact=applicant_name,
+                        applicant_surname__iexact=applicant_surname,
+                    ).order_by('-created_at').first()
+                    if saved_dispute:
+                        messages.success(request, f"Your dispute (Case #{saved_dispute.id}) was saved successfully despite a follow-up error.")
+                        return redirect("disputes:application_success", dispute_id=saved_dispute.id)
+                except Exception:
+                    pass
                 messages.error(request, "There was a temporary problem saving your dispute. Please try again in a moment. If the problem persists, contact us directly.")
                 return render(request, "disputes/apply.html", {"form": form, "formset": formset})
             except Exception as e:
                 logging.error(f"Error submitting dispute: {type(e).__name__}: {e}")
                 import traceback
                 logging.error(traceback.format_exc())
+                # Dispute was already saved at line 228, so find it and redirect to success
+                try:
+                    saved_dispute = Dispute.objects.filter(
+                        applicant_cell=applicant_cell,
+                        applicant_name__iexact=applicant_name,
+                        applicant_surname__iexact=applicant_surname,
+                    ).order_by('-created_at').first()
+                    if saved_dispute:
+                        messages.success(request, f"Your dispute (Case #{saved_dispute.id}) was saved successfully despite a follow-up error.")
+                        return redirect("disputes:application_success", dispute_id=saved_dispute.id)
+                except Exception:
+                    pass
                 messages.error(request, f"Error: {type(e).__name__}. Please try again or contact support.")
                 return render(request, "disputes/apply.html", {"form": form, "formset": formset})
                 return render(request, "disputes/apply.html", {"form": form, "formset": formset})
@@ -351,8 +375,31 @@ for dec in reversed(_apply_decorators):
 apply_view = _apply_view
 
 
-def success_view(request):
-    return render(request, "disputes/success.html")
+def success_view(request, dispute_id=None):
+    dispute = None
+    if dispute_id:
+        try:
+            dispute = Dispute.objects.get(id=dispute_id)
+        except Dispute.DoesNotExist:
+            pass
+    return render(request, "disputes/success.html", {"dispute": dispute})
+
+
+def track_case(request):
+    """Public page to track a dispute by case number and applicant cell."""
+    dispute = None
+    error = None
+    if request.method == "POST":
+        case_id = request.POST.get("case_id", "").strip()
+        cell = request.POST.get("cell", "").strip()
+        if case_id and cell:
+            try:
+                dispute = Dispute.objects.get(id=case_id, applicant_cell=cell, is_deleted=False)
+            except Dispute.DoesNotExist:
+                error = "No dispute found with those details. Please check your case number and cell phone number."
+        else:
+            error = "Please enter both your case number and cell phone number."
+    return render(request, "disputes/track_case.html", {"dispute": dispute, "error": error})
 
 
 def _respond_view(request, token):

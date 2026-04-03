@@ -282,12 +282,16 @@ class DisputeListView(ListView):
     def get_queryset(self):
         queryset = super().get_queryset()
         status = self.request.GET.get('status')
-        if status:
+        if status == 'archived':
+            queryset = queryset.filter(is_deleted=True)
+        else:
+            queryset = queryset.filter(is_deleted=False)
+        if status and status != 'archived':
             queryset = queryset.filter(status=status)
         
         # Mark duplicates (same applicant name + cell)
         from django.db.models import Count
-        duplicates = Dispute.objects.values('applicant_cell').annotate(
+        duplicates = Dispute.objects.filter(is_deleted=False).values('applicant_cell').annotate(
             count=Count('id')
         ).filter(count__gt=1).values_list('applicant_cell', flat=True)
         
@@ -314,8 +318,33 @@ class DisputeListView(ListView):
 @staff_required
 def delete_dispute(request, pk):
     dispute = get_object_or_404(Dispute, pk=pk)
-    dispute.delete()
-    messages.success(request, f"Dispute #{pk} deleted successfully.")
+    # Soft delete - dispute is never truly removed
+    from django.utils import timezone
+    dispute.is_deleted = True
+    dispute.deleted_at = timezone.now()
+    dispute.save(update_fields=['is_deleted', 'deleted_at'])
+    AuditLog.objects.create(
+        dispute=dispute,
+        user=request.user,
+        action=f"Dispute soft-deleted by {request.user.get_full_name() or request.user.username}",
+    )
+    messages.success(request, f"Dispute #{pk} has been archived. It can be restored from the Archived filter.")
+    return redirect("dashboard:dispute_list")
+
+
+@staff_required
+def restore_dispute(request, pk):
+    """Restore a soft-deleted dispute."""
+    dispute = get_object_or_404(Dispute, pk=pk, is_deleted=True)
+    dispute.is_deleted = False
+    dispute.deleted_at = None
+    dispute.save(update_fields=['is_deleted', 'deleted_at'])
+    AuditLog.objects.create(
+        dispute=dispute,
+        user=request.user,
+        action=f"Dispute restored by {request.user.get_full_name() or request.user.username}",
+    )
+    messages.success(request, f"Dispute #{pk} has been restored.")
     return redirect("dashboard:dispute_list")
 
 

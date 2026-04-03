@@ -102,6 +102,10 @@ class Dispute(models.Model):
         default="submitted",
     )
 
+    # Soft delete - disputes are never truly deleted
+    is_deleted = models.BooleanField(default=False, db_index=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
     # screening fields (filled by admin)
     is_mediatable = models.BooleanField(null=True, blank=True)
     screening_notes = models.TextField(blank=True)
