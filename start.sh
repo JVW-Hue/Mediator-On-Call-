@@ -28,4 +28,4 @@ echo "Collecting static files..."
 python manage.py collectstatic --noinput --clear || echo "Static files warning (non-fatal)"
 
 echo "Starting gunicorn..."
-exec gunicorn mediators_on_call.wsgi --bind 0.0.0.0:${PORT:-10000} --workers 2 --timeout 120
+exec gunicorn mediators_on_call.wsgi --bind 0.0.0.0:$PORT --workers 2 --timeout 120
