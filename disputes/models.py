@@ -338,6 +338,10 @@ class CalendarNote(models.Model):
     note = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     
+    # Soft delete - calendar notes are never truly deleted
+    is_deleted = models.BooleanField(default=False, db_index=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    
     class Meta:
         ordering = ['-date', '-created_at']
     

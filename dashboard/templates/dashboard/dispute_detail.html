@@ -42,12 +42,13 @@
         margin-left: 0.5rem;
     }
     .info-card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        overflow: hidden;
-        height: 100%;
-    }
+         background: white;
+         border-radius: 16px;
+         box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+         overflow: hidden;
+         height: 100%;
+         border: 1px solid #f0f2ff;
+     }
     .info-card-header {
         padding: 1rem 1.5rem;
         border-bottom: 2px solid #f0f2ff;
@@ -91,11 +92,12 @@
         word-break: break-word;
     }
     .audit-card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        overflow: hidden;
-    }
+         background: white;
+         border-radius: 16px;
+         box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+         overflow: hidden;
+         border: 1px solid #f0f2ff;
+     }
     .audit-entry {
         padding: 1rem 1.5rem;
         border-bottom: 1px solid #f0f2ff;
@@ -173,14 +175,6 @@
 {% endblock %}
 
 {% block dashboard_content %}
-
-<!-- Debug - Remove after testing -->
-<div class="alert alert-info">
-    <strong>Debug:</strong> 
-    Dispute ID: {{ dispute.id|default:"NONE" }} | 
-    Applicant: {{ dispute.applicant_name|default:"NO NAME" }} |
-    Status: {{ dispute.status|default:"NO STATUS" }}
-</div>
 
 <!-- Page Header -->
 <div class="page-header">

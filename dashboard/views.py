@@ -261,7 +261,8 @@ class AdminDashboardView(TemplateView):
         try:
             from disputes.models import CalendarNote
             notes = CalendarNote.objects.filter(
-                date__gte=timezone.now().date() - timedelta(days=365)
+                date__gte=timezone.now().date() - timedelta(days=365),
+                is_deleted=False
             ).select_related("user")
             for note in notes:
                 calendar_events.append({
@@ -1159,7 +1160,9 @@ def delete_calendar_note(request, note_id):
     try:
         from disputes.models import CalendarNote
         note = CalendarNote.objects.get(id=note_id, user=request.user)
-        note.delete()
+        note.is_deleted = True
+        note.deleted_at = timezone.now()
+        note.save()
         return JsonResponse({'success': True})
     except CalendarNote.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Note not found'})
