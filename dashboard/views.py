@@ -496,7 +496,7 @@ def screen_dispute(request):
         )
         
         # Send Message 4: Invitation to respondent
-        respondent_email = dispute.respondent_email or dispute.business_email
+        respondent_email = dispute.respondent_email
         if respondent_email:
             send_message_4_respondent_invitation.delay(
                 to_email=respondent_email,
@@ -621,7 +621,7 @@ def screen_dispute_page(request, pk):
             )
             
             # Send Message 4: Invitation to respondent
-            respondent_email = dispute.respondent_email or dispute.business_email
+            respondent_email = dispute.respondent_email
             if respondent_email:
                 send_message_4_respondent_invitation.delay(
                     to_email=respondent_email,
@@ -759,7 +759,7 @@ def assign_mediator_post(request):
     
     send_message_8_mediator_assigned_parties.delay(
         applicant_email=dispute.applicant_email,
-        respondent_email=dispute.respondent_email or dispute.business_email,
+        respondent_email=dispute.respondent_email,
         mediator_name=mediator_name,
         case_id=dispute.id,
     )
