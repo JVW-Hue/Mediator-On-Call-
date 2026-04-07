@@ -331,21 +331,7 @@ def success_view(request, dispute_id=None):
     return render(request, "disputes/success.html", {"dispute": dispute})
 
 
-def track_case(request):
-    """Public page to track a dispute by case number and applicant cell."""
-    dispute = None
-    error = None
-    if request.method == "POST":
-        case_id = request.POST.get("case_id", "").strip()
-        cell = request.POST.get("cell", "").strip()
-        if case_id and cell:
-            try:
-                dispute = Dispute.objects.get(id=case_id, applicant_cell=cell, is_deleted=False)
-            except Dispute.DoesNotExist:
-                error = "No dispute found with those details. Please check your case number and cell phone number."
-        else:
-            error = "Please enter both your case number and cell phone number."
-    return render(request, "disputes/track_case.html", {"dispute": dispute, "error": error})
+
 
 
 def _respond_view(request, token):

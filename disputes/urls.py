@@ -12,7 +12,6 @@ urlpatterns = [
     path("apply/get-photos/", views.get_photos_ajax, name="get_photos"),
     path("success/<int:dispute_id>/", views.success_view, name="application_success"),
     path("success/", views.success_view, name="application_success"),
-    path("track/", views.track_case, name="track_case"),
     path("respond/<uuid:token>/", views.respond_view, name="respond"),
     path("view-defence/<uuid:token>/", views.view_defence, name="view_defence"),
     path("outcome/<uuid:token>/", views.view_outcome, name="view_outcome"),
