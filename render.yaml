@@ -14,3 +14,7 @@ services:
         value: "True"
       - key: DJANGO_SECRET_KEY
         value: "render-temp-secret-key-change-later"
+    disk:
+      - name: mediationsqlite
+        mountPath: /opt/render/project/src
+        sizeGB: 1
