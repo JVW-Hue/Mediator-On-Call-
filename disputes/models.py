@@ -33,7 +33,10 @@ class Dispute(models.Model):
         ("applicant_confirmed", "Applicant Confirmed - Awaiting Respondent"),
         ("forwarded", "Forwarded to Respondent"),
         ("responded", "Respondent Responded"),
-        ("respondent_agreed", "Respondent Agreed - Awaiting Applicant Final Confirmation"),
+        (
+            "respondent_agreed",
+            "Respondent Agreed - Awaiting Applicant Final Confirmation",
+        ),
         ("ready_for_assignment", "Ready for Mediator Assignment"),
         ("mediator_assigned", "Mediator Assigned"),
         ("mediation_scheduled", "Mediation Scheduled"),
@@ -57,7 +60,7 @@ class Dispute(models.Model):
     respondent_notified_at = models.DateTimeField(null=True, blank=True)
     respondent_response_deadline = models.DateTimeField(null=True, blank=True)
     reminder_sent_at = models.DateTimeField(null=True, blank=True)
-    
+
     # Mutual agreement workflow fields (also used by mediator workflow)
     respondent_agreed_at = models.DateTimeField(null=True, blank=True)
     applicant_final_confirmed_at = models.DateTimeField(null=True, blank=True)
@@ -110,7 +113,7 @@ class Dispute(models.Model):
     is_mediatable = models.BooleanField(null=True, blank=True)
     screening_notes = models.TextField(blank=True)
     screened_by = models.ForeignKey(
-        'auth.User',
+        "auth.User",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -131,10 +134,10 @@ class Dispute(models.Model):
 
     def __str__(self) -> str:
         return f"Dispute #{self.id} - {self.applicant_surname}"
-    
+
     @property
     def is_eligible(self):
-        return self.dispute_type not in ['family', 'labour', 'property']
+        return self.dispute_type not in ["family", "labour", "property"]
 
 
 class MediatableCase(models.Model):
@@ -145,7 +148,7 @@ class MediatableCase(models.Model):
     )
     accepted_at = models.DateTimeField(auto_now_add=True)
     accepted_by = models.ForeignKey(
-        'auth.User',
+        "auth.User",
         on_delete=models.SET_NULL,
         null=True,
         related_name="mediatable_cases",
@@ -175,7 +178,7 @@ class ReferredCase(models.Model):
     referred_to = models.CharField(max_length=20, choices=REFERRAL_CHOICES)
     referred_at = models.DateTimeField(auto_now_add=True)
     referred_by = models.ForeignKey(
-        'auth.User',
+        "auth.User",
         on_delete=models.SET_NULL,
         null=True,
         related_name="referred_cases",
@@ -210,17 +213,18 @@ class DisputePhoto(models.Model):
     )
     image = models.ImageField(upload_to="dispute_photos/")
     uploaded_at = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
         return f"Photo for Dispute #{self.dispute_id if self.dispute else 'Temp'}"
 
 
 class TempDisputePhoto(models.Model):
     """Temporary storage for photos before dispute is created"""
+
     session_key = models.CharField(max_length=40)
     image = models.ImageField(upload_to="temp_photos/")
     uploaded_at = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
         return f"Temp Photo {self.id}"
 
@@ -254,7 +258,9 @@ class ResponseDocument(models.Model):
 
 
 class Mediator(models.Model):
-    user = models.OneToOneField('auth.User', on_delete=models.CASCADE, related_name='mediator')
+    user = models.OneToOneField(
+        "auth.User", on_delete=models.CASCADE, related_name="mediator"
+    )
     cell = models.CharField(max_length=20)
 
     def __str__(self) -> str:
@@ -274,7 +280,10 @@ class MediationSession(models.Model):
         related_name="sessions",
     )
     scheduled_at = models.DateTimeField()
-    zoom_link = models.URLField()
+    zoom_link = models.URLField(blank=True)
+    host_link = models.URLField(
+        blank=True, help_text="Mediator's host link for the meeting"
+    )
     outcome = models.TextField(blank=True)
     outcome_file = models.FileField(
         upload_to="outcomes/",
@@ -300,7 +309,7 @@ class AuditLog(models.Model):
         related_name="audit_logs",
     )
     user = models.ForeignKey(
-        'auth.User',
+        "auth.User",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -317,34 +326,38 @@ class AuditLog(models.Model):
 
 
 class RespondentToken(models.Model):
-    dispute = models.ForeignKey(Dispute, on_delete=models.CASCADE, related_name='respondent_tokens')
+    dispute = models.ForeignKey(
+        Dispute, on_delete=models.CASCADE, related_name="respondent_tokens"
+    )
     token = models.UUIDField(default=uuid.uuid4, unique=True)
     email = models.EmailField()
     used = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
-    
+
     def __str__(self):
         return f"Token for {self.email} - Dispute #{self.dispute_id}"
-    
+
     def is_valid(self):
         return not self.used and self.expires_at > timezone.now()
 
 
 class CalendarNote(models.Model):
     """Notes added to the calendar by staff/mediators."""
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='calendar_notes')
+
+    user = models.ForeignKey(
+        "auth.User", on_delete=models.CASCADE, related_name="calendar_notes"
+    )
     date = models.DateField()
     note = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     # Soft delete - calendar notes are never truly deleted
     is_deleted = models.BooleanField(default=False, db_index=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
-    
+
     class Meta:
-        ordering = ['-date', '-created_at']
-    
+        ordering = ["-date", "-created_at"]
+
     def __str__(self):
         return f"Note for {self.date}: {self.note[:50]}"
-
