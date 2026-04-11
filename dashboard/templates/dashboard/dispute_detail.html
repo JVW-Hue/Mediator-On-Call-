@@ -184,9 +184,11 @@
     </div>
     <div class="header-actions">
         {% if user.is_staff or user.is_superuser %}
+        {% if not dispute.mediator %}
         <a href="{% url 'dashboard:assign_mediator_page' dispute.id %}" class="btn btn-light">
-            <i class="bi bi-person-plus me-1"></i> {% if dispute.mediator %}Change{% else %}Assign{% endif %} Mediator
+            <i class="bi bi-person-plus me-1"></i> Assign Mediator
         </a>
+        {% endif %}
         {% endif %}
         <a href="{% url 'dashboard:dispute_list' %}" class="btn btn-outline-light">
             <i class="bi bi-arrow-left me-1"></i> Back
