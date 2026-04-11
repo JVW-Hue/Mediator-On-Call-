@@ -13,7 +13,9 @@ logger = logging.getLogger(__name__)
 
 def _get_base_context():
     return {
-        "from_email": getattr(settings, "DEFAULT_FROM_EMAIL", "no-reply@probonomediation.co.za"),
+        "from_email": getattr(
+            settings, "DEFAULT_FROM_EMAIL", "no-reply@probonomediation.co.za"
+        ),
         "admin_email": getattr(settings, "ADMIN_EMAIL", "admin@probonomediation.co.za"),
     }
 
@@ -29,7 +31,9 @@ def send_email_notification(self, to_email: str, subject: str, body: str):
         send_mail(
             subject=subject,
             message=body,
-            from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "no-reply@probonomediation.co.za"),
+            from_email=getattr(
+                settings, "DEFAULT_FROM_EMAIL", "no-reply@probonomediation.co.za"
+            ),
             recipient_list=[to_email],
             fail_silently=False,
         )
@@ -41,7 +45,9 @@ def send_email_notification(self, to_email: str, subject: str, body: str):
 
 
 @shared_task(bind=True, max_retries=3)
-def send_message_1_dispute_registered(self, to_email: str, applicant_name: str, case_id: int, to_phone: str = None):
+def send_message_1_dispute_registered(
+    self, to_email: str, applicant_name: str, case_id: int, to_phone: str = None
+):
     """MESSAGE 1: After registering your dispute - Confirmation to applicant"""
     subject = f"Thank You for Submitting Your Dispute - Case #{case_id}"
     body = f"""Dear {applicant_name},
@@ -53,7 +59,7 @@ We will review your case and contact you shortly with further instructions.
 Regards,
 Admin Team"""
     send_email_notification.delay(to_email, subject, body)
-    
+
     # Also send SMS notification
     if to_phone:
         sms_body = f"Hi {applicant_name}, thank you for submitting your dispute (Case #{case_id}). Your info is being processed. The mediator assigned to you will contact you shortly. - Pro Bono Mediation"
@@ -61,7 +67,9 @@ Admin Team"""
 
 
 @shared_task(bind=True, max_retries=3)
-def send_message_2_dispute_rejected(self, to_email: str, applicant_name: str, case_id: int):
+def send_message_2_dispute_rejected(
+    self, to_email: str, applicant_name: str, case_id: int
+):
     """MESSAGE 2: If the registrar decides not to proceed with mediation"""
     subject = f"Your Dispute Cannot Be Mediated - Case #{case_id}"
     body = f"""Dear {applicant_name},
@@ -76,7 +84,9 @@ Admin Team"""
 
 
 @shared_task(bind=True, max_retries=3)
-def send_message_3_proceed_mediation(self, to_email: str, applicant_name: str, case_id: int):
+def send_message_3_proceed_mediation(
+    self, to_email: str, applicant_name: str, case_id: int
+):
     """MESSAGE 3: If the registrar decides to proceed with mediation - To applicant"""
     subject = f"Your Dispute Has Been Accepted - Case #{case_id}"
     body = f"""Dear {applicant_name},
@@ -127,7 +137,9 @@ Admin Team"""
 
 
 @shared_task(bind=True, max_retries=3)
-def send_message_5_respondent_declined(self, to_email: str, applicant_name: str, case_id: int):
+def send_message_5_respondent_declined(
+    self, to_email: str, applicant_name: str, case_id: int
+):
     """MESSAGE 5: If the respondent decides not to proceed with mediation - To applicant"""
     subject = f"Respondent Did Not Agree to Mediation - Case #{case_id}"
     body = f"""Dear {applicant_name},
@@ -188,20 +200,34 @@ def send_message_8_mediator_assigned_mediator(
     self,
     to_email: str,
     mediator_name: str,
+    applicant_name: str,
+    respondent_name: str,
     case_id: int,
+    scheduled_at: str,
+    zoom_link: str,
 ):
     """MESSAGE 8: Notify mediator of their assignment"""
-    subject = f"You Have Been Assigned a Case - Case #{case_id}"
+    subject = f"New Case Assigned to You - Case #{case_id}"
     body = f"""Dear {mediator_name},
 
-Please log into your profile to check the dispute that has been allocated to you.
+A new case has been assigned to you. Here are the details:
 
-It is imperative to contact the Parties within 3 working days to make the necessary arrangement to proceed with and finalize the mediation of the matter.
+CASE INFORMATION:
+- Case ID: #{case_id}
+- Applicant: {applicant_name}
+- Respondent: {respondent_name}
+- Scheduled Date/Time: {scheduled_at}
+- Zoom Link: {zoom_link if zoom_link and zoom_link != "https://zoom.us/j/pending" else "To be determined"}
 
-Once finalized log in and note the outcome.
+NEXT STEPS:
+Please log into your dashboard to view the full case details. It is imperative to contact the Parties within 3 working days to make the necessary arrangements to proceed with and finalize the mediation of the matter.
+
+Once the mediation is finalized, please log in and note the outcome.
+
+If you have any questions, please contact the admin team.
 
 Regards,
-Admin Team"""
+Pro Bono Mediation Team"""
     send_email_notification.delay(to_email, subject, body)
 
 
@@ -256,11 +282,16 @@ def send_sms_notification(self, to: str, body: str):
         print(f"[SMS DEBUG] To: {to}, Body: {body}")
         return None
 
-    if not (settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN and settings.TWILIO_FROM_NUMBER):
+    if not (
+        settings.TWILIO_ACCOUNT_SID
+        and settings.TWILIO_AUTH_TOKEN
+        and settings.TWILIO_FROM_NUMBER
+    ):
         logger.error("Twilio not configured; cannot send SMS to %s", to)
         return None
 
     from twilio.rest import Client
+
     client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
     message = client.messages.create(
         body=body,
@@ -277,9 +308,14 @@ def notify_recipient(self, to: str, body: str):
     Tries WhatsApp first if TWILIO_WHATSAPP_NUMBER is set; falls back to SMS.
     """
     # Try WhatsApp first when configured
-    if settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN and settings.TWILIO_WHATSAPP_NUMBER:
+    if (
+        settings.TWILIO_ACCOUNT_SID
+        and settings.TWILIO_AUTH_TOKEN
+        and settings.TWILIO_WHATSAPP_NUMBER
+    ):
         try:
             from twilio.rest import Client
+
             client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
             message = client.messages.create(
                 body=body,
@@ -292,9 +328,14 @@ def notify_recipient(self, to: str, body: str):
             logger.exception("WhatsApp delivery failed for %s: %s", to, exc)
 
     # Fallback to SMS
-    if settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN and settings.TWILIO_FROM_NUMBER:
+    if (
+        settings.TWILIO_ACCOUNT_SID
+        and settings.TWILIO_AUTH_TOKEN
+        and settings.TWILIO_FROM_NUMBER
+    ):
         try:
             from twilio.rest import Client
+
             client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
             message = client.messages.create(
                 body=body,
@@ -329,7 +370,7 @@ def send_whatsapp(self, to: str, body: str):
     from twilio.rest import Client
 
     client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-    
+
     message = client.messages.create(
         body=body,
         from_=f"whatsapp:{settings.TWILIO_WHATSAPP_NUMBER}",
@@ -362,7 +403,9 @@ def notify_via_sms_or_email(
             send_sms_notification(to=to_phone, body=body)
             sms_sent = True
         except Exception as exc:
-            logger.exception("SMS send failed for %s, will try email: %s", to_phone, exc)
+            logger.exception(
+                "SMS send failed for %s, will try email: %s", to_phone, exc
+            )
             sms_sent = False
 
     if not sms_sent and to_email:

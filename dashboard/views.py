@@ -1317,7 +1317,7 @@ def assign_mediator_page(request, pk):
         mediator_name = mediator.user.get_full_name() or mediator.user.username
         applicant_name = f"{dispute.applicant_name} {dispute.applicant_surname}"
 
-        # Send to mediator
+        # Send to mediator with full details
         _send_notification(
             send_message_8_mediator_assigned_mediator,
             to_email=mediator.user.email,
@@ -1328,7 +1328,9 @@ def assign_mediator_page(request, pk):
             or "Respondent",
             case_id=dispute.id,
             scheduled_at=scheduled_at.strftime("%Y-%m-%d %H:%M"),
-            zoom_link=join_url,
+            zoom_link=join_url
+            if join_url and join_url != "https://zoom.us/j/pending"
+            else "",
         )
 
         # Send to parties
