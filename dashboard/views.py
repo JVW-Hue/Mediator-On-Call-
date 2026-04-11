@@ -1236,11 +1236,13 @@ def assign_mediator_page(request, pk):
     dispute = get_object_or_404(Dispute, pk=pk)
     mediators = Mediator.objects.select_related("user").all()
 
-    # Allow assignment for these statuses - include all possible statuses
+    # Allow assignment for these statuses - include ALL statuses
     allowed_statuses = [
         "submitted",
         "screening",
+        "rejected",
         "forwarded",
+        "responded",
         "respondent_agreed",
         "ready_for_assignment",
         "mediator_assigned",
@@ -1248,11 +1250,16 @@ def assign_mediator_page(request, pk):
         "respondent_no_response",
     ]
 
-    if dispute.status not in allowed_statuses:
+    # Allow if status is in allowed list OR if there's no mediator yet (can assign to any new case)
+    if dispute.status not in allowed_statuses and dispute.mediator is None:
+        # Allow for any unassigned dispute
+        pass  # Continue with assignment
+    elif dispute.status not in allowed_statuses:
+        # Only block if status is not allowed AND already has a mediator
         current_status = str(dispute.get_status_display())
         messages.error(
             request,
-            f"Cannot assign mediator to dispute with status: {current_status}",
+            f"Cannot change mediator for dispute with status: {current_status}. Please complete the current mediation first.",
         )
         return redirect("dashboard:dispute_detail", pk=pk)
 
