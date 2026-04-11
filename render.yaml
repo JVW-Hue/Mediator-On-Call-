@@ -15,7 +15,7 @@ services:
       - key: DJANGO_SECRET_KEY
         value: "render-temp-secret-key-change-later"
     databases:
-      - name: mediator_db
+      - name: mediator-db
         databaseName: mediator_db
         user: mediator_user
         plan: free
