@@ -8,28 +8,21 @@
     .page-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border-radius: 16px;
-        padding: 1.5rem 2rem;
-        margin-bottom: 1.5rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
         color: white;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        justify-content: space-between;
-        align-items: center;
     }
     .page-header h1 {
         font-weight: 700;
         margin-bottom: 0;
-        font-size: 1.5rem;
-        overflow-wrap: break-word;
+        font-size: 1.75rem;
     }
     .status-badge {
-        padding: 0.4rem 1rem;
+        padding: 0.5rem 1rem;
         border-radius: 20px;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         font-weight: 600;
-        margin-left: 1rem;
-        white-space: nowrap;
+        display: inline-block;
     }
     .status-submitted { background: rgba(255,255,255,0.2); }
     .status-forwarded { background: rgba(255,255,255,0.2); }
@@ -38,73 +31,178 @@
     .status-mediated { background: rgba(255,255,255,0.2); }
     .status-rejected { background: rgba(255,255,255,0.2); }
     .status-closed { background: rgba(255,255,255,0.2); }
-    .header-actions .btn {
-        margin-left: 0.5rem;
+    .status-screening { background: rgba(255,255,255,0.2); }
+    .status-mediator_assigned { background: rgba(255,255,255,0.2); }
+    
+    .party-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: 1px solid #f0f2ff;
+        overflow: hidden;
+        height: 100%;
     }
-    .info-card {
-         background: white;
-         border-radius: 16px;
-         box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-         overflow: hidden;
-         height: 100%;
-         border: 1px solid #f0f2ff;
-     }
-    .info-card-header {
+    .party-header {
+        padding: 1rem 1.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    .party-header.applicant {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+    .party-header.respondent {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .party-header h5 {
+        margin: 0;
+        font-weight: 600;
+    }
+    .party-body {
+        padding: 1.5rem;
+    }
+    .party-info-item {
+        margin-bottom: 1rem;
+    }
+    .party-info-item:last-child {
+        margin-bottom: 0;
+    }
+    .party-label {
+        font-size: 0.75rem;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+    }
+    .party-value {
+        font-weight: 500;
+        color: #333;
+    }
+    .party-value a {
+        text-decoration: none;
+        color: #667eea;
+    }
+    .party-value a:hover {
+        text-decoration: underline;
+    }
+    
+    .detail-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: 1px solid #f0f2ff;
+        overflow: hidden;
+    }
+    .detail-header {
         padding: 1rem 1.5rem;
         border-bottom: 2px solid #f0f2ff;
         font-weight: 600;
         color: #333;
         display: flex;
         align-items: center;
+        background: #f8f9ff;
     }
-    .info-card-header i {
+    .detail-header i {
         color: #667eea;
         margin-right: 0.5rem;
     }
-    .info-card-body {
+    .detail-body {
         padding: 1.5rem;
     }
-    .info-item {
-        margin-bottom: 1rem;
-    }
-    .info-item:last-child {
-        margin-bottom: 0;
-    }
-    .info-label {
-        font-size: 0.8rem;
-        color: #888;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 0.2rem;
-    }
-    .info-value {
-        font-weight: 500;
-        color: #333;
-        overflow-wrap: break-word;
-        word-break: break-word;
-    }
+    
     .description-box {
         background: #f8f9ff;
         border-radius: 12px;
-        padding: 1rem;
+        padding: 1.25rem;
         border-left: 4px solid #667eea;
         overflow-wrap: break-word;
         word-break: break-word;
     }
+    
+    .info-badge {
+        display: inline-block;
+        padding: 0.4rem 0.8rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        background: #f0f2ff;
+        color: #667eea;
+    }
+    
+    .mediation-card {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        border-radius: 16px;
+        color: white;
+        overflow: hidden;
+    }
+    .mediation-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+        font-weight: 600;
+    }
+    .mediation-body {
+        padding: 1.5rem;
+    }
+    .mediation-item {
+        margin-bottom: 1rem;
+    }
+    .mediation-item:last-child {
+        margin-bottom: 0;
+    }
+    .mediation-label {
+        font-size: 0.75rem;
+        opacity: 0.8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .mediation-value {
+        font-weight: 500;
+        font-size: 1.1rem;
+    }
+    
+    .doc-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        background: #f8f9ff;
+        border-radius: 10px;
+        margin-bottom: 0.5rem;
+        text-decoration: none;
+        color: #333;
+        transition: all 0.3s ease;
+    }
+    .doc-item:hover {
+        background: #f0f2ff;
+        color: #667eea;
+        transform: translateX(4px);
+    }
+    .doc-item i {
+        margin-right: 0.75rem;
+        color: #667eea;
+    }
+    
+    .response-card {
+        background: #fff3cd;
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid #ffc107;
+    }
+    .response-item {
+        margin-bottom: 0.75rem;
+    }
+    .response-item:last-child {
+        margin-bottom: 0;
+    }
+    
     .audit-card {
-         background: white;
-         border-radius: 16px;
-         box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-         overflow: hidden;
-         border: 1px solid #f0f2ff;
-     }
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: 1px solid #f0f2ff;
+        overflow: hidden;
+    }
     .audit-entry {
         padding: 1rem 1.5rem;
         border-bottom: 1px solid #f0f2ff;
-        display: flex;
-        align-items: flex-start;
-        overflow-wrap: break-word;
-        word-break: break-word;
     }
     .audit-entry:last-child {
         border-bottom: none;
@@ -123,53 +221,33 @@
     .audit-icon i {
         color: #667eea;
     }
-    .audit-content {
-        flex: 1;
-        min-width: 0;
-        overflow-wrap: break-word;
-        word-break: break-word;
-    }
     .audit-action {
         font-weight: 500;
         color: #333;
-        margin-bottom: 0.2rem;
-        overflow-wrap: break-word;
     }
     .audit-meta {
         font-size: 0.8rem;
         color: #888;
     }
-    .doc-item {
-        display: flex;
-        align-items: center;
-        padding: 0.75rem 1rem;
-        background: #f8f9ff;
-        border-radius: 10px;
-        margin-bottom: 0.5rem;
-        text-decoration: none;
-        color: #333;
+    
+    .action-btn {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 500;
         transition: all 0.3s ease;
     }
-    .doc-item:hover {
-        background: #f0f2ff;
-        color: #667eea;
+    .action-btn:hover {
+        transform: translateY(-2px);
     }
-    .doc-item i {
-        margin-right: 0.75rem;
-        color: #667eea;
+    
+    .empty-state {
+        text-align: center;
+        padding: 2rem;
+        color: #888;
     }
-    .modal-content {
-        border-radius: 16px;
-        border: none;
-    }
-    .modal-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 16px 16px 0 0;
-        border-bottom: none;
-    }
-    .modal-header .btn-close {
-        filter: brightness(0) invert(1);
+    .empty-state i {
+        font-size: 2rem;
+        opacity: 0.3;
     }
 </style>
 {% endblock %}
@@ -178,51 +256,49 @@
 
 <!-- Page Header -->
 <div class="page-header">
-    <div class="d-flex align-items-center">
-        <h1><i class="bi bi-file-earmark-text me-2"></i> Dispute #{{ dispute.id }}</h1>
-        <span class="status-badge status-{{ dispute.status }}">{{ dispute.get_status_display }}</span>
-    </div>
-    <div class="header-actions">
-        {% if user.is_staff or user.is_superuser %}
-        {% if not dispute.mediator %}
-        <a href="{% url 'dashboard:assign_mediator_page' dispute.id %}" class="btn btn-light">
-            <i class="bi bi-person-plus me-1"></i> Assign Mediator
-        </a>
-        {% endif %}
-        {% endif %}
-        <a href="{% url 'dashboard:dispute_list' %}" class="btn btn-outline-light">
-            <i class="bi bi-arrow-left me-1"></i> Back
-        </a>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+        <div>
+            <h1><i class="bi bi-file-earmark-text me-2"></i> Dispute #{{ dispute.id }}</h1>
+            <span class="status-badge status-{{ dispute.status }}">{{ dispute.get_status_display }}</span>
+        </div>
+        <div class="d-flex gap-2">
+            {% if user.is_staff or user.is_superuser %}
+            {% if not dispute.mediator %}
+            <a href="{% url 'dashboard:assign_mediator_page' dispute.id %}" class="btn btn-light">
+                <i class="bi bi-person-plus me-1"></i> Assign Mediator
+            </a>
+            {% endif %}
+            {% endif %}
+            <a href="{% url 'dashboard:dispute_list' %}" class="btn btn-outline-light">
+                <i class="bi bi-arrow-left me-1"></i> Back
+            </a>
+        </div>
     </div>
 </div>
 
-<div class="row g-3 mb-4">
+<div class="row g-4 mb-4">
     <!-- Applicant Info -->
     <div class="col-md-6">
-        <div class="info-card">
-            <div class="info-card-header">
-                <i class="bi bi-person"></i> Applicant
+        <div class="party-card">
+            <div class="party-header applicant">
+                <h5><i class="bi bi-person-fill me-2"></i>Applicant</h5>
             </div>
-            <div class="info-card-body">
-                <div class="info-item">
-                    <div class="info-label">Full Name</div>
-                    <div class="info-value">{{ dispute.applicant_name }} {{ dispute.applicant_surname }}</div>
+            <div class="party-body">
+                <div class="party-info-item">
+                    <div class="party-label">Full Name</div>
+                    <div class="party-value">{{ dispute.applicant_name }} {{ dispute.applicant_surname }}</div>
                 </div>
-                <div class="info-item">
-                    <div class="info-label">Cell Phone</div>
-                    <div class="info-value">
-                        <a href="tel:{{ dispute.applicant_cell }}" class="text-decoration-none">
-                            <i class="bi bi-telephone me-1"></i> {{ dispute.applicant_cell }}
-                        </a>
+                <div class="party-info-item">
+                    <div class="party-label">Cell Phone</div>
+                    <div class="party-value">
+                        <a href="tel:{{ dispute.applicant_cell }}"><i class="bi bi-telephone me-1"></i> {{ dispute.applicant_cell }}</a>
                     </div>
                 </div>
-                <div class="info-item">
-                    <div class="info-label">Email</div>
-                    <div class="info-value">
+                <div class="party-info-item">
+                    <div class="party-label">Email</div>
+                    <div class="party-value">
                         {% if dispute.applicant_email %}
-                        <a href="mailto:{{ dispute.applicant_email }}" class="text-decoration-none">
-                            <i class="bi bi-envelope me-1"></i> {{ dispute.applicant_email }}
-                        </a>
+                        <a href="mailto:{{ dispute.applicant_email }}"><i class="bi bi-envelope me-1"></i> {{ dispute.applicant_email }}</a>
                         {% else %}—{% endif %}
                     </div>
                 </div>
@@ -232,53 +308,47 @@
     
     <!-- Respondent Info -->
     <div class="col-md-6">
-        <div class="info-card">
-            <div class="info-card-header">
-                <i class="bi bi-person-badge"></i> Respondent
+        <div class="party-card">
+            <div class="party-header respondent">
+                <h5><i class="bi bi-person-badge me-2"></i>Respondent</h5>
             </div>
-            <div class="info-card-body">
+            <div class="party-body">
                 {% if dispute.respondent_type == 'ind' %}
-                <div class="info-item">
-                    <div class="info-label">Full Name</div>
-                    <div class="info-value">{{ dispute.respondent_name }} {{ dispute.respondent_surname }}</div>
+                <div class="party-info-item">
+                    <div class="party-label">Full Name</div>
+                    <div class="party-value">{{ dispute.respondent_name }} {{ dispute.respondent_surname }}</div>
                 </div>
-                <div class="info-item">
-                    <div class="info-label">Cell Phone</div>
-                    <div class="info-value">
+                <div class="party-info-item">
+                    <div class="party-label">Cell Phone</div>
+                    <div class="party-value">
                         {% if dispute.respondent_cell %}
-                        <a href="tel:{{ dispute.respondent_cell }}" class="text-decoration-none">
-                            <i class="bi bi-telephone me-1"></i> {{ dispute.respondent_cell }}
-                        </a>
+                        <a href="tel:{{ dispute.respondent_cell }}"><i class="bi bi-telephone me-1"></i> {{ dispute.respondent_cell }}</a>
                         {% else %}—{% endif %}
                     </div>
                 </div>
                 {% else %}
-                <div class="info-item">
-                    <div class="info-label">Business Name</div>
-                    <div class="info-value">{{ dispute.business_name }}</div>
+                <div class="party-info-item">
+                    <div class="party-label">Business Name</div>
+                    <div class="party-value">{{ dispute.business_name }}</div>
                 </div>
-                <div class="info-item">
-                    <div class="info-label">Owner</div>
-                    <div class="info-value">{{ dispute.owner_name }} {{ dispute.owner_surname }}</div>
+                <div class="party-info-item">
+                    <div class="party-label">Owner</div>
+                    <div class="party-value">{{ dispute.owner_name }} {{ dispute.owner_surname }}</div>
                 </div>
-                <div class="info-item">
-                    <div class="info-label">Business Cell</div>
-                    <div class="info-value">
+                <div class="party-info-item">
+                    <div class="party-label">Business Cell</div>
+                    <div class="party-value">
                         {% if dispute.business_cell %}
-                        <a href="tel:{{ dispute.business_cell }}" class="text-decoration-none">
-                            <i class="bi bi-telephone me-1"></i> {{ dispute.business_cell }}
-                        </a>
+                        <a href="tel:{{ dispute.business_cell }}"><i class="bi bi-telephone me-1"></i> {{ dispute.business_cell }}</a>
                         {% else %}—{% endif %}
                     </div>
                 </div>
                 {% endif %}
-                <div class="info-item">
-                    <div class="info-label">Email</div>
-                    <div class="info-value">
+                <div class="party-info-item">
+                    <div class="party-label">Email</div>
+                    <div class="party-value">
                         {% if dispute.respondent_email %}
-                        <a href="mailto:{{ dispute.respondent_email }}" class="text-decoration-none">
-                            <i class="bi bi-envelope me-1"></i> {{ dispute.respondent_email }}
-                        </a>
+                        <a href="mailto:{{ dispute.respondent_email }}"><i class="bi bi-envelope me-1"></i> {{ dispute.respondent_email }}</a>
                         {% else %}—{% endif %}
                     </div>
                 </div>
@@ -288,57 +358,57 @@
 </div>
 
 <!-- Dispute Details -->
-<div class="info-card mb-4">
-    <div class="info-card-header">
+<div class="detail-card mb-4">
+    <div class="detail-header">
         <i class="bi bi-file-text"></i> Dispute Details
     </div>
-    <div class="info-card-body">
-        <div class="row">
+    <div class="detail-body">
+        <div class="row mb-3">
             <div class="col-md-4">
-                <div class="info-item">
-                    <div class="info-label">Type</div>
-                    <div class="info-value">
-                        <span class="badge bg-primary">{{ dispute.get_dispute_type_display }}</span>
+                <div class="party-info-item">
+                    <div class="party-label">Type</div>
+                    <div class="party-value">
+                        <span class="info-badge">{{ dispute.get_dispute_type_display }}</span>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="info-item">
-                    <div class="info-label">Created</div>
-                    <div class="info-value">{{ dispute.created_at|date:"M d, Y H:i" }}</div>
+                <div class="party-info-item">
+                    <div class="party-label">Created</div>
+                    <div class="party-value">{{ dispute.created_at|date:"M d, Y H:i" }}</div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="info-item">
-                    <div class="info-label">Status</div>
-                    <div class="info-value">{{ dispute.get_status_display }}</div>
+                <div class="party-info-item">
+                    <div class="party-label">Status</div>
+                    <div class="party-value">{{ dispute.get_status_display }}</div>
                 </div>
             </div>
         </div>
         {% if dispute.description %}
-        <div class="info-item mt-3">
-            <div class="info-label">Description</div>
+        <div class="party-info-item">
+            <div class="party-label">Description</div>
             <div class="description-box">{{ dispute.description|linebreaks }}</div>
         </div>
         {% endif %}
         {% if dispute.screened_at %}
         <div class="row mt-3">
             <div class="col-md-6">
-                <div class="info-item">
-                    <div class="info-label">Screened By</div>
-                    <div class="info-value">{{ dispute.screened_by.get_full_name|default:dispute.screened_by.username }}</div>
+                <div class="party-info-item">
+                    <div class="party-label">Screened By</div>
+                    <div class="party-value">{{ dispute.screened_by.get_full_name|default:dispute.screened_by.username }}</div>
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="info-item">
-                    <div class="info-label">Screened At</div>
-                    <div class="info-value">{{ dispute.screened_at|date:"M d, Y H:i" }}</div>
+                <div class="party-info-item">
+                    <div class="party-label">Screened At</div>
+                    <div class="party-value">{{ dispute.screened_at|date:"M d, Y H:i" }}</div>
                 </div>
             </div>
         </div>
         {% if dispute.screening_notes %}
-        <div class="info-item mt-3">
-            <div class="info-label">Screening Notes</div>
+        <div class="party-info-item mt-3">
+            <div class="party-label">Screening Notes</div>
             <div class="description-box">{{ dispute.screening_notes|linebreaks }}</div>
         </div>
         {% endif %}
@@ -346,16 +416,16 @@
     </div>
 </div>
 
-<div class="row g-3 mb-4">
+<div class="row g-4 mb-4">
     <!-- Documents -->
     {% with docs=dispute.documents.all %}
     {% if docs %}
     <div class="col-md-6">
-        <div class="info-card">
-            <div class="info-card-header">
-                <i class="bi bi-paperclip"></i> Applicant Documents
+        <div class="detail-card">
+            <div class="detail-header">
+                <i class="bi bi-paperclip"></i> Documents ({{ docs|length }})
             </div>
-            <div class="info-card-body">
+            <div class="detail-body">
                 {% for doc in docs %}
                 <a href="{{ doc.file.url }}" target="_blank" class="doc-item">
                     <i class="bi bi-file-earmark"></i>
@@ -371,26 +441,30 @@
     <!-- Respondent Response -->
     {% if dispute.response %}
     <div class="col-md-6">
-        <div class="info-card">
-            <div class="info-card-header">
-                <i class="bi bi-reply"></i> Respondent Response
-            </div>
-            <div class="info-card-body">
-                <div class="info-item">
-                    <div class="info-label">Consent to Mediate</div>
-                    <div class="info-value">{{ dispute.response.consent_to_mediate|yesno:"Yes,No" }}</div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Agreed to Rules</div>
-                    <div class="info-value">{{ dispute.response.agreed_to_rules|yesno:"Yes,No" }}</div>
-                </div>
-                {% if dispute.response.defence_explanation %}
-                <div class="info-item mt-2">
-                    <div class="info-label">Defence</div>
-                    <div class="description-box">{{ dispute.response.defence_explanation|linebreaks }}</div>
-                </div>
+        <div class="response-card">
+            <h5 class="mb-3"><i class="bi bi-reply me-2"></i>Respondent's Response</h5>
+            <div class="response-item">
+                <strong>Consent to Mediate:</strong>
+                {% if dispute.response.consent_to_mediate %}
+                <span class="badge bg-success">Yes</span>
+                {% else %}
+                <span class="badge bg-danger">No</span>
                 {% endif %}
             </div>
+            <div class="response-item">
+                <strong>Agreed to Rules:</strong>
+                {% if dispute.response.agreed_to_rules %}
+                <span class="badge bg-success">Yes</span>
+                {% else %}
+                <span class="badge bg-danger">No</span>
+                {% endif %}
+            </div>
+            {% if dispute.response.defence_explanation %}
+            <div class="response-item mt-2">
+                <strong>Defence:</strong>
+                <div class="mt-2 p-2 bg-white rounded">{{ dispute.response.defence_explanation|linebreaks }}</div>
+            </div>
+            {% endif %}
         </div>
     </div>
     {% endif %}
@@ -398,39 +472,41 @@
 
 <!-- Mediation Session -->
 {% if dispute.mediation %}
-<div class="info-card mb-4">
-    <div class="info-card-header">
-        <i class="bi bi-calendar-check"></i> Mediation Session
+<div class="mediation-card mb-4">
+    <div class="mediation-header">
+        <i class="bi bi-calendar-check me-2"></i>Mediation Session
     </div>
-    <div class="info-card-body">
+    <div class="mediation-body">
         <div class="row">
             <div class="col-md-4">
-                <div class="info-item">
-                    <div class="info-label">Mediator</div>
-                    <div class="info-value">{{ dispute.mediation.mediator.user.get_full_name|default:dispute.mediation.mediator.user.username }}</div>
+                <div class="mediation-item">
+                    <div class="mediation-label">Mediator</div>
+                    <div class="mediation-value">{{ dispute.mediation.mediator.user.get_full_name|default:dispute.mediation.mediator.user.username }}</div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="info-item">
-                    <div class="info-label">Scheduled</div>
-                    <div class="info-value">{{ dispute.mediation.scheduled_at|date:"M d, Y H:i" }}</div>
+                <div class="mediation-item">
+                    <div class="mediation-label">Scheduled</div>
+                    <div class="mediation-value">{{ dispute.mediation.scheduled_at|date:"M d, Y H:i" }}</div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="info-item">
-                    <div class="info-label">Zoom Link</div>
-                    <div class="info-value">
-                        <a href="{{ dispute.mediation.zoom_link }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                <div class="mediation-item">
+                    <div class="mediation-label">Zoom Link</div>
+                    <div class="mediation-value">
+                        {% if dispute.mediation.zoom_link %}
+                        <a href="{{ dispute.mediation.zoom_link }}" target="_blank" class="btn btn-sm btn-light">
                             <i class="bi bi-camera-video me-1"></i> Join
                         </a>
+                        {% else %}—{% endif %}
                     </div>
                 </div>
             </div>
         </div>
         {% if dispute.mediation.outcome %}
-        <div class="info-item mt-3">
-            <div class="info-label">Outcome</div>
-            <div class="description-box">{{ dispute.mediation.outcome|linebreaks }}</div>
+        <div class="mediation-item mt-3">
+            <div class="mediation-label">Outcome</div>
+            <div class="mediation-value">{{ dispute.mediation.outcome|linebreaks }}</div>
         </div>
         {% endif %}
     </div>
@@ -440,15 +516,15 @@
 <!-- Audit Log -->
 {% if dispute.audit_logs.all %}
 <div class="audit-card mb-4">
-    <div class="info-card-header">
+    <div class="detail-header">
         <i class="bi bi-clock-history"></i> Activity Log
     </div>
-    {% for entry in dispute.audit_logs.all %}
-    <div class="audit-entry">
+    {% for entry in dispute.audit_logs.all|slice:":10" %}
+    <div class="audit-entry d-flex align-items-start">
         <div class="audit-icon">
             <i class="bi bi-check"></i>
         </div>
-        <div class="audit-content">
+        <div>
             <div class="audit-action">{{ entry.action }}</div>
             <div class="audit-meta">
                 {% if entry.user %}{{ entry.user.get_full_name|default:entry.user.username }}{% else %}System{% endif %}
@@ -460,60 +536,4 @@
 </div>
 {% endif %}
 
-<!-- Assign Mediator Modal -->
-<div class="modal fade" id="assignMediatorModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>Assign Mediator</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="post" action="{% url 'dashboard:assign_mediator_page' dispute.id %}">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="mediator_id" class="form-label">Select Mediator</label>
-                        <select name="mediator_id" id="mediator_id" class="form-select" required>
-                            <option value="">Choose a mediator...</option>
-                            {% for mediator in mediators %}
-                            <option value="{{ mediator.id }}">
-                                {{ mediator.user.get_full_name|default:mediator.user.username }} | {{ mediator.cell }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="scheduled_at" class="form-label">Session Date & Time</label>
-                        <input type="datetime-local" class="form-control" id="scheduled_at" name="scheduled_at" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="zoom_link" class="form-label">Zoom Link</label>
-                        <input type="url" class="form-control" id="zoom_link" name="zoom_link" value="https://zoom.us/j/pending">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-circle me-1"></i> Assign & Notify
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const scheduledInput = document.getElementById('scheduled_at');
-    const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    scheduledInput.min = now.toISOString().slice(0, 16);
-    
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(9, 0, 0, 0);
-    tomorrow.setMinutes(tomorrow.getMinutes() - tomorrow.getTimezoneOffset());
-    scheduledInput.value = tomorrow.toISOString().slice(0, 16);
-});
-</script>
 {% endblock %}
