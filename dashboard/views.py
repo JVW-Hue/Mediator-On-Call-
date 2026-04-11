@@ -22,19 +22,36 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, ListView, TemplateView
 
-from disputes.models import Dispute, MediationSession, Mediator, AuditLog, MediatableCase, ReferredCase
-from disputes.tasks import notify_recipient, send_message_2_dispute_rejected, send_message_3_proceed_mediation, send_message_4_respondent_invitation, send_message_8_mediator_assigned_mediator, send_message_8_mediator_assigned_parties, send_message_9_outcome_filed
+from disputes.models import (
+    Dispute,
+    MediationSession,
+    Mediator,
+    AuditLog,
+    MediatableCase,
+    ReferredCase,
+)
+from disputes.tasks import (
+    notify_recipient,
+    send_message_2_dispute_rejected,
+    send_message_3_proceed_mediation,
+    send_message_4_respondent_invitation,
+    send_message_8_mediator_assigned_mediator,
+    send_message_8_mediator_assigned_parties,
+    send_message_9_outcome_filed,
+)
 from disputes.forms import MediationOutcomeForm
 
 
 def staff_required(view_func):
     """Custom staff decorator that uses our login page."""
+
     @wraps(view_func)
-    @login_required(login_url='/login/')
+    @login_required(login_url="/login/")
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_staff:
-            return redirect('/no-access/')
+            return redirect("/no-access/")
         return view_func(request, *args, **kwargs)
+
     return _wrapped_view
 
 
@@ -51,60 +68,69 @@ def _send_notification(task_func, *args, **kwargs):
 
 def mediator_required(view_func):
     """Decorator to require user has a Mediator profile."""
+
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            return redirect('/login/')
-        if not hasattr(request.user, 'mediator') and not request.user.is_staff:
-            return redirect('no_access')
+            return redirect("/login/")
+        if not hasattr(request.user, "mediator") and not request.user.is_staff:
+            return redirect("no_access")
         return view_func(request, *args, **kwargs)
+
     return _wrapped_view
 
 
 class CustomLoginView(auth_views.LoginView):
-    template_name = 'registration/login.html'
-    
+    template_name = "registration/login.html"
+
     @staticmethod
     def ensure_frankstanley_exists():
         """Ensure Frank Stanley account exists - called on every login attempt."""
         from django.contrib.auth import get_user_model
+
         User = get_user_model()
         try:
             user, created = User.objects.get_or_create(
-                username='frankstanley',
+                username="frankstanley",
                 defaults={
-                    'email': 'frank@probonomediation.co.za',
-                    'first_name': 'Frank',
-                    'last_name': 'Stanley',
-                    'is_staff': True,
-                    'is_superuser': False,
-                    'is_active': True,
-                }
+                    "email": "frank@probonomediation.co.za",
+                    "first_name": "Frank",
+                    "last_name": "Stanley",
+                    "is_staff": True,
+                    "is_superuser": False,
+                    "is_active": True,
+                },
             )
             if created:
-                user.set_password('FrankStanley2026!')
+                user.set_password("FrankStanley2026!")
                 user.save()
             from disputes.models import Mediator
-            Mediator.objects.get_or_create(user=user, defaults={'cell': '0821234567'})
+
+            Mediator.objects.get_or_create(user=user, defaults={"cell": "0821234567"})
         except Exception as e:
             logging.error(f"Error ensuring frankstanley exists: {e}")
-    
+
     def post(self, request, *args, **kwargs):
         self.ensure_frankstanley_exists()
         return super().post(request, *args, **kwargs)
-    
+
     def form_valid(self, form):
         try:
-            remember_me = self.request.POST.get('remember_me')
+            remember_me = self.request.POST.get("remember_me")
             if remember_me:
                 self.request.session.set_expiry(60 * 60 * 24 * 30)  # 30 days
             else:
-                self.request.session.set_expiry(0)  # Session expires when browser closes
+                self.request.session.set_expiry(
+                    0
+                )  # Session expires when browser closes
             response = super().form_valid(form)
             return response
         except Exception as e:
             logging.error(f"Error during login form_valid: {e}")
-            messages.error(self.request, "There was a temporary problem logging in. Please try again.")
+            messages.error(
+                self.request,
+                "There was a temporary problem logging in. Please try again.",
+            )
             return self.form_invalid(form)
 
     def get_success_url(self):
@@ -112,27 +138,27 @@ class CustomLoginView(auth_views.LoginView):
             user = self.request.user
             # Staff OR has mediator profile can access dashboard
             if user.is_staff or user.is_superuser:
-                return '/dashboard/'
+                return "/dashboard/"
             try:
                 mediator = Mediator.objects.get(user=user)
-                return '/dashboard/mediator/'
+                return "/dashboard/mediator/"
             except Mediator.DoesNotExist:
-                return '/no-access/'
+                return "/no-access/"
         except Exception as e:
             logging.error(f"Error during get_success_url: {e}")
-            return '/dashboard/'
-    
+            return "/dashboard/"
+
     def form_invalid(self, form):
         return self.render_to_response(self.get_context_data(form=form))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['noaccess'] = self.request.GET.get('noaccess')
+        context["noaccess"] = self.request.GET.get("noaccess")
         return context
 
 
 def no_access(request):
-    return render(request, 'registration/no_access.html')
+    return render(request, "registration/no_access.html")
 
 
 def signup(request):
@@ -142,19 +168,23 @@ def signup(request):
     from django.db import OperationalError
     from django.contrib import messages
     from django.contrib.auth import authenticate, login
-    
+
     User = get_user_model()
-    
+
     class SignupForm(forms.Form):
         username = forms.CharField(max_length=150)
         email = forms.EmailField()
         password1 = forms.CharField(widget=forms.PasswordInput, label="Password")
-        password2 = forms.CharField(widget=forms.PasswordInput, label="Confirm Password")
-        user_type = forms.ChoiceField(choices=[('mediator', 'Mediator'), ('staff', 'Staff')], label="I am a:")
+        password2 = forms.CharField(
+            widget=forms.PasswordInput, label="Confirm Password"
+        )
+        user_type = forms.ChoiceField(
+            choices=[("mediator", "Mediator"), ("staff", "Staff")], label="I am a:"
+        )
         cell = forms.CharField(max_length=20, required=False, label="Cell Phone Number")
-        
+
         def clean_username(self):
-            username = self.cleaned_data['username']
+            username = self.cleaned_data["username"]
             try:
                 if User.objects.filter(username=username).exists():
                     raise forms.ValidationError("Username already exists")
@@ -164,54 +194,65 @@ def signup(request):
                 # The user will be informed later if there's an issue
                 pass
             return username
-        
+
         def clean(self):
             cleaned_data = super().clean()
             try:
-                if cleaned_data.get('password1') != cleaned_data.get('password2'):
+                if cleaned_data.get("password1") != cleaned_data.get("password2"):
                     raise forms.ValidationError("Passwords do not match")
             except OperationalError:
                 # If there's a database error during validation, we'll still check the passwords
                 # This is a fallback in case of migration issues
-                if cleaned_data.get('password1') != cleaned_data.get('password2'):
+                if cleaned_data.get("password1") != cleaned_data.get("password2"):
                     raise forms.ValidationError("Passwords do not match")
             return cleaned_data
-    
-    if request.method == 'POST':
+
+    if request.method == "POST":
         form = SignupForm(request.POST)
         if form.is_valid():
             try:
-                user_type = form.cleaned_data['user_type']
+                user_type = form.cleaned_data["user_type"]
                 user = User.objects.create_user(
-                    username=form.cleaned_data['username'],
-                    email=form.cleaned_data['email'],
-                    password=form.cleaned_data['password1'],
-                    is_staff=(user_type == 'staff')
+                    username=form.cleaned_data["username"],
+                    email=form.cleaned_data["email"],
+                    password=form.cleaned_data["password1"],
+                    is_staff=(user_type == "staff"),
                 )
-                
-                if user_type == 'mediator':
-                    cell = form.cleaned_data.get('cell', '')
+
+                if user_type == "mediator":
+                    cell = form.cleaned_data.get("cell", "")
                     Mediator.objects.create(user=user, cell=cell)
-                
-                user = authenticate(username=form.cleaned_data['username'], password=form.cleaned_data['password1'])
+
+                user = authenticate(
+                    username=form.cleaned_data["username"],
+                    password=form.cleaned_data["password1"],
+                )
                 if user:
                     login(request, user)
                     if user.is_staff:
-                        return redirect('dashboard:admin_home')
+                        return redirect("dashboard:admin_home")
                     else:
-                        return redirect('dashboard:mediator_home')
+                        return redirect("dashboard:mediator_home")
                 else:
-                    messages.error(request, "Authentication failed after user creation.")
-                    return render(request, 'registration/signup.html', {'form': form})
+                    messages.error(
+                        request, "Authentication failed after user creation."
+                    )
+                    return render(request, "registration/signup.html", {"form": form})
             except OperationalError as e:
-                messages.error(request, "There was a temporary database error. Please try again in a moment. If the problem persists, please contact the administrator.")
-                return render(request, 'registration/signup.html', {'form': form})
+                messages.error(
+                    request,
+                    "There was a temporary database error. Please try again in a moment. If the problem persists, please contact the administrator.",
+                )
+                return render(request, "registration/signup.html", {"form": form})
             except Exception as e:
-                messages.error(request, "An unexpected error occurred during registration. Please try again.")
-                return render(request, 'registration/signup.html', {'form': form})
+                messages.error(
+                    request,
+                    "An unexpected error occurred during registration. Please try again.",
+                )
+                return render(request, "registration/signup.html", {"form": form})
     else:
         form = SignupForm()
-    return render(request, 'registration/signup.html', {'form': form})
+    return render(request, "registration/signup.html", {"form": form})
 
 
 @method_decorator(staff_required, name="dispatch")
@@ -221,7 +262,9 @@ class AdminDashboardView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["total_disputes"] = Dispute.objects.count()
-        context["pending_screening"] = Dispute.objects.filter(status="submitted").count()
+        context["pending_screening"] = Dispute.objects.filter(
+            status="submitted"
+        ).count()
         context["active_mediations"] = Dispute.objects.filter(
             status="mediation_scheduled"
         ).count()
@@ -241,40 +284,52 @@ class AdminDashboardView(TemplateView):
         sessions = MediationSession.objects.filter(
             scheduled_at__gte=timezone.now() - timedelta(days=30)
         ).select_related("dispute", "mediator__user")
-        
+
         calendar_events = []
         for s in sessions:
             try:
                 mediator_name = "Unknown"
                 if s.mediator and s.mediator.user:
-                    mediator_name = s.mediator.user.get_full_name() or s.mediator.user.username
-                calendar_events.append({
-                    "title": f"Dispute #{s.dispute.id} - {mediator_name}",
-                    "start": s.scheduled_at.isoformat(),
-                    "url": reverse("dashboard:dispute_detail", args=[s.dispute.id]),
-                    "backgroundColor": "#198754" if s.dispute.status == "mediation_scheduled" else "#0d6efd",
-                })
+                    mediator_name = (
+                        s.mediator.user.get_full_name() or s.mediator.user.username
+                    )
+                calendar_events.append(
+                    {
+                        "title": f"Dispute #{s.dispute.id} - {mediator_name}",
+                        "start": s.scheduled_at.isoformat(),
+                        "url": reverse("dashboard:dispute_detail", args=[s.dispute.id]),
+                        "backgroundColor": "#198754"
+                        if s.dispute.status == "mediation_scheduled"
+                        else "#0d6efd",
+                    }
+                )
             except Exception:
                 continue
-        
+
         # Add calendar notes (with error handling for missing table)
         try:
             from disputes.models import CalendarNote
+
             notes = CalendarNote.objects.filter(
-                date__gte=timezone.now().date() - timedelta(days=365),
-                is_deleted=False
+                date__gte=timezone.now().date() - timedelta(days=365), is_deleted=False
             ).select_related("user")
             for note in notes:
-                calendar_events.append({
-                    "title": f"Note: {note.note[:40]}{'...' if len(note.note) > 40 else ''}",
-                    "start": note.date.isoformat(),
-                    "backgroundColor": "#6c757d",
-                    "borderColor": "#6c757d",
-                    "extendedProps": {"noteId": note.id, "isNote": True, "fullNote": note.note},
-                })
+                calendar_events.append(
+                    {
+                        "title": f"Note: {note.note[:40]}{'...' if len(note.note) > 40 else ''}",
+                        "start": note.date.isoformat(),
+                        "backgroundColor": "#6c757d",
+                        "borderColor": "#6c757d",
+                        "extendedProps": {
+                            "noteId": note.id,
+                            "isNote": True,
+                            "fullNote": note.note,
+                        },
+                    }
+                )
         except Exception:
             pass  # Table may not exist yet
-        
+
         context["calendar_events"] = calendar_events
         return context
 
@@ -288,37 +343,46 @@ class DisputeListView(ListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        status = self.request.GET.get('status')
-        if status == 'archived':
+        status = self.request.GET.get("status")
+        if status == "archived":
             queryset = queryset.filter(is_deleted=True)
         else:
             queryset = queryset.filter(is_deleted=False)
-        if status and status != 'archived':
+        if status and status != "archived":
             queryset = queryset.filter(status=status)
-        
+
         # Mark duplicates (same applicant name + cell)
         from django.db.models import Count
-        duplicates = Dispute.objects.filter(is_deleted=False).values('applicant_cell').annotate(
-            count=Count('id')
-        ).filter(count__gt=1).values_list('applicant_cell', flat=True)
-        
+
+        duplicates = (
+            Dispute.objects.filter(is_deleted=False)
+            .values("applicant_cell")
+            .annotate(count=Count("id"))
+            .filter(count__gt=1)
+            .values_list("applicant_cell", flat=True)
+        )
+
         queryset = queryset.annotate(
-            is_duplicate=Count('id', filter=models.Q(applicant_cell__in=duplicates))
+            is_duplicate=Count("id", filter=models.Q(applicant_cell__in=duplicates))
         )
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["mediators"] = Mediator.objects.select_related("user").all()
-        context["current_status"] = self.request.GET.get('status', '')
-        
+        context["current_status"] = self.request.GET.get("status", "")
+
         # Check if any duplicates exist
         from django.db.models import Count
-        duplicates = Dispute.objects.values('applicant_cell').annotate(
-            count=Count('id')
-        ).filter(count__gt=1).exists()
+
+        duplicates = (
+            Dispute.objects.values("applicant_cell")
+            .annotate(count=Count("id"))
+            .filter(count__gt=1)
+            .exists()
+        )
         context["duplicates_exist"] = duplicates
-        
+
         return context
 
 
@@ -327,15 +391,19 @@ def delete_dispute(request, pk):
     dispute = get_object_or_404(Dispute, pk=pk)
     # Soft delete - dispute is never truly removed
     from django.utils import timezone
+
     dispute.is_deleted = True
     dispute.deleted_at = timezone.now()
-    dispute.save(update_fields=['is_deleted', 'deleted_at'])
+    dispute.save(update_fields=["is_deleted", "deleted_at"])
     AuditLog.objects.create(
         dispute=dispute,
         user=request.user,
         action=f"Dispute soft-deleted by {request.user.get_full_name() or request.user.username}",
     )
-    messages.success(request, f"Dispute #{pk} has been archived. It can be restored from the Archived filter.")
+    messages.success(
+        request,
+        f"Dispute #{pk} has been archived. It can be restored from the Archived filter.",
+    )
     return redirect("dashboard:dispute_list")
 
 
@@ -345,7 +413,7 @@ def restore_dispute(request, pk):
     dispute = get_object_or_404(Dispute, pk=pk, is_deleted=True)
     dispute.is_deleted = False
     dispute.deleted_at = None
-    dispute.save(update_fields=['is_deleted', 'deleted_at'])
+    dispute.save(update_fields=["is_deleted", "deleted_at"])
     AuditLog.objects.create(
         dispute=dispute,
         user=request.user,
@@ -375,22 +443,22 @@ def assign_mediator_to_dispute(request, pk):
     mediator_id = request.POST.get("mediator_id")
     scheduled_at_str = request.POST.get("scheduled_at")
     zoom_link = request.POST.get("zoom_link", "https://zoom.us/j/pending")
-    
+
     if not mediator_id:
         messages.error(request, "Please select a mediator.")
         return redirect("dashboard:dispute_detail", pk=pk)
-    
+
     mediator = get_object_or_404(Mediator, id=mediator_id)
-    
+
     try:
         scheduled_at = datetime.fromisoformat(scheduled_at_str)
     except (ValueError, AttributeError):
         messages.error(request, "Invalid date/time format.")
         return redirect("dashboard:dispute_detail", pk=pk)
-    
+
     if timezone.is_naive(scheduled_at):
         scheduled_at = timezone.make_aware(scheduled_at, timezone.utc)
-    
+
     # Create or update mediation session
     session, created = MediationSession.objects.update_or_create(
         dispute=dispute,
@@ -399,17 +467,17 @@ def assign_mediator_to_dispute(request, pk):
             "scheduled_at": scheduled_at,
             "zoom_link": zoom_link,
             "host_link": "",
-        }
+        },
     )
-    
+
     # Update dispute
     dispute.mediator = mediator
     dispute.status = "mediation_scheduled"
     dispute.save()
-    
+
     mediator_name = mediator.user.get_full_name() or mediator.user.username
     mediator_email = mediator.user.email
-    
+
     # Send Message 8: Notify mediator
     if mediator_email:
         try:
@@ -420,7 +488,7 @@ def assign_mediator_to_dispute(request, pk):
             )
         except Exception:
             pass
-    
+
     # Send Message 8: Notify parties
     try:
         send_message_8_mediator_assigned_parties.delay(
@@ -431,17 +499,17 @@ def assign_mediator_to_dispute(request, pk):
         )
     except Exception:
         pass
-    
+
     # SMS notification to mediator
     if mediator.cell:
         try:
             notify_recipient.delay(
                 to=mediator.cell,
-                body=f"You have been assigned to Dispute #{dispute.id}. Applicant: {dispute.applicant_name} {dispute.applicant_surname}. Session: {scheduled_at.strftime('%d %b %Y %H:%M')}."
+                body=f"You have been assigned to Dispute #{dispute.id}. Applicant: {dispute.applicant_name} {dispute.applicant_surname}. Session: {scheduled_at.strftime('%d %b %Y %H:%M')}.",
             )
         except Exception:
             pass
-    
+
     AuditLog.objects.create(
         dispute=dispute,
         user=request.user,
@@ -462,11 +530,11 @@ def screen_dispute(request):
     offer_foresolve = request.POST.get("offer_foresolve") == "on"
     refer_to = request.POST.get("refer_to", "")
     refer_notes = request.POST.get("refer_notes", "")
-    
+
     if not dispute_id:
         messages.error(request, "No dispute selected. Please try again.")
         return redirect("dashboard:dispute_list")
-    
+
     try:
         dispute = Dispute.objects.get(id=dispute_id, status="submitted")
     except Dispute.DoesNotExist:
@@ -495,7 +563,7 @@ def screen_dispute(request):
             or dispute.business_name
             or "Respondent"
         )
-        
+
         # Send Message 4: Invitation to respondent
         respondent_email = dispute.respondent_email
         if respondent_email:
@@ -506,7 +574,7 @@ def screen_dispute(request):
                 respond_link=respondent_link,
                 case_id=dispute.id,
             )
-        
+
         # Send SMS to respondent
         respondent_cell = dispute.respondent_cell or dispute.business_cell
         if respondent_cell:
@@ -557,7 +625,7 @@ def screen_dispute(request):
                     "referral_details": refer_notes,
                 },
             )
-        
+
         # Send Message 2: Dispute rejected notification
         if dispute.applicant_email:
             send_message_2_dispute_rejected.delay(
@@ -572,15 +640,21 @@ def screen_dispute(request):
                 "After reviewing your request we have found that the dispute cannot be mediated. "
                 "Your file has been closed. You are welcome to lodge an enquiry to complaints@probonomediation.co.za"
             )
-            _send_notification(notify_recipient, to=dispute.applicant_cell, body=sms_body)
+            _send_notification(
+                notify_recipient, to=dispute.applicant_cell, body=sms_body
+            )
 
         AuditLog.objects.create(
             dispute=dispute,
             user=request.user,
-            action=f"Dispute rejected - referred to {refer_to}" if refer_to else "Dispute rejected - not mediatable",
+            action=f"Dispute rejected - referred to {refer_to}"
+            if refer_to
+            else "Dispute rejected - not mediatable",
         )
 
-        messages.warning(request, f"Dispute #{dispute_id} rejected and applicant notified.")
+        messages.warning(
+            request, f"Dispute #{dispute_id} rejected and applicant notified."
+        )
 
     return redirect("dashboard:dispute_list")
 
@@ -589,7 +663,7 @@ def screen_dispute(request):
 def screen_dispute_page(request, pk):
     """Show full dispute profile for screening."""
     dispute = get_object_or_404(Dispute, pk=pk, status="submitted")
-    
+
     if request.method == "POST":
         decision = request.POST.get("decision")
         notes = request.POST.get("notes", "")
@@ -614,13 +688,13 @@ def screen_dispute_page(request, pk):
             respondent_link = request.build_absolute_uri(
                 reverse("disputes:respond", args=[str(dispute.respondent_token)])
             )
-            
+
             respondent_name = (
                 f"{dispute.respondent_name or ''} {dispute.respondent_surname or ''}".strip()
                 or dispute.business_name
                 or "Respondent"
             )
-            
+
             # Send Message 4: Invitation to respondent
             respondent_email = dispute.respondent_email
             if respondent_email:
@@ -631,7 +705,7 @@ def screen_dispute_page(request, pk):
                     respond_link=respondent_link,
                     case_id=dispute.id,
                 )
-            
+
             # Send SMS to respondent
             respondent_cell = dispute.respondent_cell or dispute.business_cell
             if respondent_cell:
@@ -668,7 +742,9 @@ def screen_dispute_page(request, pk):
             dispute.is_mediatable = False
             dispute.status = "rejected"
             if refer_to:
-                dispute.screening_notes = f"REFERRED TO: {refer_to.upper()}. Notes: {notes}"
+                dispute.screening_notes = (
+                    f"REFERRED TO: {refer_to.upper()}. Notes: {notes}"
+                )
             else:
                 dispute.screening_notes = notes
 
@@ -687,7 +763,7 @@ def screen_dispute_page(request, pk):
                         "referral_details": refer_notes,
                     },
                 )
-            
+
             # Send Message 2: Dispute rejected notification
             if dispute.applicant_email:
                 send_message_2_dispute_rejected.delay(
@@ -698,17 +774,21 @@ def screen_dispute_page(request, pk):
 
             if dispute.applicant_cell:
                 sms_body = "After reviewing your request we have found that the dispute cannot be mediated. Your file has been closed. You are welcome to lodge an enquiry to complaints@probonomediation.co.za"
-                _send_notification(notify_recipient, to=dispute.applicant_cell, body=sms_body)
+                _send_notification(
+                    notify_recipient, to=dispute.applicant_cell, body=sms_body
+                )
 
             AuditLog.objects.create(
                 dispute=dispute,
                 user=request.user,
-                action=f"Dispute rejected - referred to {refer_to}" if refer_to else "Dispute rejected",
+                action=f"Dispute rejected - referred to {refer_to}"
+                if refer_to
+                else "Dispute rejected",
             )
 
             messages.warning(request, f"Dispute #{dispute.id} rejected.")
             return redirect("dashboard:dispute_list")
-    
+
     return render(request, "dashboard/screen_dispute.html", {"dispute": dispute})
 
 
@@ -719,23 +799,25 @@ def assign_mediator_post(request):
     dispute_id = request.POST.get("dispute_id")
     mediator_id = request.POST.get("mediator_id")
     scheduled_at_str = request.POST.get("scheduled_at")
-    
+
     if not dispute_id or not mediator_id:
         messages.error(request, "Please select a mediator and date/time.")
         return redirect("dashboard:dispute_list")
-    
-    dispute = get_object_or_404(Dispute, pk=dispute_id, status__in=["responded", "ready_for_assignment"])
+
+    dispute = get_object_or_404(
+        Dispute, pk=dispute_id, status__in=["responded", "ready_for_assignment"]
+    )
     mediator = get_object_or_404(Mediator, id=mediator_id)
-    
+
     try:
         scheduled_at = datetime.fromisoformat(scheduled_at_str)
     except (ValueError, AttributeError):
         messages.error(request, "Invalid date/time format.")
         return redirect("dashboard:dispute_list")
-    
+
     if timezone.is_naive(scheduled_at):
         scheduled_at = timezone.make_aware(scheduled_at, timezone.utc)
-    
+
     session = MediationSession.objects.create(
         dispute=dispute,
         mediator=mediator,
@@ -743,13 +825,13 @@ def assign_mediator_post(request):
         zoom_link="https://zoom.us/j/pending",
         host_link="",
     )
-    
+
     dispute.status = "mediation_scheduled"
     dispute.mediator = mediator
     dispute.save()
-    
+
     mediator_name = mediator.user.get_full_name() or mediator.user.username
-    
+
     # Send notifications
     if mediator.user.email:
         send_message_8_mediator_assigned_mediator.delay(
@@ -757,51 +839,67 @@ def assign_mediator_post(request):
             mediator_name=mediator_name,
             case_id=dispute.id,
         )
-    
+
     send_message_8_mediator_assigned_parties.delay(
         applicant_email=dispute.applicant_email,
         respondent_email=dispute.respondent_email,
         mediator_name=mediator_name,
         case_id=dispute.id,
     )
-    
+
     AuditLog.objects.create(
         dispute=dispute,
         user=request.user,
         action=f"Mediator {mediator_name} assigned via modal, session scheduled for {scheduled_at}",
     )
-    
-    messages.success(request, f"Mediator {mediator_name} assigned to Dispute #{dispute_id}!")
+
+    messages.success(
+        request, f"Mediator {mediator_name} assigned to Dispute #{dispute_id}!"
+    )
     return redirect("dashboard:dispute_list")
 
 
 @staff_required
 def referred_cases_view(request):
-    referred = ReferredCase.objects.select_related('dispute', 'referred_by').order_by('-referred_at')
+    referred = ReferredCase.objects.select_related("dispute", "referred_by").order_by(
+        "-referred_at"
+    )
     stats = {}
     for ref in referred:
         ref_type = ref.referred_to
         stats[ref_type] = stats.get(ref_type, 0) + 1
-    return render(request, 'dashboard/referred_cases.html', {
-        'referred_cases': referred,
-        'page_title': 'Referred Cases',
-        'referral_stats': stats
-    })
+    return render(
+        request,
+        "dashboard/referred_cases.html",
+        {
+            "referred_cases": referred,
+            "page_title": "Referred Cases",
+            "referral_stats": stats,
+        },
+    )
 
 
 @staff_required
 def mediatable_cases_view(request):
-    mediatable = MediatableCase.objects.select_related('dispute', 'accepted_by').order_by('-accepted_at')
-    forwarded_count = sum(1 for c in mediatable if c.dispute.status == 'forwarded')
-    responded_count = sum(1 for c in mediatable if c.dispute.status == 'responded')
-    scheduled_count = sum(1 for c in mediatable if c.dispute.status == 'mediation_scheduled')
-    return render(request, 'dashboard/mediatable_cases.html', {
-        'mediatable_cases': mediatable,
-        'page_title': 'Mediatable Cases',
-        'forwarded_count': forwarded_count,
-        'responded_count': responded_count,
-        'scheduled_count': scheduled_count
-    })
+    mediatable = MediatableCase.objects.select_related(
+        "dispute", "accepted_by"
+    ).order_by("-accepted_at")
+    forwarded_count = sum(1 for c in mediatable if c.dispute.status == "forwarded")
+    responded_count = sum(1 for c in mediatable if c.dispute.status == "responded")
+    scheduled_count = sum(
+        1 for c in mediatable if c.dispute.status == "mediation_scheduled"
+    )
+    return render(
+        request,
+        "dashboard/mediatable_cases.html",
+        {
+            "mediatable_cases": mediatable,
+            "page_title": "Mediatable Cases",
+            "forwarded_count": forwarded_count,
+            "responded_count": responded_count,
+            "scheduled_count": scheduled_count,
+        },
+    )
 
 
 @mediator_required
@@ -809,30 +907,34 @@ def mediatable_cases_view(request):
 def mediator_accept_case(request, dispute_id):
     """Mediator accepts a case - notifies applicant to confirm details"""
     try:
-        dispute = Dispute.objects.get(id=dispute_id, status='responded')
+        dispute = Dispute.objects.get(id=dispute_id, status="responded")
     except Dispute.DoesNotExist:
         messages.error(request, "Dispute not found.")
         return redirect("dashboard:mediator_sessions")
-    
+
     mediator = request.user.mediator
-    
+
     # Update dispute status
     dispute.mediator = mediator
     dispute.mediator_accepted_at = timezone.now()
     dispute.status = "mediator_assigned"
     dispute.save()
-    
+
     # Send email to applicant
     if dispute.applicant_email:
         from django.core.mail import send_mail
         from django.conf import settings
         from django.urls import reverse
-        
+
         confirm_link = request.build_absolute_uri(
-            reverse("disputes:applicant_confirm", args=[str(dispute.applicant_view_token)])
+            reverse(
+                "disputes:applicant_confirm", args=[str(dispute.applicant_view_token)]
+            )
         )
-        
-        subject = f"Action Required: Confirm your Mediation details for Case #{dispute.id}"
+
+        subject = (
+            f"Action Required: Confirm your Mediation details for Case #{dispute.id}"
+        )
         body = f"""Dear {dispute.applicant_name} {dispute.applicant_surname},
 
 Great news! A mediator has accepted your case and will be handling your mediation.
@@ -856,17 +958,22 @@ Best regards,
 Mediators on Call Team
 """
         try:
-            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [dispute.applicant_email])
+            send_mail(
+                subject, body, settings.DEFAULT_FROM_EMAIL, [dispute.applicant_email]
+            )
         except Exception as e:
             logging.error(f"Failed to send applicant confirmation email: {e}")
-    
+
     AuditLog.objects.create(
         dispute=dispute,
         user=request.user,
         action=f"Case accepted by mediator {mediator.user.get_full_name()}",
     )
-    
-    messages.success(request, f"Case #{dispute_id} accepted. Applicant has been notified to confirm details.")
+
+    messages.success(
+        request,
+        f"Case #{dispute_id} accepted. Applicant has been notified to confirm details.",
+    )
     return redirect("dashboard:mediator_sessions")
 
 
@@ -875,16 +982,18 @@ Mediators on Call Team
 def mediator_sessions(request):
     """Show mediation sessions for the current user."""
     sessions = MediationSession.objects.none()  # Empty queryset by default
-    
+
     # If user has a mediator profile, show their sessions
-    if hasattr(request.user, 'mediator'):
+    if hasattr(request.user, "mediator"):
         mediator = request.user.mediator
-        sessions = MediationSession.objects.filter(mediator=mediator).order_by('-scheduled_at')
+        sessions = MediationSession.objects.filter(mediator=mediator).order_by(
+            "-scheduled_at"
+        )
     # If user is staff, show all sessions
     elif request.user.is_staff:
-        sessions = MediationSession.objects.all().order_by('-scheduled_at')
-    
-    return render(request, 'dashboard/mediator_sessions.html', {'sessions': sessions})
+        sessions = MediationSession.objects.all().order_by("-scheduled_at")
+
+    return render(request, "dashboard/mediator_sessions.html", {"sessions": sessions})
 
 
 @login_required
@@ -893,42 +1002,47 @@ def mediator_dashboard(request):
     mediator = None
     assigned_cases = Dispute.objects.none()
     upcoming_sessions = MediationSession.objects.none()
-    
+
     # If user has a mediator profile, show their cases
-    if hasattr(request.user, 'mediator'):
+    if hasattr(request.user, "mediator"):
         mediator = request.user.mediator
-        assigned_cases = Dispute.objects.filter(mediator=mediator).order_by('-created_at')
+        assigned_cases = Dispute.objects.filter(mediator=mediator).order_by(
+            "-created_at"
+        )
         upcoming_sessions = MediationSession.objects.filter(
-            mediator=mediator,
-            scheduled_at__gte=timezone.now()
-        ).order_by('scheduled_at')
+            mediator=mediator, scheduled_at__gte=timezone.now()
+        ).order_by("scheduled_at")
     # If user is staff, show all cases
     elif request.user.is_staff:
-        assigned_cases = Dispute.objects.all().order_by('-created_at')
+        assigned_cases = Dispute.objects.all().order_by("-created_at")
         upcoming_sessions = MediationSession.objects.filter(
             scheduled_at__gte=timezone.now()
-        ).order_by('scheduled_at')
-    
+        ).order_by("scheduled_at")
+
     # Calculate stats
     stats = {
-        'assigned_count': assigned_cases.count(),
-        'pending_count': assigned_cases.filter(status__in=['mediator_assigned', 'ready_for_assignment']).count(),
-        'upcoming_count': upcoming_sessions.count(),
-        'completed_count': assigned_cases.filter(status='mediated').count(),
+        "assigned_count": assigned_cases.count(),
+        "pending_count": assigned_cases.filter(
+            status__in=["mediator_assigned", "ready_for_assignment"]
+        ).count(),
+        "upcoming_count": upcoming_sessions.count(),
+        "completed_count": assigned_cases.filter(status="mediated").count(),
     }
-    
+
     # Get recently completed cases
-    completed_cases = assigned_cases.filter(status='mediated').order_by('-created_at')[:5]
-    
+    completed_cases = assigned_cases.filter(status="mediated").order_by("-created_at")[
+        :5
+    ]
+
     context = {
-        'mediator': mediator,
-        'stats': stats,
-        'upcoming': upcoming_sessions[:6],
-        'assigned_cases': assigned_cases[:6],
-        'completed_cases': completed_cases,
+        "mediator": mediator,
+        "stats": stats,
+        "upcoming": upcoming_sessions[:6],
+        "assigned_cases": assigned_cases[:6],
+        "completed_cases": completed_cases,
     }
-    
-    return render(request, 'dashboard/mediator_home.html', context)
+
+    return render(request, "dashboard/mediator_home.html", context)
 
 
 @login_required
@@ -936,23 +1050,23 @@ def mediator_dashboard(request):
 def submit_mediation_outcome(request, pk):
     """Submit outcome for a mediation session."""
     session = get_object_or_404(MediationSession, pk=pk, mediator=request.user.mediator)
-    
-    if request.method == 'POST':
-        outcome = request.POST.get('outcome', '')
-        
+
+    if request.method == "POST":
+        outcome = request.POST.get("outcome", "")
+
         # Handle outcome file upload if provided
-        outcome_file = request.FILES.get('outcome_file')
-        
+        outcome_file = request.FILES.get("outcome_file")
+
         session.outcome = outcome
         if outcome_file:
             session.outcome_file = outcome_file
         session.save()
-        
+
         # Update dispute status
         dispute = session.dispute
-        dispute.status = 'mediated'
+        dispute.status = "mediated"
         dispute.save()
-        
+
         # Send notifications
         if dispute.applicant_email:
             try:
@@ -960,65 +1074,73 @@ def submit_mediation_outcome(request, pk):
                     to_email=dispute.applicant_email,
                     applicant_name=dispute.applicant_name,
                     case_id=dispute.id,
-                    outcome=outcome[:200]
+                    outcome=outcome[:200],
                 )
             except Exception:
                 pass
-        
+
         AuditLog.objects.create(
             dispute=dispute,
             user=request.user,
             action=f"Mediation outcome submitted by {request.user.get_full_name() or request.user.username}",
         )
-        
-        messages.success(request, f"Outcome for dispute #{dispute.id} submitted successfully.")
-        return redirect('dashboard:mediator_home')
-    
+
+        messages.success(
+            request, f"Outcome for dispute #{dispute.id} submitted successfully."
+        )
+        return redirect("dashboard:mediator_home")
+
     context = {
-        'session': session,
-        'dispute': session.dispute,
+        "session": session,
+        "dispute": session.dispute,
     }
-    return render(request, 'dashboard/submit_outcome.html', context)
+    return render(request, "dashboard/submit_outcome.html", context)
 
 
 def mediators_list(request):
     """List all mediators in the database."""
     # Only allow GET requests to prevent form resubmission issues
-    if request.method != 'GET':
+    if request.method != "GET":
         from django.http import HttpResponseNotAllowed
-        return HttpResponseNotAllowed(['GET'])
-    
-    mediators = Mediator.objects.select_related('user').all().order_by('user__first_name', 'user__last_name')
-    
+
+        return HttpResponseNotAllowed(["GET"])
+
+    mediators = (
+        Mediator.objects.select_related("user")
+        .all()
+        .order_by("user__first_name", "user__last_name")
+    )
+
     # Get search query
-    search = request.GET.get('search', '')
+    search = request.GET.get("search", "")
     if search:
         from django.db.models import Q
+
         mediators = mediators.filter(
-            Q(user__first_name__icontains=search) |
-            Q(user__last_name__icontains=search) |
-            Q(user__email__icontains=search) |
-            Q(cell__icontains=search)
+            Q(user__first_name__icontains=search)
+            | Q(user__last_name__icontains=search)
+            | Q(user__email__icontains=search)
+            | Q(cell__icontains=search)
         )
-    
+
     # Get stats
     total_mediators = mediators.count()
-    
+
     context = {
-        'mediators': mediators,
-        'total_mediators': total_mediators,
-        'search_query': search,
+        "mediators": mediators,
+        "total_mediators": total_mediators,
+        "search_query": search,
     }
-    return render(request, 'dashboard/mediators_list.html', context)
+    return render(request, "dashboard/mediators_list.html", context)
 
 
 @staff_required
 def download_case_file(request, pk):
     """Download all case documents as a ZIP file for arbitration."""
     dispute = get_object_or_404(Dispute, pk=pk)
-    
+
     buffer = io.BytesIO()
-    with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
         case_data = {
             "dispute_id": dispute.id,
             "applicant": {
@@ -1043,70 +1165,114 @@ def download_case_file(request, pk):
             "status": dispute.status,
             "created_at": str(dispute.created_at),
         }
-        
-        if hasattr(dispute, 'response'):
+
+        if hasattr(dispute, "response"):
             case_data["respondent_response"] = {
                 "consent_to_mediate": dispute.response.consent_to_mediate,
                 "agreed_to_rules": dispute.response.agreed_to_rules,
                 "defence_explanation": dispute.response.defence_explanation,
                 "created_at": str(dispute.response.created_at),
             }
-        
-        if hasattr(dispute, 'mediation'):
+
+        if hasattr(dispute, "mediation"):
             case_data["mediation"] = {
-                "mediator": str(dispute.mediation.mediator) if dispute.mediation.mediator else None,
+                "mediator": str(dispute.mediation.mediator)
+                if dispute.mediation.mediator
+                else None,
                 "scheduled_at": str(dispute.mediation.scheduled_at),
                 "zoom_link": dispute.mediation.zoom_link,
                 "outcome": dispute.mediation.outcome,
             }
-        
-        zf.writestr('case_info.json', json.dumps(case_data, indent=2))
-        
+
+        zf.writestr("case_info.json", json.dumps(case_data, indent=2))
+
         for doc in dispute.documents.all():
             if doc.file:
-                zf.writestr(f'applicant_docs/{doc.file.name}', doc.file.read())
-        
-        if hasattr(dispute, 'response'):
+                zf.writestr(f"applicant_docs/{doc.file.name}", doc.file.read())
+
+        if hasattr(dispute, "response"):
             for doc in dispute.response.documents.all():
                 if doc.file:
-                    zf.writestr(f'respondent_docs/{doc.file.name}', doc.file.read())
-        
-        if hasattr(dispute, 'mediation'):
+                    zf.writestr(f"respondent_docs/{doc.file.name}", doc.file.read())
+
+        if hasattr(dispute, "mediation"):
             if dispute.mediation.outcome_file:
-                zf.writestr('mediation/outcome.txt', dispute.mediation.outcome)
+                zf.writestr("mediation/outcome.txt", dispute.mediation.outcome)
             if dispute.mediation.outcome_file and dispute.mediation.outcome_file.name:
                 try:
-                    zf.writestr('mediation/outcome_file', dispute.mediation.outcome_file.read())
+                    zf.writestr(
+                        "mediation/outcome_file", dispute.mediation.outcome_file.read()
+                    )
                 except:
                     pass
             if dispute.mediation.arbitration_agreement:
                 try:
-                    zf.writestr('mediation/arbitration_agreement', dispute.mediation.arbitration_agreement.read())
+                    zf.writestr(
+                        "mediation/arbitration_agreement",
+                        dispute.mediation.arbitration_agreement.read(),
+                    )
                 except:
                     pass
             if dispute.mediation.pre_arbitration_minute:
                 try:
-                    zf.writestr('mediation/pre_arbitration_minute', dispute.mediation.pre_arbitration_minute.read())
+                    zf.writestr(
+                        "mediation/pre_arbitration_minute",
+                        dispute.mediation.pre_arbitration_minute.read(),
+                    )
                 except:
                     pass
-    
+
     buffer.seek(0)
-    response = HttpResponse(buffer, content_type='application/zip')
-    response['Content-Disposition'] = f'attachment; filename=case_{dispute.id}_arbitration.zip'
+    response = HttpResponse(buffer, content_type="application/zip")
+    response["Content-Disposition"] = (
+        f"attachment; filename=case_{dispute.id}_arbitration.zip"
+    )
     return response
 
 
 @staff_required
 def assign_mediator_page(request, pk):
     """Show page for assigning mediator to a dispute."""
-    dispute = get_object_or_404(Dispute, pk=pk, status__in=["responded", "ready_for_assignment"])
+    dispute = get_object_or_404(Dispute, pk=pk)
     mediators = Mediator.objects.select_related("user").all()
-    
+
+    # Allow assignment for these statuses
+    allowed_statuses = [
+        "responded",
+        "ready_for_assignment",
+        "forwarded",
+        "respondent_agreed",
+        "mediator_assigned",
+    ]
+
+    if dispute.status not in allowed_statuses:
+        messages.error(
+            request,
+            f"Cannot assign mediator to dispute with status: {dispute.get_status_display}",
+        )
+        return redirect("dashboard:dispute_detail", pk=pk)
+
     if request.method == "POST":
         mediator_id = request.POST.get("mediator_id")
         scheduled_at_str = request.POST.get("scheduled_at")
-        join_url = request.POST.get("join_url", "")
+        join_url = request.POST.get("join_url", "") or "https://zoom.us/j/pending"
         host_url = request.POST.get("host_url", "")
+
+        if not mediator_id:
+            messages.error(request, "Please select a mediator.")
+            return render(
+                request,
+                "dashboard/assign_mediator.html",
+                {"dispute": dispute, "mediators": mediators},
+            )
+
+        if not scheduled_at_str:
+            messages.error(request, "Please select a session date and time.")
+            return render(
+                request,
+                "dashboard/assign_mediator.html",
+                {"dispute": dispute, "mediators": mediators},
+            )
 
         mediator = get_object_or_404(Mediator, id=mediator_id)
 
@@ -1114,7 +1280,89 @@ def assign_mediator_page(request, pk):
             scheduled_at = datetime.fromisoformat(scheduled_at_str)
         except (ValueError, AttributeError):
             messages.error(request, "Invalid date/time format.")
-    return render(request, "dashboard/assign_mediator.html", {"dispute": dispute, "mediators": mediators})
+            return render(
+                request,
+                "dashboard/assign_mediator.html",
+                {"dispute": dispute, "mediators": mediators},
+            )
+
+        # Create or update mediation session
+        session, created = MediationSession.objects.update_or_create(
+            dispute=dispute,
+            defaults={
+                "mediator": mediator,
+                "scheduled_at": scheduled_at,
+                "zoom_link": join_url,
+                "host_link": host_url,
+            },
+        )
+
+        # Update dispute status
+        dispute.mediator = mediator
+        dispute.status = "mediation_scheduled"
+        dispute.save()
+
+        # Send notifications
+        mediator_name = mediator.user.get_full_name() or mediator.user.username
+        applicant_name = f"{dispute.applicant_name} {dispute.applicant_surname}"
+
+        # Send to mediator
+        _send_notification(
+            send_message_8_mediator_assigned_mediator,
+            to_email=mediator.user.email,
+            mediator_name=mediator_name,
+            applicant_name=applicant_name,
+            respondent_name=f"{dispute.respondent_name} {dispute.respondent_surname}".strip()
+            or dispute.business_name
+            or "Respondent",
+            case_id=dispute.id,
+            scheduled_at=scheduled_at.strftime("%Y-%m-%d %H:%M"),
+            zoom_link=join_url,
+        )
+
+        # Send to parties
+        if dispute.applicant_email:
+            _send_notification(
+                send_message_8_mediator_assigned_parties,
+                to_email=dispute.applicant_email,
+                party_name=applicant_name,
+                mediator_name=mediator_name,
+                other_party_name=f"{dispute.respondent_name} {dispute.respondent_surname}".strip()
+                or dispute.business_name
+                or "Respondent",
+                case_id=dispute.id,
+                scheduled_at=scheduled_at.strftime("%Y-%m-%d %H:%M"),
+                zoom_link=join_url,
+            )
+
+        if dispute.respondent_email:
+            respondent_name = (
+                f"{dispute.respondent_name} {dispute.respondent_surname}".strip()
+                or dispute.business_name
+                or "Respondent"
+            )
+            _send_notification(
+                send_message_8_mediator_assigned_parties,
+                to_email=dispute.respondent_email,
+                party_name=respondent_name,
+                mediator_name=mediator_name,
+                other_party_name=applicant_name,
+                case_id=dispute.id,
+                scheduled_at=scheduled_at.strftime("%Y-%m-%d %H:%M"),
+                zoom_link=join_url,
+            )
+
+        messages.success(
+            request,
+            f"Mediator {mediator_name} assigned successfully! Mediation scheduled for {scheduled_at.strftime('%Y-%m-%d %H:%M')}",
+        )
+        return redirect("dashboard:dispute_detail", pk=pk)
+
+    return render(
+        request,
+        "dashboard/assign_mediator.html",
+        {"dispute": dispute, "mediators": mediators},
+    )
 
 
 @staff_required
@@ -1124,30 +1372,32 @@ def save_calendar_note(request):
     import json
     from django.http import JsonResponse
     from datetime import datetime
-    
+
     try:
         data = json.loads(request.body)
-        date_str = data.get('date')
-        note_text = data.get('note')
-        
+        date_str = data.get("date")
+        note_text = data.get("note")
+
         if not date_str or not note_text:
-            return JsonResponse({'success': False, 'error': 'Missing date or note'})
-        
-        date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        
+            return JsonResponse({"success": False, "error": "Missing date or note"})
+
+        date = datetime.strptime(date_str, "%Y-%m-%d").date()
+
         from disputes.models import CalendarNote
-        CalendarNote.objects.create(
-            user=request.user,
-            date=date,
-            note=note_text
-        )
-        
-        return JsonResponse({'success': True})
+
+        CalendarNote.objects.create(user=request.user, date=date, note=note_text)
+
+        return JsonResponse({"success": True})
     except Exception as e:
         error_msg = str(e)
-        if 'no such table' in error_msg.lower():
-            return JsonResponse({'success': False, 'error': 'Calendar notes not ready yet. Please refresh and try again.'})
-        return JsonResponse({'success': False, 'error': error_msg})
+        if "no such table" in error_msg.lower():
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Calendar notes not ready yet. Please refresh and try again.",
+                }
+            )
+        return JsonResponse({"success": False, "error": error_msg})
 
 
 @staff_required
@@ -1156,15 +1406,16 @@ def delete_calendar_note(request, note_id):
     """Delete a calendar note (AJAX endpoint)."""
     import json
     from django.http import JsonResponse
-    
+
     try:
         from disputes.models import CalendarNote
+
         note = CalendarNote.objects.get(id=note_id, user=request.user)
         note.is_deleted = True
         note.deleted_at = timezone.now()
         note.save()
-        return JsonResponse({'success': True})
+        return JsonResponse({"success": True})
     except CalendarNote.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Note not found'})
+        return JsonResponse({"success": False, "error": "Note not found"})
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)})
+        return JsonResponse({"success": False, "error": str(e)})

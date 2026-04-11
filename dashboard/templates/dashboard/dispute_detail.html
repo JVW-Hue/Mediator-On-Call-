@@ -183,10 +183,10 @@
         <span class="status-badge status-{{ dispute.status }}">{{ dispute.get_status_display }}</span>
     </div>
     <div class="header-actions">
-        {% if not dispute.mediator %}
-        <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#assignMediatorModal">
-            <i class="bi bi-person-plus me-1"></i> Assign Mediator
-        </button>
+        {% if user.is_staff or user.is_superuser %}
+        <a href="{% url 'dashboard:assign_mediator_page' dispute.id %}" class="btn btn-light">
+            <i class="bi bi-person-plus me-1"></i> {% if dispute.mediator %}Change{% else %}Assign{% endif %} Mediator
+        </a>
         {% endif %}
         <a href="{% url 'dashboard:dispute_list' %}" class="btn btn-outline-light">
             <i class="bi bi-arrow-left me-1"></i> Back
@@ -466,7 +466,7 @@
                 <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>Assign Mediator</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="post" action="{% url 'dashboard:assign_mediator_to_dispute' dispute.id %}">
+            <form method="post" action="{% url 'dashboard:assign_mediator_page' dispute.id %}">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="mb-3">
