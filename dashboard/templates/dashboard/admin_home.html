@@ -4,7 +4,6 @@
 
 {% block extra_css %}
 {{ block.super }}
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css" rel="stylesheet">
 <style>
     .dashboard-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -148,34 +147,6 @@
     .status-scheduled { background: #cce5ff; color: #004085; }
     .status-mediated { background: #d4edda; color: #155724; }
     .status-rejected { background: #f8d7da; color: #721c24; }
-    .calendar-card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        overflow: hidden;
-    }
-    .calendar-header {
-        padding: 1.2rem 1.5rem;
-        border-bottom: 2px solid #f0f2ff;
-        font-weight: 600;
-        color: #333;
-        font-size: 1.1rem;
-    }
-    .calendar-body {
-        padding: 1.5rem;
-    }
-    #calendar {
-        min-height: 500px;
-    }
-    /* FullCalendar custom styling */
-    .fc {
-        font-family: 'Inter', sans-serif !important;
-    }
-    .fc .fc-toolbar-title {
-        font-size: 1.2rem !important;
-        font-weight: 700 !important;
-        color: #333 !important;
-    }
     .fc .fc-button {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
         border: none !important;
@@ -431,21 +402,6 @@
     </div>
 </div>
 
-<!-- Calendar -->
-<div class="row g-3 mb-4">
-    <div class="col-12">
-        <div class="calendar-card">
-            <div class="calendar-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-calendar3 me-2" style="color: #667eea;"></i> Calendar</span>
-                <small class="text-muted" style="font-weight: 400; font-size: 0.85rem;">Click any date to add a note</small>
-            </div>
-            <div class="calendar-body">
-                <div id="calendar"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Upcoming Sessions -->
 <div class="row g-3">
     <div class="col-12">
@@ -655,24 +611,4 @@
         }
     });
 </script>
-
-<!-- Calendar Note Modal -->
-<div id="calendarNoteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999;">
-    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 500px;">
-        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 20px;">
-            <h4 style="margin: 0; overflow-wrap: break-word;"><i class="bi bi-journal-plus me-2"></i>Add Note</h4>
-            <button type="button" onclick="closeModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; flex-shrink: 0;">&times;</button>
-        </div>
-        <p><strong>Date:</strong> <span id="noteDateDisplay"></span></p>
-        <input type="hidden" id="noteDate">
-        <div class="mb-3">
-            <label class="form-label">Note:</label>
-            <textarea id="noteText" class="form-control" rows="4" placeholder="Enter your note..."></textarea>
-        </div>
-        <button type="button" class="btn btn-primary" onclick="saveNote()">
-            <i class="bi bi-check-circle me-1"></i> Save Note
-        </button>
-        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-    </div>
-</div>
 {% endblock %}
