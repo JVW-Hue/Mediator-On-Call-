@@ -1233,7 +1233,15 @@ def download_case_file(request, pk):
 @staff_required
 def assign_mediator_page(request, pk):
     """Show page for assigning mediator to a dispute."""
-    dispute = get_object_or_404(Dispute, pk=pk)
+    try:
+        dispute = Dispute.objects.get(pk=pk)
+    except Dispute.DoesNotExist:
+        messages.error(
+            request,
+            f"Dispute #{pk} not found. It may have been deleted or doesn't exist.",
+        )
+        return redirect("dashboard:dispute_list")
+
     mediators = Mediator.objects.select_related("user").all()
 
     # Allow assignment for these statuses - include ALL statuses
