@@ -79,6 +79,7 @@ INSTALLED_APPS = [
     "crispy_bootstrap5",
     "django_celery_results",
     "storages",
+    "django_keycloak",
     # Local
     "disputes",
     "dashboard",
@@ -143,6 +144,19 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
+
+
+# Keycloak Configuration (for local testing)
+KEYCLOAK_SERVER_URL = "http://localhost:8080"
+KEYCLOAK_REALM = "mediator-realm"
+KEYCLOAK_CLIENT_ID = "django-client"
+KEYCLOAK_CLIENT_SECRET = "your-client-secret"
+
+# Add Keycloak authentication backend
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "django_keycloak.backends.KeycloakBackend",
+]
 
 
 # Password validation
