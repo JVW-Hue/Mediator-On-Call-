@@ -14,6 +14,8 @@ services:
         value: "True"
       - key: DJANGO_SECRET_KEY
         value: "render-temp-secret-key-change-later"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: "mediator-on-call.onrender.com,localhost,127.0.0.1"
     databases:
       - name: mediator-db
         databaseName: mediator_db
