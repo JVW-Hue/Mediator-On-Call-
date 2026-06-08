@@ -114,6 +114,28 @@
         font-size: 0.85rem;
         margin-top: 5px;
     }
+    .step-error-summary {
+        background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%);
+        border: 2px solid #dc3545;
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        display: none;
+    }
+    .step-error-summary h6 {
+        color: #dc3545;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    .step-error-summary ul {
+        margin: 0;
+        padding-left: 1.2rem;
+    }
+    .step-error-summary li {
+        color: #8B0000;
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+    }
     .card.cursor-pointer {
         cursor: pointer;
         transition: all 0.3s ease;
@@ -207,6 +229,12 @@
             </ul>
         </div>
         {% endif %}
+        
+        <!-- Client-side validation error summary -->
+        <div class="step-error-summary" id="step-error-summary">
+            <h6><i class="bi bi-exclamation-triangle-fill me-2"></i>Please fill in all required fields before continuing:</h6>
+            <ul id="step-error-list"></ul>
+        </div>
         
         <!-- Step 1: Your Information (Applicant) -->
         <div class="form-section" id="step1">
@@ -465,8 +493,148 @@ let currentStep = 1;
 const totalSteps = 5;
 let respondentType = 'ind';
 
+function clearStepErrors() {
+    var summary = document.getElementById('step-error-summary');
+    var list = document.getElementById('step-error-list');
+    list.innerHTML = '';
+    summary.style.display = 'none';
+    
+    var currentStepEl = getStepElement();
+    if (currentStepEl) {
+        currentStepEl.querySelectorAll('.is-invalid').forEach(function(el) {
+            el.classList.remove('is-invalid');
+        });
+        currentStepEl.querySelectorAll('.field-error').forEach(function(el) {
+            el.remove();
+        });
+    }
+}
+
+function showStepErrors(errors) {
+    var summary = document.getElementById('step-error-summary');
+    var list = document.getElementById('step-error-list');
+    list.innerHTML = '';
+    errors.forEach(function(err) {
+        var li = document.createElement('li');
+        li.textContent = err;
+        list.appendChild(li);
+    });
+    summary.style.display = 'block';
+    summary.scrollIntoView({behavior: 'smooth', block: 'center'});
+}
+
+function showFieldError(field, message) {
+    field.classList.add('is-invalid');
+    var existing = field.parentNode.querySelector('.field-error');
+    if (existing) existing.remove();
+    var div = document.createElement('div');
+    div.className = 'invalid-feedback field-error';
+    div.textContent = message;
+    field.parentNode.appendChild(div);
+}
+
+function getStepElement() {
+    if (currentStep === 1) return document.getElementById('step1');
+    if (currentStep === 2) return document.getElementById('step2');
+    if (currentStep === 3) return document.getElementById('step3');
+    if (currentStep === 4) return document.getElementById('step4');
+    if (currentStep === 5) {
+        return respondentType === 'bus'
+            ? document.getElementById('step5-business')
+            : document.getElementById('step5-individual');
+    }
+    return null;
+}
+
+function validateStep() {
+    clearStepErrors();
+    var errors = [];
+    
+    if (currentStep === 1) {
+        var fields = [
+            {name: 'applicant_name', label: 'First Name'},
+            {name: 'applicant_surname', label: 'Last Name'},
+            {name: 'applicant_cell', label: 'Cell Number'},
+            {name: 'applicant_email', label: 'Email Address'}
+        ];
+        fields.forEach(function(f) {
+            var el = document.querySelector('[name="' + f.name + '"]');
+            if (el && !el.value.trim()) {
+                errors.push(f.label + ' is required');
+                showFieldError(el, f.label + ' is required');
+            }
+        });
+        var emailEl = document.querySelector('[name="applicant_email"]');
+        if (emailEl && emailEl.value.trim() && !emailEl.value.includes('@')) {
+            errors.push('Please enter a valid email address');
+            showFieldError(emailEl, 'Please enter a valid email address');
+        }
+    }
+    
+    if (currentStep === 2) {
+        var disputeTypeEl = document.querySelector('[name="dispute_type"]');
+        if (disputeTypeEl && !disputeTypeEl.value) {
+            errors.push('Please select a dispute type');
+            showFieldError(disputeTypeEl, 'Please select a dispute type');
+        }
+        var descEl = document.querySelector('[name="description"]');
+        if (descEl && !descEl.value.trim()) {
+            errors.push('Please describe your dispute');
+            showFieldError(descEl, 'Please describe your dispute');
+        }
+    }
+    
+    // Step 3 is optional (documents), so no validation needed
+    
+    // Step 4: respondent type is auto-selected (individual is default checked)
+    
+    if (currentStep === 5 && respondentType === 'ind') {
+        var indFields = [
+            {name: 'respondent_name', label: 'Respondent First Name'},
+            {name: 'respondent_surname', label: 'Respondent Last Name'},
+            {name: 'respondent_cell', label: 'Respondent Cell Number'},
+            {name: 'respondent_email', label: 'Respondent Email'}
+        ];
+        indFields.forEach(function(f) {
+            var el = document.querySelector('[name="' + f.name + '"]');
+            if (el && !el.value.trim()) {
+                errors.push(f.label + ' is required');
+                showFieldError(el, f.label + ' is required');
+            }
+        });
+        var rEmailEl = document.querySelector('[name="respondent_email"]');
+        if (rEmailEl && rEmailEl.value.trim() && !rEmailEl.value.includes('@')) {
+            errors.push('Please enter a valid respondent email address');
+            showFieldError(rEmailEl, 'Please enter a valid respondent email address');
+        }
+    }
+    
+    if (currentStep === 5 && respondentType === 'bus') {
+        var busFields = [
+            {name: 'business_name', label: 'Business Name'},
+            {name: 'owner_name', label: 'Owner/Representative First Name'},
+            {name: 'owner_surname', label: 'Owner/Representative Last Name'},
+            {name: 'business_cell', label: 'Business Cell Number'},
+            {name: 'respondent_email', label: 'Business Email'}
+        ];
+        busFields.forEach(function(f) {
+            var el = document.querySelector('[name="' + f.name + '"]');
+            if (el && !el.value.trim()) {
+                errors.push(f.label + ' is required');
+                showFieldError(el, f.label + ' is required');
+            }
+        });
+        var bEmailEl = document.querySelector('[name="respondent_email"]');
+        if (bEmailEl && bEmailEl.value.trim() && !bEmailEl.value.includes('@')) {
+            errors.push('Please enter a valid business email address');
+            showFieldError(bEmailEl, 'Please enter a valid business email address');
+        }
+    }
+    
+    return errors;
+}
+
 function updateStepDisplay() {
-    // Hide all steps
     document.getElementById('step1').classList.add('hidden');
     document.getElementById('step2').classList.add('hidden');
     document.getElementById('step3').classList.add('hidden');
@@ -474,7 +642,6 @@ function updateStepDisplay() {
     document.getElementById('step5-individual').classList.add('hidden');
     document.getElementById('step5-business').classList.add('hidden');
     
-    // Reset all step dots
     for (let i = 1; i <= totalSteps; i++) {
         var dot = document.getElementById('step-dot-' + i);
         if (dot) {
@@ -482,7 +649,6 @@ function updateStepDisplay() {
         }
     }
     
-    // Show current step
     if (currentStep === 1) {
         document.getElementById('step1').classList.remove('hidden');
         document.getElementById('step-dot-1').classList.add('active');
@@ -514,10 +680,7 @@ function updateStepDisplay() {
         document.getElementById('step-dot-5').classList.add('active');
     }
     
-    // Show/hide back button
     document.getElementById('btn-back').classList.toggle('hidden', currentStep === 1);
-    
-    // Show/hide next/submit buttons
     document.getElementById('btn-next').classList.toggle('hidden', currentStep === totalSteps);
     document.getElementById('btn-submit').classList.toggle('hidden', currentStep !== totalSteps);
 }
@@ -537,6 +700,12 @@ function selectBusiness() {
 }
 
 function nextStep() {
+    var errors = validateStep();
+    if (errors.length > 0) {
+        showStepErrors(errors);
+        return;
+    }
+    clearStepErrors();
     if (currentStep < totalSteps) {
         currentStep++;
         updateStepDisplay();
@@ -546,6 +715,7 @@ function nextStep() {
 
 function previousStep() {
     if (currentStep > 1) {
+        clearStepErrors();
         currentStep--;
         updateStepDisplay();
         window.scrollTo({top: 0, behavior: 'smooth'});
@@ -553,6 +723,11 @@ function previousStep() {
 }
 
 function submitForm() {
+    var errors = validateStep();
+    if (errors.length > 0) {
+        showStepErrors(errors);
+        return;
+    }
     document.getElementById('disputeForm').submit();
 }
 
@@ -772,13 +947,25 @@ document.addEventListener('input', function(e) {
     if (e.target.name === 'applicant_cell' || e.target.name === 'respondent_cell' || e.target.name === 'business_cell') {
         e.target.value = e.target.value.replace(/[^0-9]/g, '');
     }
+    
+    if (e.target.classList.contains('is-invalid')) {
+        e.target.classList.remove('is-invalid');
+        var errEl = e.target.parentNode.querySelector('.field-error');
+        if (errEl) errEl.remove();
+    }
+});
+
+document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('is-invalid')) {
+        e.target.classList.remove('is-invalid');
+        var errEl = e.target.parentNode.querySelector('.field-error');
+        if (errEl) errEl.remove();
+    }
 });
 
 // Initialize
 selectIndividual();
 updateStepDisplay();
 loadExistingPhotos();
-
-// Simple nextStep - let Django handle validation on submit
 </script>
 {% endblock %}
