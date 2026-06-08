@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.db import connection
 from django.contrib.auth.decorators import login_required, user_passes_test
 
-from dashboard.views import CustomLoginView, no_access
+from dashboard.views import CustomLoginView, no_access, signup
 
 def health_check(request):
     try:
@@ -81,6 +81,7 @@ urlpatterns = [
     path("health/", health_check, name="health_check"),
     path("admin/", admin.site.urls),
     path("login/", CustomLoginView.as_view(), name="login"),
+    path("signup/", signup, name="signup"),
     path("logout/", auth_views.LogoutView.as_view(next_page="login"), name="logout"),
     path("no-access/", no_access, name="no_access"),
     path("dashboard/", include("dashboard.urls")),

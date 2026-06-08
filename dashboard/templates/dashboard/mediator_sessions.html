@@ -6,7 +6,7 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">My Sessions</h1>
-        <a href="{% url 'dashboard:mediator_home' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
+        <a href="{% url 'dashboard:admin_home' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
     </div>
 
     {% if sessions %}
@@ -14,7 +14,7 @@
         <table class="table table-striped" id="sessionsTable">
             <thead>
                 <tr>
-                    <th>Dispute #</th>
+                    <th>#</th>
                     <th>Parties</th>
                     <th>Scheduled</th>
                     <th>Status</th>
@@ -25,18 +25,20 @@
             <tbody>
                 {% for session in sessions %}
                 <tr>
-                    <td>#{{ session.dispute.id }}</td>
+                    <td>#{{ forloop.counter }}</td>
                     <td>{{ session.dispute.applicant_name }} vs. {% if session.dispute.respondent_name %}{{ session.dispute.respondent_name }}{% else %}{{ session.dispute.business_name }}{% endif %}</td>
                     <td>{{ session.scheduled_at|date:"d M Y, H:i" }}</td>
                     <td><span class="badge bg-primary">{{ session.dispute.get_status_display }}</span></td>
                     <td>{{ session.outcome|truncatechars:30|default:"—" }}</td>
                     <td>
-                        <a href="{% url 'dashboard:dispute_detail' session.dispute.pk %}" class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-eye"></i> View
-                        </a>
-                        <a href="{% url 'dashboard:submit_mediation_outcome' session.pk %}" class="btn btn-sm btn-outline-success">
-                            <i class="bi bi-check-circle"></i> Outcome
-                        </a>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'dashboard:dispute_detail' session.dispute.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                            <a href="{% url 'dashboard:submit_mediation_outcome' session.pk %}" class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-check-circle"></i> Outcome
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}

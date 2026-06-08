@@ -99,6 +99,20 @@
     .password-wrapper {
         position: relative;
     }
+    .login-footer {
+        text-align: center;
+        padding: 1.5rem 2rem;
+        background: #fff5f5;
+        border-top: 1px solid #f0f0f0;
+    }
+    .login-footer a {
+        color: #dc3545;
+        font-weight: 500;
+        text-decoration: none;
+    }
+    .login-footer a:hover {
+        text-decoration: underline;
+    }
 </style>
 {% endblock %}
 
@@ -166,6 +180,9 @@
                     <i class="bi bi-key-fill me-2"></i> Sign in with Keycloak SSO
                 </a>
             </div>
+        </div>
+        <div class="login-footer">
+            <p class="mb-0">Don't have an account? <a href="{% url 'signup' %}">Sign up here</a></p>
         </div>
     </div>
 </div>

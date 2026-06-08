@@ -1,279 +1,288 @@
-{% extends "dashboard/base.html" %}
+{% extends "base.html" %}
+
+{% block title %}Referred Cases – Pro Bono Community Mediation{% endblock %}
 
 {% block extra_css %}
+{{ block.super }}
 <style>
-    .page-header {
+    .cases-header {
         background: linear-gradient(135deg, #dc3545 0%, #8B0000 100%);
         border-radius: 16px;
         padding: 2rem;
         margin-bottom: 2rem;
         color: white;
     }
-    .page-header h1 {
+    .cases-header h1 {
         font-weight: 700;
         margin-bottom: 0.5rem;
+        font-size: 1.8rem;
     }
-    .page-header p {
+    .cases-header p {
         opacity: 0.9;
         margin-bottom: 0;
     }
-    
-    .stat-card {
-        background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
-        text-align: center;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    .nav-links {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    .nav-links a {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        text-decoration: none;
         transition: all 0.3s ease;
+    }
+    .nav-links a.back {
+        background: rgba(255,255,255,0.2);
+        color: white;
+    }
+    .nav-links a.back:hover {
+        background: rgba(255,255,255,0.3);
+    }
+    .nav-links a.mediatable {
+        background: rgba(255,255,255,0.2);
+        color: white;
+    }
+    .nav-links a.mediatable:hover {
+        background: rgba(255,255,255,0.3);
+    }
+
+    .stat-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .stat-box {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        text-align: center;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
         border: 1px solid #f0f0f0;
-        height: 100%;
     }
-    .stat-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-    }
-    .stat-icon {
-        width: 60px;
-        height: 60px;
+    .stat-box .icon {
+        width: 48px;
+        height: 48px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto 1rem;
-        font-size: 1.5rem;
+        margin: 0 auto 0.75rem;
+        font-size: 1.2rem;
     }
-    .stat-icon.total { background: linear-gradient(135deg, #dc3545 0%, #8B0000 100%); color: white; }
-    .stat-icon.legal { background: #e3f2fd; color: #1565c0; }
-    .stat-icon.court { background: #f3e5f5; color: #7b1fa2; }
-    .stat-icon.police { background: #ffebee; color: #c62828; }
-    .stat-icon.labour { background: #fff3e0; color: #ef6c00; }
-    
-    .stat-number {
-        font-size: 2.5rem;
+    .stat-box .icon.total { background: #dc3545; color: white; }
+    .stat-box .icon.legal { background: #e3f2fd; color: #1565c0; }
+    .stat-box .icon.court { background: #f3e5f5; color: #7b1fa2; }
+    .stat-box .icon.police { background: #ffebee; color: #c62828; }
+    .stat-box .icon.labour { background: #fff3e0; color: #ef6c00; }
+    .stat-box .icon.family { background: #fce4ec; color: #c2185b; }
+    .stat-box .icon.foresolve { background: #e8f5e9; color: #2e7d32; }
+    .stat-box .number {
+        font-size: 2rem;
         font-weight: 700;
-        margin-bottom: 0.25rem;
+        color: #1a1a1a;
+        margin-bottom: 0.15rem;
     }
-    .stat-label {
-        font-size: 0.85rem;
-        color: #666;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-weight: 500;
-    }
-    
-    .case-card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        transition: all 0.3s ease;
-        border: 1px solid #f0f0f0;
-        overflow: hidden;
-        height: 100%;
-    }
-    .case-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-    }
-    
-    .case-header {
-        padding: 1.25rem 1.5rem;
-        border-bottom: 1px solid #f0f0f0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #fff5f5;
-    }
-    .case-id {
-        font-weight: 700;
-        color: #dc3545;
-        font-size: 1.1rem;
-    }
-    .case-body {
-        padding: 1.5rem;
-    }
-    .case-party {
-        margin-bottom: 1rem;
-    }
-    .case-party-label {
+    .stat-box .label {
         font-size: 0.75rem;
         color: #888;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        margin-bottom: 0.25rem;
-    }
-    .case-party-name {
         font-weight: 500;
-        color: #333;
-        overflow-wrap: break-word;
-        word-break: break-word;
     }
-    .case-footer {
-        padding: 1rem 1.5rem;
-        background: #fff5f5;
-        border-top: 1px solid #f0f0f0;
+
+    .case-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        border: 1px solid #f0f0f0;
+        overflow: hidden;
+        margin-bottom: 1rem;
     }
-    
-    .referral-badge {
-        padding: 0.5rem 1rem;
+    .case-top {
+        padding: 1rem 1.25rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #f0f0f0;
+        background: #fafafa;
+    }
+    .case-id {
+        font-weight: 700;
+        color: #dc3545;
+        font-size: 1rem;
+    }
+    .referral-pill {
+        padding: 0.3rem 0.7rem;
         border-radius: 20px;
-        font-size: 0.8rem;
+        font-size: 0.7rem;
         font-weight: 600;
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.4rem;
     }
-    .referral-badge.legal { background: #e3f2fd; color: #1565c0; }
-    .referral-badge.court { background: #f3e5f5; color: #7b1fa2; }
-    .referral-badge.police { background: #ffebee; color: #c62828; }
-    .referral-badge.labour { background: #fff3e0; color: #ef6c00; }
-    .referral-badge.family { background: #fce4ec; color: #c2185b; }
-    .referral-badge.foresolve { background: #e8f5e9; color: #2e7d32; }
-    .referral-badge.other { background: #eceff1; color: #546e7a; }
-    
-    .empty-state {
-        text-align: center;
-        padding: 80px 20px;
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    .referral-pill.legal { background: #e3f2fd; color: #1565c0; }
+    .referral-pill.court { background: #f3e5f5; color: #7b1fa2; }
+    .referral-pill.police { background: #ffebee; color: #c62828; }
+    .referral-pill.labour { background: #fff3e0; color: #ef6c00; }
+    .referral-pill.family { background: #fce4ec; color: #c2185b; }
+    .referral-pill.foresolve { background: #e8f5e9; color: #2e7d32; }
+    .referral-pill.other { background: #eceff1; color: #546e7a; }
+    .case-info {
+        padding: 1.25rem;
     }
-    .empty-state-icon {
-        font-size: 5rem;
-        margin-bottom: 1.5rem;
-        color: #dee2e6;
+    .party {
+        margin-bottom: 0.75rem;
     }
-    .empty-state h3 {
-        color: #495057;
-        margin-bottom: 0.5rem;
+    .party-label {
+        font-size: 0.7rem;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.15rem;
     }
-    .empty-state p {
-        color: #6c757d;
-        margin-bottom: 0;
+    .party-name {
+        font-weight: 500;
+        color: #333;
     }
-    
-    .referral-date {
+    .party-cell {
         font-size: 0.8rem;
         color: #888;
-        margin-top: 0.5rem;
     }
-    
+    .referred-by {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid #f0f0f0;
+        font-size: 0.75rem;
+        color: #888;
+    }
+    .case-actions {
+        padding: 0.75rem 1.25rem;
+        background: #fafafa;
+        border-top: 1px solid #f0f0f0;
+        display: flex;
+        gap: 0.5rem;
+    }
+    .case-actions a {
+        flex: 1;
+        text-align: center;
+        padding: 0.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.8rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        background: #dc3545;
+        color: white;
+    }
+    .case-actions a:hover {
+        background: #b71c1c;
+    }
+
+    .empty-box {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .empty-box i {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 1rem;
+        display: block;
+    }
+    .empty-box h3 { color: #495057; font-size: 1.2rem; }
+    .empty-box p { color: #888; font-size: 0.9rem; }
+
     @media (max-width: 768px) {
-        .page-header {
-            padding: 1.5rem;
-        }
-        .stat-number {
-            font-size: 2rem;
-        }
+        .stat-row { grid-template-columns: repeat(2, 1fr); }
     }
 </style>
 {% endblock %}
 
-{% block title %}Referred Cases – Pro Bono Community Mediation{% endblock %}
-
-{% block dashboard_content %}
-<!-- Page Header -->
-<div class="page-header">
-    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center">
-        <div>
-            <h1><i class="bi bi-arrow-up-circle-fill me-2"></i>Referred Cases</h1>
-            <p>Cases referred to external departments</p>
-        </div>
-        <div class="btn-group mt-3 mt-md-0">
-            <a href="{% url 'dashboard:admin_home' %}" class="btn btn-light">
+{% block content %}
+<div class="container py-4">
+    <div class="cases-header">
+        <h1><i class="bi bi-arrow-up-circle-fill me-2"></i>Referred Cases</h1>
+        <p>Cases referred to external departments</p>
+        <div class="nav-links">
+            <a href="{% url 'dashboard:admin_home' %}" class="back">
                 <i class="bi bi-arrow-left me-1"></i> Dashboard
             </a>
-            <a href="{% url 'dashboard:mediatable_cases' %}" class="btn btn-outline-light">
-                <i class="bi bi-check-circle me-1"></i> Mediatable
+            <a href="{% url 'dashboard:mediatable_cases' %}" class="mediatable">
+                <i class="bi bi-check-circle me-1"></i> Mediatable Cases
             </a>
         </div>
     </div>
-</div>
 
-<!-- Stats Cards -->
-<div class="row mb-4 g-3">
-    <div class="col-md-3 col-6">
-        <div class="stat-card">
-            <div class="stat-icon total">
-                <i class="bi bi-collection"></i>
-            </div>
-            <div class="stat-number">{{ referred_cases.count }}</div>
-            <div class="stat-label">Total Referred</div>
+    <div class="stat-row">
+        <div class="stat-box">
+            <div class="icon total"><i class="bi bi-collection"></i></div>
+            <div class="number">{{ referred_cases.count }}</div>
+            <div class="label">Total Referred</div>
         </div>
-    </div>
-    {% for ref_type, count in referral_stats.items %}
-    <div class="col-md-3 col-6">
-        <div class="stat-card">
-            <div class="stat-icon {% if ref_type == 'legal' %}legal{% elif ref_type == 'court' %}court{% elif ref_type == 'police' %}police{% else %}labour{% endif %}">
-                <i class="bi bi-{% if ref_type == 'legal' %}gavel{% elif ref_type == 'court' %}building{% elif ref_type == 'police' %}shield{% elif ref_type == 'labour' %}briefcase{% else %}question{% endif %}"></i>
+        {% for ref_type, count in referral_stats.items %}
+        <div class="stat-box">
+            <div class="icon {% if ref_type == 'legal' %}legal{% elif ref_type == 'court' %}court{% elif ref_type == 'police' %}police{% elif ref_type == 'labour' %}labour{% elif ref_type == 'family' %}family{% elif ref_type == 'foresolve' %}foresolve{% else %}legal{% endif %}">
+                <i class="bi bi-{% if ref_type == 'legal' %}gavel{% elif ref_type == 'court' %}building{% elif ref_type == 'police' %}shield{% elif ref_type == 'labour' %}briefcase{% elif ref_type == 'family' %}people{% elif ref_type == 'foresolve' %}hand-thumbs-up{% else %}question{% endif %}"></i>
             </div>
-            <div class="stat-number">{{ count }}</div>
-            <div class="stat-label">{{ ref_type|title }}</div>
+            <div class="number">{{ count }}</div>
+            <div class="label">{{ ref_type|title }}</div>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
-</div>
 
-<!-- Cases Grid -->
-{% if referred_cases %}
-<div class="row g-4">
+    {% if referred_cases %}
     {% for referred in referred_cases %}
-    <div class="col-md-6 col-lg-4">
-        <div class="case-card">
-            <div class="case-header">
-                <span class="case-id">Case #{{ referred.dispute.id }}</span>
-                <span class="referral-badge {{ referred.referred_to }}">
-                    <i class="bi bi-{% if referred.referred_to == 'legal' %}gavel{% elif referred.referred_to == 'court' %}building{% elif referred.referred_to == 'police' %}shield{% elif referred.referred_to == 'labour' %}briefcase{% elif referred.referred_to == 'family' %}people{% elif referred.referred_to == 'foresolve' %}hand-thumbs-up{% else %}question{% endif %}"></i>
-                    {{ referred.get_referred_to_display }}
-                </span>
+    <div class="case-card">
+        <div class="case-top">
+            <span class="case-id">Case #{{ referred.dispute.id }}</span>
+            <span class="referral-pill {{ referred.referred_to }}">
+                <i class="bi bi-{% if referred.referred_to == 'legal' %}gavel{% elif referred.referred_to == 'court' %}building{% elif referred.referred_to == 'police' %}shield{% elif referred.referred_to == 'labour' %}briefcase{% elif referred.referred_to == 'family' %}people{% elif referred.referred_to == 'foresolve' %}hand-thumbs-up{% else %}question{% endif %}"></i>
+                {{ referred.get_referred_to_display }}
+            </span>
+        </div>
+        <div class="case-info">
+            <div class="party">
+                <div class="party-label"><i class="bi bi-person me-1"></i>Applicant</div>
+                <div class="party-name">{{ referred.dispute.applicant_name }} {{ referred.dispute.applicant_surname }}</div>
+                <div class="party-cell">{{ referred.dispute.applicant_cell }}</div>
             </div>
-            <div class="case-body">
-                <div class="case-party">
-                    <div class="case-party-label">
-                        <i class="bi bi-person me-1"></i>Applicant
-                    </div>
-                    <div class="case-party-name">
-                        {{ referred.dispute.applicant_name }} {{ referred.dispute.applicant_surname }}
-                    </div>
-                    <small class="text-muted">{{ referred.dispute.applicant_cell }}</small>
-                </div>
-                <div class="case-party">
-                    <div class="case-party-label">
-                        <i class="bi bi-person-badge me-1"></i>Respondent
-                    </div>
-                    <div class="case-party-name">
-                        {% if referred.dispute.respondent_type == 'bus' %}
-                            {{ referred.dispute.business_name }}
-                        {% else %}
-                            {{ referred.dispute.respondent_name }} {{ referred.dispute.respondent_surname }}
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="referral-date">
-                    <i class="bi bi-person-check me-1"></i>
-                    Referred by {{ referred.referred_by.get_full_name|default:referred.referred_by.username }}
+            <div class="party">
+                <div class="party-label"><i class="bi bi-person-badge me-1"></i>Respondent</div>
+                <div class="party-name">
+                    {% if referred.dispute.respondent_type == 'bus' %}
+                        {{ referred.dispute.business_name }}
+                    {% else %}
+                        {{ referred.dispute.respondent_name }} {{ referred.dispute.respondent_surname }}
+                    {% endif %}
                 </div>
             </div>
-            <div class="case-footer">
-                <a href="{% url 'dashboard:dispute_detail' referred.dispute.pk %}" class="btn btn-primary btn-sm">
-                    <i class="bi bi-eye me-1"></i> View Case
-                </a>
+            <div class="referred-by">
+                <i class="bi bi-person-check me-1"></i>
+                Referred by {{ referred.referred_by.get_full_name|default:referred.referred_by.username }}
             </div>
+        </div>
+        <div class="case-actions">
+            <a href="{% url 'dashboard:dispute_detail' referred.dispute.pk %}">
+                <i class="bi bi-eye me-1"></i> View Case
+            </a>
         </div>
     </div>
     {% endfor %}
-</div>
-{% else %}
-<!-- Empty State -->
-<div class="empty-state">
-    <div class="empty-state-icon">
+    {% else %}
+    <div class="empty-box">
         <i class="bi bi-inbox"></i>
+        <h3>No Referred Cases</h3>
+        <p>Cases referred to external departments will appear here.</p>
+        <a href="{% url 'dashboard:admin_home' %}" class="btn btn-primary mt-3">
+            <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+        </a>
     </div>
-    <h3>No Referred Cases</h3>
-    <p>Cases that have been referred to external departments will appear here.</p>
-    <a href="{% url 'dashboard:admin_home' %}" class="btn btn-primary mt-3">
-        <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
-    </a>
+    {% endif %}
 </div>
-{% endif %}
-
 {% endblock %}
