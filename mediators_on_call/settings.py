@@ -24,7 +24,7 @@ DEBUG = os.environ.get("DJANGO_DEBUG", os.environ.get("DEBUG", "True")) == "True
 ALLOWED_HOSTS = (
     os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")
     if os.environ.get("DJANGO_ALLOWED_HOSTS")
-    else ["localhost", "127.0.0.1"]
+    else ["localhost", "127.0.0.1", "mediator-on-call.onrender.com"]
 )
 
 LOGIN_URL = "/login/"
