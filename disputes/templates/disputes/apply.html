@@ -11,7 +11,7 @@
         margin: 0 auto;
     }
     .apply-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #dc3545 0%, #8B0000 100%);
         border-radius: 16px;
         padding: 2rem;
         margin-bottom: 2rem;
@@ -60,17 +60,17 @@
         transition: all 0.3s ease;
     }
     .form-section:hover {
-        border-color: #f0f2ff;
+        border-color: #ffe0e0;
     }
     .form-section h5 {
         color: #333;
         font-weight: 600;
         margin-bottom: 1rem;
         padding-bottom: 0.75rem;
-        border-bottom: 2px solid #f0f2ff;
+        border-bottom: 2px solid #f0f0f0;
     }
     .form-section h5 i {
-        color: #667eea;
+        color: #dc3545;
         margin-right: 0.5rem;
     }
     .hidden {
@@ -96,9 +96,9 @@
         transition: all 0.3s ease;
     }
     .step-dot.active {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #dc3545 0%, #8B0000 100%);
         color: white;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
     }
     .step-dot.completed {
         background: #28a745;
@@ -123,11 +123,11 @@
     .card.cursor-pointer:hover {
         transform: translateY(-5px);
         box-shadow: 0 8px 25px rgba(0,0,0,0.12);
-        border-color: #667eea;
+        border-color: #dc3545;
     }
     .card.cursor-pointer.selected {
-        border-color: #667eea;
-        background: linear-gradient(135deg, #f0f2ff 0%, #e8eaff 100%);
+        border-color: #dc3545;
+        background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%);
     }
     .gmail-link {
         display: inline-flex;
@@ -143,9 +143,9 @@
         margin-top: 0.3rem;
     }
     .gmail-link:hover {
-        background: #f8f9ff;
-        border-color: #667eea;
-        color: #667eea;
+        background: #fff5f5;
+        border-color: #dc3545;
+        color: #dc3545;
     }
     .upload-section {
         display: flex;
@@ -155,19 +155,19 @@
     .upload-box {
         flex: 1;
         padding: 1.5rem;
-        background: #f8f9ff;
+        background: #fff5f5;
         border-radius: 12px;
         border: 2px dashed #e0e0e0;
         text-align: center;
         transition: all 0.3s ease;
     }
     .upload-box:hover {
-        border-color: #667eea;
-        background: #f0f2ff;
+        border-color: #dc3545;
+        background: #fff5f5;
     }
     .upload-box i {
         font-size: 2rem;
-        color: #667eea;
+        color: #dc3545;
         margin-bottom: 0.5rem;
     }
 </style>
@@ -289,9 +289,9 @@
             <div class="row">
                 <!-- Photos Section - Left -->
                 <div class="col-md-6 mb-3">
-                    <div class="p-4" style="border: 2px dashed #667eea; border-radius: 16px; background: #f8f9ff; min-height: 300px;">
+                    <div class="p-4" style="border: 2px dashed #dc3545; border-radius: 16px; background: #fff5f5; min-height: 300px;">
                         <div class="text-center">
-                            <i class="bi bi-camera-fill" style="font-size: 2.5rem; color: #667eea;"></i>
+                            <i class="bi bi-camera-fill" style="font-size: 2.5rem; color: #dc3545;"></i>
                             <h5 class="mt-2">Photos</h5>
                             <p class="small text-muted mb-3">Take or upload photos</p>
                             <div class="d-flex gap-2 justify-content-center">
@@ -336,7 +336,7 @@
                 <div class="col-md-6">
                     <div class="card h-100 cursor-pointer" id="card-individual" onclick="selectIndividual()">
                         <div class="card-body text-center">
-                            <i class="bi bi-person" style="font-size: 3rem; color: #667eea;"></i>
+                            <i class="bi bi-person" style="font-size: 3rem; color: #dc3545;"></i>
                             <h5 class="mt-3">Individual</h5>
                             <p class="text-muted small">Select if the respondent is a person</p>
                         </div>
@@ -346,7 +346,7 @@
                 <div class="col-md-6">
                     <div class="card h-100 cursor-pointer" id="card-business" onclick="selectBusiness()">
                         <div class="card-body text-center">
-                            <i class="bi bi-building" style="font-size: 3rem; color: #764ba2;"></i>
+                            <i class="bi bi-building" style="font-size: 3rem; color: #8B0000;"></i>
                             <h5 class="mt-3">Business</h5>
                             <p class="text-muted small">Select if the respondent is a company</p>
                         </div>
@@ -593,12 +593,12 @@ function uploadPhotos(files) {
                 addPhotoToPreview(photo);
             });
         } else {
-            alert(data.error || 'Error uploading photos.');
+            showToast(data.error || 'Error uploading photos.', 'error');
         }
     })
     .catch(function(error) {
         console.error('Upload error:', error);
-        alert('Error uploading photos. Please try again.');
+        showToast('Error uploading photos. Please try again.', 'error');
     });
 }
 
@@ -612,7 +612,7 @@ function addPhotoToPreview(photo) {
     var img = document.createElement('img');
     img.src = photo.photo_url;
     img.className = 'img-thumbnail';
-    img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: 12px; border: 2px solid #667eea;';
+    img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: 12px; border: 2px solid #dc3545;';
     img.onerror = function() {
         this.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="%23f0f0f0" width="100" height="100"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%23999" font-size="12">Image</text></svg>';
     };

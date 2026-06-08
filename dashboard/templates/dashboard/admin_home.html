@@ -6,7 +6,7 @@
 {{ block.super }}
 <style>
     .dashboard-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #dc3545 0%, #8B0000 100%);
         border-radius: 16px;
         padding: 2rem;
         margin-bottom: 2rem;
@@ -34,7 +34,7 @@
     .stat-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 12px 30px rgba(0,0,0,0.12);
-        border-color: #f0f2ff;
+        border-color: #ffe0e0;
     }
     .stat-icon {
         width: 50px;
@@ -46,12 +46,12 @@
         font-size: 1.5rem;
         margin-bottom: 1rem;
     }
-    .stat-icon.primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+    .stat-icon.primary { background: linear-gradient(135deg, #dc3545 0%, #8B0000 100%); color: white; }
     .stat-icon.warning { background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); color: white; }
     .stat-icon.success { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; }
-    .stat-icon.info { background: linear-gradient(135deg, #17a2b8 0%, #0dcaf0 100%); color: white; }
+    .stat-icon.info { background: linear-gradient(135deg, #1a1a1a 0%, #444 100%); color: white; }
     .stat-icon.danger { background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%); color: white; }
-    .stat-icon.secondary { background: linear-gradient(135deg, #6c757d 0%, #868e96 100%); color: white; }
+    .stat-icon.secondary { background: linear-gradient(135deg, #6c757d 0%, #495057 100%); color: white; }
     .stat-number {
         font-size: 2.2rem;
         font-weight: 700;
@@ -102,14 +102,14 @@
     }
     .content-card-header {
         padding: 1.2rem 1.5rem;
-        border-bottom: 2px solid #f0f2ff;
+        border-bottom: 2px solid #f0f0f0;
         font-weight: 600;
         color: #333;
         display: flex;
         align-items: center;
     }
     .content-card-header i {
-        color: #667eea;
+        color: #dc3545;
         margin-right: 0.5rem;
     }
     .content-card-body {
@@ -117,15 +117,17 @@
     }
     .table-modern {
         margin-bottom: 0;
+        width: 100%;
     }
     .table-modern thead th {
-        border-bottom: 2px solid #f0f2ff;
+        border-bottom: 2px solid #f0f0f0;
         font-weight: 600;
         color: #555;
         font-size: 0.85rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         padding: 1rem;
+        white-space: nowrap;
     }
     .table-modern tbody td {
         padding: 1rem;
@@ -133,13 +135,15 @@
         border-bottom: 1px solid #f5f5f5;
     }
     .table-modern tbody tr:hover {
-        background: #f8f9ff;
+        background: #fff5f5;
     }
     .status-badge {
-        padding: 0.3rem 0.8rem;
+        padding: 0.3rem 0.7rem;
         border-radius: 20px;
         font-size: 0.75rem;
         font-weight: 500;
+        white-space: nowrap;
+        display: inline-block;
     }
     .status-submitted { background: #fff3cd; color: #856404; }
     .status-forwarded { background: #d1ecf1; color: #0c5460; }
@@ -147,90 +151,6 @@
     .status-scheduled { background: #cce5ff; color: #004085; }
     .status-mediated { background: #d4edda; color: #155724; }
     .status-rejected { background: #f8d7da; color: #721c24; }
-    .fc .fc-button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        border: none !important;
-        border-radius: 8px !important;
-        padding: 0.4rem 0.9rem !important;
-        font-weight: 500 !important;
-        font-size: 0.85rem !important;
-        box-shadow: 0 2px 8px rgba(102,126,234,0.3) !important;
-        transition: all 0.2s ease !important;
-    }
-    .fc .fc-button:hover {
-        transform: translateY(-1px) !important;
-        box-shadow: 0 4px 12px rgba(102,126,234,0.4) !important;
-    }
-    .fc .fc-button-active,
-    .fc .fc-button:active {
-        background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%) !important;
-        box-shadow: none !important;
-    }
-    .fc .fc-button-primary:not(:disabled).fc-button-active,
-    .fc .fc-button-primary:not(:disabled):active {
-        background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%) !important;
-    }
-    .fc .fc-daygrid-day-frame {
-        min-height: 100px !important;
-    }
-    .fc .fc-daygrid-day-number {
-        font-weight: 600 !important;
-        color: #333 !important;
-        padding: 8px !important;
-        font-size: 0.9rem !important;
-    }
-    .fc .fc-daygrid-day.fc-day-today {
-        background: #f0f2ff !important;
-    }
-    .fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white !important;
-        border-radius: 50%;
-        width: 28px;
-        height: 28px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .fc .fc-col-header-cell {
-        background: #f8f9ff !important;
-        padding: 10px 0 !important;
-    }
-    .fc .fc-col-header-cell-cushion {
-        color: #667eea !important;
-        font-weight: 600 !important;
-        font-size: 0.85rem !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.5px !important;
-    }
-    .fc .fc-event {
-        border-radius: 6px !important;
-        padding: 3px 6px !important;
-        font-size: 0.78rem !important;
-        font-weight: 500 !important;
-        border: none !important;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.1) !important;
-        margin-bottom: 2px !important;
-    }
-    .fc .fc-daygrid-day-events {
-        padding: 0 4px !important;
-    }
-    .fc .fc-daygrid-day-bottom {
-        padding: 2px 4px !important;
-    }
-    .fc .fc-daygrid-more-link {
-        color: #667eea !important;
-        font-weight: 600 !important;
-        font-size: 0.8rem !important;
-    }
-    .fc .fc-scrollgrid {
-        border-radius: 8px !important;
-        overflow: hidden !important;
-    }
-    .fc .fc-scrollgrid td,
-    .fc .fc-scrollgrid th {
-        border-color: #f0f2ff !important;
-    }
     .join-link {
         display: inline-flex;
         align-items: center;
@@ -331,7 +251,7 @@
         <a href="{% url 'dashboard:dispute_list' %}?status=mediation_scheduled" class="action-btn btn-primary text-white">
             <i class="bi bi-play-circle"></i> Active Mediations
         </a>
-        <a href="{% url 'dashboard:mediators_list' %}" class="action-btn" style="background: #f0f2ff; color: #667eea;">
+        <a href="{% url 'dashboard:mediators_list' %}" class="action-btn" style="background: #fff5f5; color: #dc3545;">
             <i class="bi bi-people"></i> View Mediators
         </a>
     </div>
@@ -339,7 +259,7 @@
 
 <!-- Charts and Recent Disputes -->
 <div class="row g-3 mb-4">
-    <div class="col-lg-6">
+    <div class="col-lg-6 offset-lg-3">
         <div class="content-card">
             <div class="content-card-header">
                 <i class="bi bi-pie-chart"></i> Disputes by Type
@@ -356,7 +276,7 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-6">
+    <div class="col-12">
         <div class="content-card">
             <div class="content-card-header">
                 <i class="bi bi-clock-history"></i> Recent Disputes
@@ -402,57 +322,10 @@
     </div>
 </div>
 
-<!-- Upcoming Sessions -->
-<div class="row g-3">
-    <div class="col-12">
-        <div class="content-card">
-            <div class="content-card-header">
-                <i class="bi bi-calendar-check"></i> Upcoming Mediation Sessions
-            </div>
-            <div class="content-card-body p-0">
-                {% if upcoming_sessions %}
-                <div class="table-responsive">
-                    <table class="table table-modern">
-                        <thead>
-                            <tr>
-                                <th>Dispute #</th>
-                                <th>Mediator</th>
-                                <th>Scheduled</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for session in upcoming_sessions %}
-                            <tr>
-                                <td><strong>#{{ session.dispute.id }}</strong></td>
-                                <td>{{ session.mediator.user.get_full_name|default:session.mediator.user.username }}</td>
-                                <td>{{ session.scheduled_at|date:"M d, Y H:i" }}</td>
-                                <td>
-                                    <a href="{{ session.zoom_link }}" target="_blank" class="join-link">
-                                        <i class="bi bi-camera-video me-1"></i> Join
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="text-center text-muted py-5">
-                    <i class="bi bi-calendar-x" style="font-size: 3rem; opacity: 0.3;"></i>
-                    <p class="mt-2">No upcoming sessions scheduled</p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 {{ calendar_events|json_script:"calendar-events-data" }}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Chart - isolated so it can't break the calendar
         try {
             {% if type_data %}
             const ctx = document.getElementById('typeChart').getContext('2d');
@@ -462,7 +335,7 @@
                     labels: {{ type_labels|safe }},
                     datasets: [{
                         data: {{ type_data|safe }},
-                        backgroundColor: ['#667eea', '#764ba2', '#28a745', '#ffc107', '#17a2b8', '#dc3545', '#6c757d'],
+                        backgroundColor: ['#dc3545', '#8B0000', '#28a745', '#ffc107', '#1a1a1a', '#dc3545', '#6c757d'],
                         borderWidth: 0,
                         hoverOffset: 10
                     }]
@@ -490,7 +363,6 @@
             console.log('Chart error:', e);
         }
 
-        // Calendar - always render
         try {
             const calendarEl = document.getElementById('calendar');
             if (!calendarEl) {
@@ -528,7 +400,7 @@
                             deleteBtn.addEventListener('mouseleave', function() { this.style.opacity = '0.8'; });
                             deleteBtn.addEventListener('click', function(e) {
                                 e.stopPropagation();
-                                if (confirm('Delete this note?')) {
+                                showConfirm('Delete Note', 'Are you sure you want to delete this note?', 'Delete', function() {
                                     fetch('/dashboard/calendar/note/' + noteId + '/delete/', {
                                         method: 'POST',
                                         headers: {
@@ -539,12 +411,13 @@
                                     .then(function(data) {
                                         if (data.success) {
                                             info.event.remove();
+                                            showToast('Note deleted.', 'success');
                                         } else {
-                                            alert('Error: ' + data.error);
+                                            showToast(data.error || 'Failed to delete note.', 'error');
                                         }
                                     })
-                                    .catch(function() { alert('Error deleting note'); });
-                                }
+                                    .catch(function() { showToast('Error deleting note.', 'error'); });
+                                });
                             });
                             info.el.style.position = 'relative';
                             info.el.appendChild(deleteBtn);
@@ -565,13 +438,12 @@
             });
             calendar.render();
 
-            // Save note function
             window.saveNote = function() {
                 const date = document.getElementById('noteDate').value;
                 const note = document.getElementById('noteText').value;
 
                 if (!note.trim()) {
-                    alert('Please enter a note');
+                    showToast('Please enter a note.', 'warning');
                     return;
                 }
 
@@ -593,12 +465,12 @@
                             borderColor: '#28a745'
                         });
                         closeModal();
-                        alert('Note saved!');
+                        showToast('Note saved!', 'success');
                     } else {
-                        alert('Error: ' + data.error);
+                        showToast(data.error || 'Failed to save note.', 'error');
                     }
                 })
-                .catch(function() { alert('Error saving note'); });
+                .catch(function() { showToast('Error saving note.', 'error'); });
             };
 
             window.closeModal = function() {

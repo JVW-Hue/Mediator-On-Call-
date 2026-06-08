@@ -3,7 +3,7 @@
 {% block extra_css %}
 <style>
     .page-header {
-        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        background: linear-gradient(135deg, #1a1a1a 0%, #444 100%);
         border-radius: 16px;
         padding: 2rem;
         margin-bottom: 2rem;
@@ -25,7 +25,7 @@
         text-align: center;
         box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         transition: all 0.3s ease;
-        border: 1px solid #f0f2ff;
+        border: 1px solid #f0f0f0;
         height: 100%;
     }
     .stat-card:hover {
@@ -42,7 +42,7 @@
         margin: 0 auto 1rem;
         font-size: 1.5rem;
     }
-    .stat-icon.total { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; }
+    .stat-icon.total { background: linear-gradient(135deg, #1a1a1a 0%, #444 100%); color: white; }
     .stat-icon.forwarded { background: #e3f2fd; color: #1565c0; }
     .stat-icon.responded { background: #fff3cd; color: #856404; }
     .stat-icon.scheduled { background: #e8f5e9; color: #2e7d32; }
@@ -65,7 +65,7 @@
         border-radius: 16px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         transition: all 0.3s ease;
-        border: 1px solid #f0f2ff;
+        border: 1px solid #f0f0f0;
         overflow: hidden;
         height: 100%;
     }
@@ -76,15 +76,15 @@
     
     .case-header {
         padding: 1.25rem 1.5rem;
-        border-bottom: 1px solid #f0f2ff;
+        border-bottom: 1px solid #f0f0f0;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: #f8f9ff;
+        background: #fff5f5;
     }
     .case-id {
         font-weight: 700;
-        color: #667eea;
+        color: #dc3545;
         font-size: 1.1rem;
     }
     .case-body {
@@ -112,12 +112,12 @@
         gap: 0.5rem;
         margin-top: 1rem;
         padding-top: 1rem;
-        border-top: 1px solid #f0f2ff;
+        border-top: 1px solid #f0f0f0;
     }
     .case-footer {
         padding: 1rem 1.5rem;
-        background: #f8f9ff;
-        border-top: 1px solid #f0f2ff;
+        background: #fff5f5;
+        border-top: 1px solid #f0f0f0;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -129,10 +129,11 @@
         font-size: 0.75rem;
         font-weight: 600;
         text-transform: uppercase;
+        white-space: nowrap;
     }
     .status-forwarded { background: #e3f2fd; color: #1565c0; }
     .status-responded { background: #fff3cd; color: #856404; }
-    .status-ready_for_assignment { background: #e8f5e9; color: #2e7d32; }
+    .status-ready_for_assignment { background: #fff5f5; color: #dc3545; }
     .status-mediator_assigned { background: #f3e5f5; color: #7b1fa2; }
     .status-mediation_scheduled { background: #cce5ff; color: #004085; }
     
@@ -141,8 +142,8 @@
         border-radius: 6px;
         font-size: 0.7rem;
         font-weight: 500;
-        background: #f0f2ff;
-        color: #667eea;
+        background: #fff5f5;
+        color: #dc3545;
     }
     
     .empty-state {

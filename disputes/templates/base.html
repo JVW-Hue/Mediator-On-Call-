@@ -9,12 +9,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     {% block extra_css %}{% endblock %}
     <style>
+        :root {
+            --primary: #dc3545;
+            --primary-dark: #8B0000;
+            --primary-gradient: linear-gradient(135deg, #dc3545 0%, #8B0000 100%);
+            --primary-light: #fff5f5;
+            --black: #1a1a1a;
+            --dark: #222;
+            --border: #e9ecef;
+            --light-bg: #f8f9fa;
+        }
         * {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             box-sizing: border-box;
         }
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--light-bg);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -32,31 +42,33 @@
             table-layout: fixed;
         }
         .navbar {
-            background: rgba(255,255,255,0.95) !important;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            background: var(--black) !important;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.2);
             padding: 0.8rem 0;
         }
         .navbar-brand {
             font-weight: 700;
             font-size: 1.2rem;
-            color: #667eea !important;
+            color: var(--primary) !important;
         }
         .nav-link {
             font-weight: 500;
-            color: #333 !important;
+            color: rgba(255,255,255,0.85) !important;
             padding: 0.5rem 1rem !important;
             border-radius: 8px;
             transition: all 0.3s ease;
             margin: 0 2px;
         }
         .nav-link:hover {
-            background: #f0f2ff;
-            color: #667eea !important;
+            background: rgba(255,255,255,0.1);
+            color: var(--primary) !important;
             transform: translateY(-1px);
         }
         .nav-link i {
-            color: #667eea;
+            color: rgba(255,255,255,0.7);
+        }
+        .nav-link:hover i {
+            color: var(--primary);
         }
         main {
             padding-top: 30px;
@@ -85,8 +97,8 @@
             color: #0c5460;
         }
         footer {
-            background: rgba(0,0,0,0.2);
-            color: rgba(255,255,255,0.8) !important;
+            background: var(--black);
+            color: rgba(255,255,255,0.7) !important;
             margin-top: auto;
         }
         .card {
@@ -106,24 +118,33 @@
             transition: all 0.3s ease;
         }
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary-gradient);
             border: none;
-            box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+            box-shadow: 0 4px 15px rgba(220,53,69,0.4);
         }
         .btn-primary:hover {
-            background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
+            background: linear-gradient(135deg, #b71c1c 0%, #6b0000 100%);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102,126,234,0.5);
+            box-shadow: 0 6px 20px rgba(220,53,69,0.5);
+        }
+        .btn-outline-primary {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .btn-outline-primary:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
         }
         .form-control, .form-select {
             border-radius: 10px;
-            border: 2px solid #e9ecef;
+            border: 2px solid var(--border);
             padding: 0.7rem 1rem;
             transition: all 0.3s ease;
         }
         .form-control:focus, .form-select:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(220,53,69,0.15);
         }
         .form-label {
             font-weight: 500;
@@ -136,9 +157,9 @@
     <nav class="navbar navbar-expand-lg">
         <div class="container">
             <a class="navbar-brand" href="{% url 'disputes:apply' %}">
-                <i class="bi bi-shield-check me-2" style="color: #667eea;"></i>Pro Bono Community Mediation
+                <i class="bi bi-shield-check me-2" style="color: #dc3545;"></i>Pro Bono Community Mediation
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3);">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -179,6 +200,43 @@
         </div>
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <div id="toast-container" style="position:fixed;top:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:12px;pointer-events:none;"></div>
+    <style>
+    @keyframes toastSlideIn { from{opacity:0;transform:translateX(80px) scale(0.95)} to{opacity:1;transform:translateX(0) scale(1)} }
+    @keyframes toastSlideOut { from{opacity:1;transform:translateX(0) scale(1)} to{opacity:0;transform:translateX(80px) scale(0.95)} }
+    .toast-pro{pointer-events:auto;display:flex;align-items:flex-start;gap:14px;padding:16px 20px;border-radius:14px;min-width:340px;max-width:420px;font-family:'Inter',sans-serif;animation:toastSlideIn .35s cubic-bezier(.22,1,.36,1);position:relative;overflow:hidden;backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.15)}
+    .toast-pro.toast-exit{animation:toastSlideOut .3s cubic-bezier(.55,0,1,.45) forwards}
+    .toast-pro .toast-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+    .toast-pro .toast-content{flex:1;padding-top:2px}
+    .toast-pro .toast-title{font-weight:700;font-size:.88rem;margin-bottom:2px}
+    .toast-pro .toast-msg{font-size:.82rem;opacity:.9;line-height:1.4}
+    .toast-pro .toast-close{background:none;border:none;color:inherit;opacity:.5;cursor:pointer;font-size:1.1rem;padding:0;line-height:1;flex-shrink:0;margin-top:2px}
+    .toast-pro .toast-close:hover{opacity:1}
+    .toast-pro .toast-progress{position:absolute;bottom:0;left:0;height:3px;border-radius:0 0 14px 14px;transition:width linear}
+    .toast-success{background:rgba(25,135,84,.92);color:#fff}.toast-success .toast-icon{background:rgba(255,255,255,.2)}.toast-success .toast-progress{background:rgba(255,255,255,.4)}
+    .toast-error{background:rgba(220,53,69,.92);color:#fff}.toast-error .toast-icon{background:rgba(255,255,255,.2)}.toast-error .toast-progress{background:rgba(255,255,255,.4)}
+    .toast-warning{background:rgba(255,193,7,.92);color:#1a1a1a}.toast-warning .toast-icon{background:rgba(0,0,0,.1)}.toast-warning .toast-progress{background:rgba(0,0,0,.2)}
+    .toast-info{background:rgba(13,202,240,.92);color:#fff}.toast-info .toast-icon{background:rgba(255,255,255,.2)}.toast-info .toast-progress{background:rgba(255,255,255,.4)}
+    </style>
+    <script>
+    var _toastId=0;
+    function showToast(message,type,title){
+        type=type||'info';
+        var cfg={success:{icon:'bi-check-lg',title:title||'Success'},error:{icon:'bi-x-lg',title:title||'Error'},warning:{icon:'bi-exclamation-lg',title:title||'Warning'},info:{icon:'bi-info-lg',title:title||'Info'}};
+        var c=cfg[type]||cfg.info;
+        var id='toast-'+(++_toastId);
+        var container=document.getElementById('toast-container');
+        var el=document.createElement('div');
+        el.id=id;el.className='toast-pro toast-'+type;
+        el.innerHTML='<div class="toast-icon"><i class="bi '+c.icon+'"></i></div><div class="toast-content"><div class="toast-title">'+c.title+'</div><div class="toast-msg">'+message+'</div></div><button class="toast-close" onclick="dismissToast(\''+id+'\')">&times;</button><div class="toast-progress" style="width:100%"></div>';
+        container.appendChild(el);
+        var duration=4500;var bar=el.querySelector('.toast-progress');
+        bar.style.transitionDuration=duration+'ms';
+        requestAnimationFrame(function(){requestAnimationFrame(function(){bar.style.width='0%'})});
+        el._timer=setTimeout(function(){dismissToast(id)},duration);
+    }
+    function dismissToast(id){var el=document.getElementById(id);if(!el)return;clearTimeout(el._timer);el.classList.add('toast-exit');el.addEventListener('animationend',function(){el.remove()})}
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

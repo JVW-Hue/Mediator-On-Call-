@@ -104,7 +104,6 @@ class CustomLoginView(auth_views.LoginView):
             if created:
                 user.set_password("FrankStanley2026!")
                 user.save()
-            from disputes.models import Mediator
 
             Mediator.objects.get_or_create(user=user, defaults={"cell": "0821234567"})
         except Exception as e:
@@ -164,7 +163,6 @@ def no_access(request):
 def signup(request):
     from django.contrib.auth import get_user_model
     from django import forms
-    from disputes.models import Mediator
     from django.db import OperationalError
     from django.contrib import messages
     from django.contrib.auth import authenticate, login
@@ -477,6 +475,8 @@ def assign_mediator_to_dispute(request, pk):
 
     mediator_name = mediator.user.get_full_name() or mediator.user.username
     mediator_email = mediator.user.email
+    applicant_name = f"{dispute.applicant_name} {dispute.applicant_surname}"
+    respondent_name = f"{dispute.respondent_name} {dispute.respondent_surname}".strip() or dispute.business_name or "Respondent"
 
     # Send Message 8: Notify mediator
     if mediator_email:
@@ -484,7 +484,11 @@ def assign_mediator_to_dispute(request, pk):
             send_message_8_mediator_assigned_mediator.delay(
                 to_email=mediator_email,
                 mediator_name=mediator_name,
+                applicant_name=applicant_name,
+                respondent_name=respondent_name,
                 case_id=dispute.id,
+                scheduled_at=scheduled_at.strftime("%Y-%m-%d %H:%M") if scheduled_at else "",
+                zoom_link=zoom_link or "",
             )
         except Exception:
             pass
@@ -831,13 +835,19 @@ def assign_mediator_post(request):
     dispute.save()
 
     mediator_name = mediator.user.get_full_name() or mediator.user.username
+    applicant_name = f"{dispute.applicant_name} {dispute.applicant_surname}"
+    respondent_name = f"{dispute.respondent_name} {dispute.respondent_surname}".strip() or dispute.business_name or "Respondent"
 
     # Send notifications
     if mediator.user.email:
         send_message_8_mediator_assigned_mediator.delay(
             to_email=mediator.user.email,
             mediator_name=mediator_name,
+            applicant_name=applicant_name,
+            respondent_name=respondent_name,
             case_id=dispute.id,
+            scheduled_at=scheduled_at.strftime("%Y-%m-%d %H:%M") if scheduled_at else "",
+            zoom_link="https://zoom.us/j/pending",
         )
 
     send_message_8_mediator_assigned_parties.delay(
@@ -1071,10 +1081,8 @@ def submit_mediation_outcome(request, pk):
         if dispute.applicant_email:
             try:
                 send_message_9_outcome_filed.delay(
-                    to_email=dispute.applicant_email,
-                    applicant_name=dispute.applicant_name,
+                    admin_email=getattr(settings, 'ADMIN_EMAIL', 'admin@probonomediation.co.za'),
                     case_id=dispute.id,
-                    outcome=outcome[:200],
                 )
             except Exception:
                 pass

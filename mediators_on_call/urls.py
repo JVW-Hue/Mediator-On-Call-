@@ -5,6 +5,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import JsonResponse
 from django.db import connection
+from django.contrib.auth.decorators import login_required, user_passes_test
 
 from dashboard.views import CustomLoginView, no_access
 
@@ -78,15 +79,21 @@ def debug_env(request):
 
 urlpatterns = [
     path("health/", health_check, name="health_check"),
-    path("run-migrations/", run_migrations, name="run_migrations"),
-    path("debug-env/", debug_env, name="debug_env"),
     path("admin/", admin.site.urls),
     path("login/", CustomLoginView.as_view(), name="login"),
     path("logout/", auth_views.LogoutView.as_view(next_page="login"), name="logout"),
     path("no-access/", no_access, name="no_access"),
     path("dashboard/", include("dashboard.urls")),
+    path("auth/", include("social_django.urls", namespace="social")),
     path("", include("disputes.urls")),
 ]
+
+# Debug-only endpoints (staff only, DEBUG mode only)
+if settings.DEBUG:
+    urlpatterns += [
+        path("run-migrations/", user_passes_test(lambda u: u.is_staff)(run_migrations), name="run_migrations"),
+        path("debug-env/", user_passes_test(lambda u: u.is_staff)(debug_env), name="debug_env"),
+    ]
 
 # Serve media files
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

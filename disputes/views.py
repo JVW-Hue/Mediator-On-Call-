@@ -300,7 +300,6 @@ def _apply_view(request):
                     pass
                 messages.error(request, f"Error: {type(e).__name__}. Please try again or contact support.")
                 return render(request, "disputes/apply.html", {"form": form, "formset": formset})
-                return render(request, "disputes/apply.html", {"form": form, "formset": formset})
         else:
             # Form is invalid - render with errors
             return render(request, "disputes/apply.html", {"form": form, "formset": formset})
@@ -430,7 +429,7 @@ def _respond_view(request, token):
                     notify_recipient,
                     to=dispute.applicant_cell,
                     body=(
-                        "Respondent has agreed to mediate and filed a defence. "
+                        "Respondent has responded to your dispute and filed a defence. "
                         f"View details: {view_url}"
                     ),
                 )

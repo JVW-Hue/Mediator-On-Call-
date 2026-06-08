@@ -19,8 +19,8 @@
     <!-- Left Column: Dispute Details -->
     <div class="col-lg-8">
         <!-- Applicant Information -->
-        <div class="card mb-4 shadow-sm" style="border: 1px solid #f0f2ff;">
-            <div class="card-header bg-primary text-white">
+        <div class="card mb-4 shadow-sm" style="border: 1px solid #f0f0f0;">
+            <div class="card-header" style="background: linear-gradient(135deg, #dc3545 0%, #8B0000 100%); color: white;">
                 <h5 class="mb-0"><i class="bi bi-person-fill"></i> Applicant Information</h5>
             </div>
             <div class="card-body">
@@ -38,8 +38,8 @@
         </div>
 
         <!-- Respondent Information -->
-        <div class="card mb-4 shadow-sm" style="border: 1px solid #f0f2ff;">
-            <div class="card-header bg-info text-white">
+        <div class="card mb-4 shadow-sm" style="border: 1px solid #f0f0f0;">
+            <div class="card-header" style="background: #1a1a1a; color: white;">
                 <h5 class="mb-0"><i class="bi bi-person-badge"></i> Respondent Information</h5>
             </div>
             <div class="card-body">
@@ -71,8 +71,8 @@
         </div>
 
         <!-- Dispute Details -->
-        <div class="card mb-4 shadow-sm" style="border: 1px solid #f0f2ff;">
-            <div class="card-header bg-secondary text-white">
+        <div class="card mb-4 shadow-sm" style="border: 1px solid #f0f0f0;">
+            <div class="card-header" style="background: #333; color: white;">
                 <h5 class="mb-0"><i class="bi bi-file-text"></i> Dispute Details</h5>
             </div>
             <div class="card-body">
@@ -114,8 +114,8 @@
         <!-- Photos -->
         {% with photos=dispute.photos.all %}
         {% if photos %}
-        <div class="card mb-4 shadow-sm" style="border: 1px solid #f0f2ff;">
-            <div class="card-header bg-dark text-white">
+        <div class="card mb-4 shadow-sm" style="border: 1px solid #f0f0f0;">
+            <div class="card-header" style="background: #1a1a1a; color: white;">
                 <h5 class="mb-0"><i class="bi bi-images"></i> Supporting Photos ({{ photos|length }})</h5>
             </div>
             <div class="card-body">
@@ -136,8 +136,8 @@
         <!-- Documents -->
         {% with docs=dispute.documents.all %}
         {% if docs %}
-        <div class="card mb-4 shadow-sm" style="border: 1px solid #f0f2ff;">
-            <div class="card-header bg-dark text-white">
+        <div class="card mb-4 shadow-sm" style="border: 1px solid #f0f0f0;">
+            <div class="card-header" style="background: #1a1a1a; color: white;">
                 <h5 class="mb-0"><i class="bi bi-paperclip"></i> Supporting Documents ({{ docs|length }})</h5>
             </div>
             <div class="card-body">
@@ -160,7 +160,7 @@
     <!-- Right Column: Screening Form -->
 <div class="col-lg-4">
          <div class="card shadow-sm" style="max-height: calc(100vh - 200px); overflow-y: auto;">
-            <div class="card-header bg-success text-white">
+            <div class="card-header" style="background: #1a1a1a; color: white;">
                 <h5 class="mb-0"><i class="bi bi-clipboard-check"></i> Screening Decision</h5>
             </div>
             <div class="card-body">
@@ -238,7 +238,7 @@
 
         <!-- Case Info Card -->
         <div class="card mt-3 shadow-sm">
-            <div class="card-header">
+            <div class="card-header" style="background: #dc3545; color: white;">
                 <h6 class="mb-0"><i class="bi bi-info-circle"></i> Case Information</h6>
             </div>
             <div class="card-body">

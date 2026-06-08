@@ -24,7 +24,7 @@ DEBUG = os.environ.get("DJANGO_DEBUG", os.environ.get("DEBUG", "True")) == "True
 ALLOWED_HOSTS = (
     os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")
     if os.environ.get("DJANGO_ALLOWED_HOSTS")
-    else ["localhost", "127.0.0.1", "192.168.68.68", "*"]
+    else ["localhost", "127.0.0.1"]
 )
 
 LOGIN_URL = "/login/"
@@ -70,7 +70,7 @@ INSTALLED_APPS = [
     "crispy_bootstrap5",
     "django_celery_results",
     "storages",
-    "django_keycloak_auth",
+    "social_django",
     # Local
     "disputes",
     "dashboard",
@@ -79,6 +79,7 @@ INSTALLED_APPS = [
 # Optional apps - may not be installed
 try:
     import ratelimit
+
     INSTALLED_APPS.append("ratelimit")
 except ImportError:
     pass
@@ -133,17 +134,46 @@ else:
     }
 
 
-# Keycloak Configuration (for local testing)
-KEYCLOAK_SERVER_URL = "http://localhost:8080"
-KEYCLOAK_REALM = "mediator-realm"
-KEYCLOAK_CLIENT_ID = "django-client"
-KEYCLOAK_CLIENT_SECRET = "your-client-secret"
+# Keycloak Configuration
+KEYCLOAK_SERVER_URL = os.environ.get("KEYCLOAK_SERVER_URL", "http://localhost:8080")
+KEYCLOAK_REALM = os.environ.get("KEYCLOAK_REALM", "mediators-realm")
+KEYCLOAK_CLIENT_ID = os.environ.get("KEYCLOAK_CLIENT_ID", "django-app")
+KEYCLOAK_CLIENT_SECRET = os.environ.get("KEYCLOAK_CLIENT_SECRET", "your-client-secret")
 
-# Add Keycloak authentication backend
+# Authentication backends - Keycloak OIDC + local fallback
 AUTHENTICATION_BACKENDS = [
+    "social_core.backends.keycloak.KeycloakOAuth2",
     "django.contrib.auth.backends.ModelBackend",
-    "django_keycloak_auth.backends.KeycloakBackend",
 ]
+
+# Social Auth (Keycloak OIDC) configuration
+SOCIAL_AUTH_KEYCLOAK_KEY = KEYCLOAK_CLIENT_ID
+SOCIAL_AUTH_KEYCLOAK_SECRET = KEYCLOAK_CLIENT_SECRET
+SOCIAL_AUTH_KEYCLOAK_AUTHORIZATION_URL = f"{KEYCLOAK_SERVER_URL}/realms/{KEYCLOAK_REALM}/protocol/openid-connect/auth"
+SOCIAL_AUTH_KEYCLOAK_ACCESS_TOKEN_URL = f"{KEYCLOAK_SERVER_URL}/realms/{KEYCLOAK_REALM}/protocol/openid-connect/token"
+SOCIAL_AUTH_KEYCLOAK_USERINFO_URL = f"{KEYCLOAK_SERVER_URL}/realms/{KEYCLOAK_REALM}/protocol/openid-connect/userinfo"
+SOCIAL_AUTH_KEYCLOAK_END_SESSION_URL = f"{KEYCLOAK_SERVER_URL}/realms/{KEYCLOAK_REALM}/protocol/openid-connect/logout"
+SOCIAL_AUTH_KEYCLOAK_JWKS_URI = f"{KEYCLOAK_SERVER_URL}/realms/{KEYCLOAK_REALM}/protocol/openid-connect/certs"
+SOCIAL_AUTH_KEYCLOAK_SCOPE = ["openid", "email", "profile"]
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = "/dashboard/"
+SOCIAL_AUTH_LOGIN_ERROR_URL = "/login/"
+SOCIAL_AUTH_NEW_USER_REDIRECT_URL = "/dashboard/"
+SOCIAL_AUTH_RAISE_EXCEPTIONS = DEBUG
+SOCIAL_AUTH_URL_NAMESPACE = "social"
+
+# Pipeline to create/link Django users from Keycloak
+SOCIAL_AUTH_PIPELINE = (
+    "social_core.pipeline.social_auth.social_details",
+    "social_core.pipeline.social_auth.social_uid",
+    "social_core.pipeline.social_auth.auth_allowed",
+    "social_core.pipeline.social_auth.social_user",
+    "social_core.pipeline.social_auth.associate_by_email",
+    "social_core.pipeline.user.create_user",
+    "social_core.pipeline.social_auth.associate_user",
+    "social_core.pipeline.social_auth.load_extra_data",
+    "social_core.pipeline.user.user_details",
+    "dashboard.pipeline.set_keycloak_roles",
+)
 
 
 # Password validation

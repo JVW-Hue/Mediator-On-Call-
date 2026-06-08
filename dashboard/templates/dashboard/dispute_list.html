@@ -6,7 +6,7 @@
 {{ block.super }}
 <style>
     .page-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #dc3545 0%, #8B0000 100%);
         border-radius: 16px;
         padding: 1.5rem 2rem;
         margin-bottom: 1.5rem;
@@ -38,12 +38,12 @@
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
     .filter-tab:hover {
-        background: #f0f2ff;
-        color: #667eea;
+        background: #fff5f5;
+        color: #dc3545;
         transform: translateY(-2px);
     }
     .filter-tab.active {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #dc3545 0%, #8B0000 100%);
         color: white;
     }
     .disputes-card {
@@ -51,26 +51,26 @@
          border-radius: 16px;
          box-shadow: 0 4px 15px rgba(0,0,0,0.05);
          overflow: hidden;
-         border: 1px solid #f0f2ff;
+         border: 1px solid #f0f0f0;
      }
     .dispute-row {
         display: flex;
         align-items: center;
         padding: 1rem 1.5rem;
-        border-bottom: 1px solid #f0f2ff;
+        border-bottom: 1px solid #f0f0f0;
         transition: all 0.3s ease;
         flex-wrap: wrap;
         gap: 0.5rem;
     }
     .dispute-row:hover {
-        background: #f8f9ff;
+        background: #fff5f5;
     }
     .dispute-row:last-child {
         border-bottom: none;
     }
     .dispute-id {
         font-weight: 700;
-        color: #667eea;
+        color: #dc3545;
         min-width: 60px;
     }
     .dispute-info {
@@ -111,7 +111,7 @@
     .status-forwarded { background: #cce5ff; color: #004085; }
     .status-responded { background: #d4edda; color: #155724; }
     .status-respondent_agreed { background: #d4edda; color: #155724; }
-    .status-ready_for_assignment { background: #e2d9f3; color: #5a3d8a; }
+    .status-ready_for_assignment { background: #fff5f5; color: #dc3545; }
     .status-mediation_scheduled { background: #cce5ff; color: #004085; }
     .status-mediated { background: #d4edda; color: #155724; }
     .status-closed { background: #e9ecef; color: #495057; }
@@ -122,8 +122,8 @@
         border-radius: 6px;
         font-size: 0.7rem;
         font-weight: 500;
-        background: #f0f2ff;
-        color: #667eea;
+        background: #fff5f5;
+        color: #dc3545;
         margin-right: 0.5rem;
         white-space: nowrap;
     }
@@ -159,19 +159,19 @@
         color: white;
     }
     .btn-assign {
-        background: #e8f5e9;
-        color: #2e7d32;
+        background: #fff5f5;
+        color: #dc3545;
     }
     .btn-assign:hover {
-        background: #2e7d32;
+        background: #dc3545;
         color: white;
     }
     .btn-view {
-        background: #f0f2ff;
-        color: #667eea;
+        background: #fff5f5;
+        color: #dc3545;
     }
     .btn-view:hover {
-        background: #667eea;
+        background: #dc3545;
         color: white;
     }
     .btn-delete {
@@ -206,7 +206,7 @@
         border: none;
     }
     .modal-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #dc3545 0%, #8B0000 100%);
         color: white;
         border-radius: 16px 16px 0 0;
         border-bottom: none;
@@ -324,35 +324,10 @@
                 <a href="{% url 'dashboard:dispute_detail' dispute.pk %}" class="btn-action btn-view">
                     <i class="bi bi-eye"></i> View
                 </a>
-                <button type="button" class="btn-action btn-delete" data-bs-toggle="modal" data-bs-target="#deleteModal{{ dispute.id }}">
+                <button type="button" class="btn-action btn-delete" onclick="confirmArchive({{ dispute.id }}, '{{ dispute.applicant_name }} {{ dispute.applicant_surname }}')">
                     <i class="bi bi-trash"></i>
                 </button>
                 {% endif %}
-            </div>
-            
-            <!-- Delete Modal -->
-            <div class="modal fade" id="deleteModal{{ dispute.id }}" tabindex="-1">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Archive Dispute</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p>Are you sure you want to archive Dispute <strong>#{{ dispute.id }}</strong>?</p>
-                            <p class="text-muted small">This will move it to the Archived tab. It can be restored later.</p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <form method="post" action="{% url 'dashboard:delete_dispute' dispute.id %}" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger">
-                                    <i class="bi bi-archive me-1"></i> Archive
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
         {% endfor %}
@@ -367,4 +342,32 @@
         </div>
     {% endif %}
 </div>
+
+<script>
+function getCsrfToken() {
+    var el = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (el) return el.value;
+    var match = document.cookie.match(/csrftoken=([^;]+)/);
+    return match ? match[1] : '';
+}
+function confirmArchive(id, name) {
+    showConfirm(
+        'Archive Dispute',
+        'Archive #' + id + ' (' + name + ')? It can be restored from the Archived tab.',
+        'Archive',
+        function() {
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/dashboard/dispute/' + id + '/delete/';
+            var csrf = document.createElement('input');
+            csrf.type = 'hidden';
+            csrf.name = 'csrfmiddlewaretoken';
+            csrf.value = getCsrfToken();
+            form.appendChild(csrf);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    );
+}
+</script>
 {% endblock %}
