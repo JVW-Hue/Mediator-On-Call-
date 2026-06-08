@@ -140,11 +140,14 @@ KEYCLOAK_REALM = os.environ.get("KEYCLOAK_REALM", "mediators-realm")
 KEYCLOAK_CLIENT_ID = os.environ.get("KEYCLOAK_CLIENT_ID", "django-app")
 KEYCLOAK_CLIENT_SECRET = os.environ.get("KEYCLOAK_CLIENT_SECRET", "your-client-secret")
 
-# Authentication backends - Keycloak OIDC + local fallback
+# Authentication backends - local always available, Keycloak optional
 AUTHENTICATION_BACKENDS = [
-    "social_core.backends.keycloak.KeycloakOAuth2",
     "django.contrib.auth.backends.ModelBackend",
 ]
+
+# Only add Keycloak if server URL is configured and reachable
+if KEYCLOAK_SERVER_URL and KEYCLOAK_SERVER_URL != "http://localhost:8080":
+    AUTHENTICATION_BACKENDS.insert(0, "social_core.backends.keycloak.KeycloakOAuth2")
 
 # Social Auth (Keycloak OIDC) configuration
 SOCIAL_AUTH_KEYCLOAK_KEY = KEYCLOAK_CLIENT_ID

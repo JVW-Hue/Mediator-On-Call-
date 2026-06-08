@@ -85,9 +85,12 @@ urlpatterns = [
     path("logout/", auth_views.LogoutView.as_view(next_page="login"), name="logout"),
     path("no-access/", no_access, name="no_access"),
     path("dashboard/", include("dashboard.urls")),
-    path("auth/", include("social_django.urls", namespace="social")),
     path("", include("disputes.urls")),
 ]
+
+# Only include social auth URLs if Keycloak is configured
+if settings.KEYCLOAK_SERVER_URL and settings.KEYCLOAK_SERVER_URL != "http://localhost:8080":
+    urlpatterns.insert(-1, path("auth/", include("social_django.urls", namespace="social")))
 
 # Debug-only endpoints (staff only, DEBUG mode only)
 if settings.DEBUG:
