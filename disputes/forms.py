@@ -38,9 +38,8 @@ class DisputeForm(forms.ModelForm):
         widget=forms.TextInput(attrs={"placeholder": "e.g. 0821234567", "maxlength": "20"}),
     )
     applicant_email = forms.EmailField(
-        required=True,
-        error_messages={'required': 'Please enter your email address'},
-        widget=forms.TextInput(attrs={"placeholder": "Enter your email address"}),
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Enter your email address (optional)"}),
     )
     respondent_type = forms.ChoiceField(
         required=True,
@@ -62,9 +61,8 @@ class DisputeForm(forms.ModelForm):
         widget=forms.TextInput(attrs={"placeholder": "Enter respondent's cell"}),
     )
     respondent_email = forms.EmailField(
-        required=True,
-        error_messages={'required': "Please enter the respondent's email address"},
-        widget=forms.TextInput(attrs={"placeholder": "Enter respondent's email address"}),
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Enter respondent's email address (optional)"}),
     )
     business_name = forms.CharField(
         required=False,
