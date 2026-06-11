@@ -492,14 +492,8 @@
             </div>
             <div class="col-md-4">
                 <div class="mediation-item">
-                    <div class="mediation-label">Zoom Link</div>
-                    <div class="mediation-value">
-                        {% if dispute.mediation.zoom_link %}
-                        <a href="{{ dispute.mediation.zoom_link }}" target="_blank" class="btn btn-sm btn-light">
-                            <i class="bi bi-camera-video me-1"></i> Join
-                        </a>
-                        {% else %}—{% endif %}
-                    </div>
+                    <div class="mediation-label">Status</div>
+                    <div class="mediation-value">{{ dispute.get_status_display }}</div>
                 </div>
             </div>
         </div>

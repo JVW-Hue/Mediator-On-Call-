@@ -440,8 +440,6 @@ def assign_mediator_to_dispute(request, pk):
     dispute = get_object_or_404(Dispute, pk=pk)
     mediator_id = request.POST.get("mediator_id")
     scheduled_at_str = request.POST.get("scheduled_at")
-    zoom_link = request.POST.get("zoom_link", "https://zoom.us/j/pending")
-
     if not mediator_id:
         messages.error(request, "Please select a mediator.")
         return redirect("dashboard:dispute_detail", pk=pk)
@@ -463,7 +461,6 @@ def assign_mediator_to_dispute(request, pk):
         defaults={
             "mediator": mediator,
             "scheduled_at": scheduled_at,
-            "zoom_link": zoom_link,
             "host_link": "",
         },
     )
@@ -488,7 +485,6 @@ def assign_mediator_to_dispute(request, pk):
                 respondent_name=respondent_name,
                 case_id=dispute.id,
                 scheduled_at=scheduled_at.strftime("%Y-%m-%d %H:%M") if scheduled_at else "",
-                zoom_link=zoom_link or "",
             )
         except Exception:
             pass
@@ -826,7 +822,6 @@ def assign_mediator_post(request):
         dispute=dispute,
         mediator=mediator,
         scheduled_at=scheduled_at,
-        zoom_link="https://zoom.us/j/pending",
         host_link="",
     )
 
@@ -847,7 +842,6 @@ def assign_mediator_post(request):
             respondent_name=respondent_name,
             case_id=dispute.id,
             scheduled_at=scheduled_at.strftime("%Y-%m-%d %H:%M") if scheduled_at else "",
-            zoom_link="https://zoom.us/j/pending",
         )
 
     send_message_8_mediator_assigned_parties.delay(
@@ -1188,7 +1182,6 @@ def download_case_file(request, pk):
                 if dispute.mediation.mediator
                 else None,
                 "scheduled_at": str(dispute.mediation.scheduled_at),
-                "zoom_link": dispute.mediation.zoom_link,
                 "outcome": dispute.mediation.outcome,
             }
 
@@ -1282,7 +1275,7 @@ def assign_mediator_page(request, pk):
     if request.method == "POST":
         mediator_id = request.POST.get("mediator_id")
         scheduled_at_str = request.POST.get("scheduled_at")
-        join_url = request.POST.get("join_url", "") or "https://zoom.us/j/pending"
+        join_url = request.POST.get("join_url", "")
         host_url = request.POST.get("host_url", "")
 
         if not mediator_id:
@@ -1319,7 +1312,6 @@ def assign_mediator_page(request, pk):
             defaults={
                 "mediator": mediator,
                 "scheduled_at": scheduled_at,
-                "zoom_link": join_url,
                 "host_link": host_url,
             },
         )
@@ -1344,9 +1336,6 @@ def assign_mediator_page(request, pk):
             or "Respondent",
             case_id=dispute.id,
             scheduled_at=scheduled_at.strftime("%Y-%m-%d %H:%M"),
-            zoom_link=join_url
-            if join_url and join_url != "https://zoom.us/j/pending"
-            else "",
         )
 
         # Send to parties
@@ -1361,7 +1350,6 @@ def assign_mediator_page(request, pk):
                 or "Respondent",
                 case_id=dispute.id,
                 scheduled_at=scheduled_at.strftime("%Y-%m-%d %H:%M"),
-                zoom_link=join_url,
             )
 
         if dispute.respondent_email:
@@ -1378,7 +1366,6 @@ def assign_mediator_page(request, pk):
                 other_party_name=applicant_name,
                 case_id=dispute.id,
                 scheduled_at=scheduled_at.strftime("%Y-%m-%d %H:%M"),
-                zoom_link=join_url,
             )
 
         messages.success(

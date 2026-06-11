@@ -227,9 +227,7 @@ TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN", "")
 TWILIO_FROM_NUMBER = os.environ.get("TWILIO_FROM_NUMBER", "")
 TWILIO_WHATSAPP_NUMBER = os.environ.get("TWILIO_WHATSAPP_NUMBER", "")
 
-# Zoom (JWT or OAuth access token; set via environment)
-ZOOM_JWT_TOKEN = os.environ.get("ZOOM_JWT_TOKEN", "")
-ZOOM_ACCESS_TOKEN = os.environ.get("ZOOM_ACCESS_TOKEN", "")
+
 
 # Celery
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379/0")

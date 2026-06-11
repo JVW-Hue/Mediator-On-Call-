@@ -204,7 +204,6 @@ def send_message_8_mediator_assigned_mediator(
     respondent_name: str,
     case_id: int,
     scheduled_at: str,
-    zoom_link: str,
 ):
     """MESSAGE 8: Notify mediator of their assignment"""
     subject = f"New Case Assigned to You - Case #{case_id}"
@@ -217,7 +216,6 @@ CASE INFORMATION:
 - Applicant: {applicant_name}
 - Respondent: {respondent_name}
 - Scheduled Date/Time: {scheduled_at}
-- Zoom Link: {zoom_link if zoom_link and zoom_link != "https://zoom.us/j/pending" else "To be determined"}
 
 NEXT STEPS:
 Please log into your dashboard to view the full case details. It is imperative to contact the Parties within 3 working days to make the necessary arrangements to proceed with and finalize the mediation of the matter.
