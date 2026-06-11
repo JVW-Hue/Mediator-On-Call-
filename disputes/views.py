@@ -248,8 +248,8 @@ def _apply_view(request):
                 except Exception as e:
                     logging.warning(f"Could not send respondent SMS: {e}")
                 
-                # Automatically reject family, labour, or property disputes
-                INELIGIBLE_TYPES = ['family', 'labour', 'property']
+                # Automatically reject family or property disputes
+                INELIGIBLE_TYPES = ['family', 'property']
                 if dispute.dispute_type in INELIGIBLE_TYPES:
                     dispute.status = "rejected"
                     dispute.is_mediatable = False

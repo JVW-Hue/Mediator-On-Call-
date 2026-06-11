@@ -136,7 +136,7 @@ class Dispute(models.Model):
 
     @property
     def is_eligible(self):
-        return self.dispute_type not in ["family", "labour", "property"]
+        return self.dispute_type not in ["family", "property"]
 
 
 class MediatableCase(models.Model):
